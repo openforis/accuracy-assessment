@@ -493,9 +493,7 @@ server <- function(input, output,session) {
     ##################################################################################################################################    
     ############### Find out Map type and store the variable
     mapType <- reactive({
-      # validate(
-      #   need(input$file, "Please select the map file")
-      # )
+      
       req(input$file)
       raster_type <- c('tif')
       vector_type <- c('shp')
@@ -515,6 +513,10 @@ server <- function(input, output,session) {
   
   ################################# Display the file path
   output$filepath = renderPrint({
+    validate(
+      need(input$file, "Please select the map file")
+    )
+    
     df = parseFilePaths(volumes, input$file)
     file_path = as.character(df[,"datapath"])
     nofile = as.character("No file selected")
@@ -564,9 +566,7 @@ server <- function(input, output,session) {
   ##################################################################################################################################    
   ############### Read the input raster or vector data under reactive variable 'lcmap'  
   lcmap <- reactive({
-    validate(
-      need(input$file, "Please select the map file")
-    )
+    
     print("read data")
     ############### Read the name chosen from dropdown menu
     ############### Load the raster corresponding to the selected name
@@ -692,9 +692,7 @@ server <- function(input, output,session) {
   
   # Display the shapefile data based on the columns selected to display
   output$dataTableUI_vector <- renderDataTable({
-    validate(
-      need(input$file, "Please select the map file")
-    )
+    
     req(mapType()== "vector_type", input$show_vars2)
     lcmap <- as.data.frame(lcmap())
     lcmap[, input$show_vars2, drop = FALSE]
