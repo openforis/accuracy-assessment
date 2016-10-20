@@ -140,7 +140,9 @@ ui <- dashboardPage(
       tags$head(
         tags$style(HTML("
                         .shiny-output-error-validation {
-                          color: red;
+                        color: #cc00ff;
+                        font-family:courier;
+                        font-size: 120%;
                           }
                        "))
       ),
