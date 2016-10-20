@@ -325,6 +325,9 @@ server <- function(input, output,session) {
   
   ################################# Display the file path
   output$pointfilepath = renderPrint({
+    validate(
+      need(input$CEfilename, "Missing input: Please select the file containing the reference and map data")
+    )
     df = parseFilePaths(volumes, input$CEfilename)
     file_path = as.character(df[,"datapath"])
     nofile = as.character("No file selected")
@@ -346,6 +349,9 @@ server <- function(input, output,session) {
   
   ################################# Display the file path
   output$areafilepath = renderPrint({
+    validate(
+      need(input$areafilename, "Missing input: Please select the area file")
+    )
     df = parseFilePaths(volumes, input$areafilename)
     file_path = as.character(df[,"datapath"])
     nofile = as.character("No file selected")
@@ -470,9 +476,6 @@ server <- function(input, output,session) {
     
     ## display the collect earth output file as a Data Table
     output$inputTable <- renderDataTable({
-      validate(
-        need(input$CEfilename, "Missing input: Please select the file containing the reference and map data")
-      )
       req(input$show_vars)
       df_i <- df_i()
       df_i[, input$show_vars, drop = FALSE]
@@ -634,6 +637,9 @@ server <- function(input, output,session) {
   })
   
   output$map_check <- renderLeaflet({
+    validate(
+      need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'")
+    )
     df_i_map<- df_i_map()
     xcrd <- as.character(input$selectX)
     ycrd <- as.character(input$selectY)

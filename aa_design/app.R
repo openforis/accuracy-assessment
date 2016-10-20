@@ -516,7 +516,7 @@ server <- function(input, output,session) {
   ################################# Display the file path
   output$filepath = renderPrint({
     validate(
-      need(input$file, "Please select the map file")
+      need(input$file, "Missing input: Please select the map file")
     )
     
     df = parseFilePaths(volumes, input$file)
@@ -531,7 +531,7 @@ server <- function(input, output,session) {
   ################################# Output directory path
   outdir <- reactive({
     validate(
-      need(input$outdir, "Please select the output directory")
+      need(input$outdir, "Missing input: Please select the output directory")
     )
     # req(input$outdir)
     dirpath <- parseDirPath(volumes, input$outdir)
@@ -737,7 +737,7 @@ server <- function(input, output,session) {
   ############### Setup whether Calculation of area in raster mode should be done with R or OFT
   output$MapAreaCalcOption <- renderUI({
     validate(
-      need(input$file, "Please select the map file")
+      need(input$file, "Missing input: Please select the map file")
     )
     req(mapType()== "raster_type", input$IsManualAreaRaster != T)
     isolate(
@@ -1121,7 +1121,7 @@ server <- function(input, output,session) {
   ############### Display the total sample size
   output$overall_sampling_size <- reactive({
     validate(
-      need(input$file, "Please select the map file"),
+      need(input$file, "Missing input: Please select the map file"),
       need(input$submitLegend, "Click on submit legend in tab 2 'Map areas'"),
       need(input$cat_hi,"Select the classes to include with high and low confidence in the previous tab")
     )
@@ -1146,7 +1146,7 @@ server <- function(input, output,session) {
     print('this is the table for sampling')
     if(input$IsManualSampling == T){
       validate(
-        need(input$ManualSamplingFile, "Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
+        need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
       )
       df<-read.csv(paste(outdir(),"/",input$ManualSamplingFile$name,sep=""),header = T)
       }else{
@@ -1184,12 +1184,9 @@ server <- function(input, output,session) {
       
       if(input$IsManualSampling == T){
           validate(
-            need(input$ManualSamplingFile, "Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
+            need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
           )
         rp <- read.csv(paste0(outdir(),"/", input$ManualSamplingFile$name), header = T)
-        validate(
-          need(input$ManualSamplingFile, "Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
-        )
         }
       map <- lcmap()
       
@@ -1283,7 +1280,7 @@ server <- function(input, output,session) {
             rp <- strat_sample()
             if(input$IsManualSampling == T){
                 validate(
-                  need(input$ManualSamplingFile, "Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
+                  need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
                 )
               rp <- read.csv(paste0(outdir(),"/", input$manualSampling$name), header = T)
               }
@@ -1360,7 +1357,7 @@ server <- function(input, output,session) {
   spdf <- reactive({
         req(all_features())
         validate(
-          need(input$file, "Please select the map file"),
+          need(input$file, "Missing input: Please select the map file"),
           need(input$submitLegend, "Click on submit legend in tab 2 'Map areas'"),
           need(input$cat_hi,"Select the classes to include with high and low confidence in tab 3 'Classes to include'")
         )
@@ -1404,7 +1401,7 @@ server <- function(input, output,session) {
   ## render the map
   output$plotxy  <-  renderLeaflet({
     validate(
-      need(input$file, "Please select the map file"),
+      need(input$file, "Missing input: Please select the map file"),
       need(input$submitLegend, "Click on submit legend in tab 2 'Map areas'"),
       need(input$cat_hi,"Select the classes to include with high and low confidence in tab 3 'Classes to include'")
     )
