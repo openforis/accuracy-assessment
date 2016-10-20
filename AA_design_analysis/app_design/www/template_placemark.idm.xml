@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<survey lastId="1021" created="2016-10-14T18:00:05.795+01:00" modified="2016-10-14T23:03:37.701+01:00" collectearth:plotarea="0.25" collectearth:samplepoints="9" collect:target="CE" collectearth:openExplorer="false" xsi:schemaLocation="http://www.openforis.org/idml/3.0  &#9;&#9;https://raw.github.com/openforis/ollect/master/collect-core/src/main/resources/idml3.xsd       &#9;&#9;http://www.openforis.org/collect/3.0/ui  &#9;&#9;https://raw.github.com/openforis/collect/master/collect-core/src/main/resources/idml3-ui.xsd" collect:collectVersion="3.10.12" collectearth:openCodeEditor="false" xmlns="http://www.openforis.org/idml/3.0" xmlns:collect="http://www.openforis.org/collect/3.0/collect" xmlns:ui="http://www.openforis.org/collect/3.0/ui" xmlns:collectearth="http://www.openforis.org/collect/3.0/collectearth" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <project>AA template COUNTRY</project>
+  <uri>http://www.openforis.org/idm/aa_template_polygon</uri>
+  <language>en</language>
+  <language>es</language>
+  <language>fr</language>
+  <applicationOptions>
+    <options type="ui">
+<n0:tabSet name="plot_tab_set" xmlns:n0="http://www.openforis.org/collect/3.0/ui">
+  <n0:tab name="plot_tab">
+    <n0:label>Plot</n0:label>
+    <n0:label xml:lang="es">Parcela</n0:label>
+    <n0:label xml:lang="fr">Parcelle</n0:label>
+  </n0:tab>
+  <n0:tab name="tab_1012">
+    <n0:label>Comments</n0:label>
+  </n0:tab>
+</n0:tabSet>
+    </options>
+  </applicationOptions>
+  <codeLists>
+    <list id="1001" name="sampling_design" lookup="ofc_sampling_design">
+      <hierarchy>
+        <level name="level1" />
+        <level name="level2" />
+        <level name="level3" />
+      </hierarchy>
+    </list>
+    <list id="1006" name="confidence">
+      <label type="item">Confidence of interpretation</label>
+      <codingScheme scope="local" />
+      <items>
+        <item id="1010">
+          <code>hi</code>
+          <label>High</label>
+        </item>
+        <item id="1011">
+          <code>lo</code>
+          <label>Low</label>
+        </item>
+      </items>
+    </list>
+    <list id="1014" name="class">
+      <label type="item">Class label</label>
+      <codingScheme scope="local" />
+      <items>
+        <item id="1015">
+          <code>a</code>
+          <label>Code a</label>
+        </item>
+        <item id="1016">
+          <code>2</code>
+          <label>Code 2</label>
+        </item>
+        <item id="1017">
+          <code>something</code>
+          <label>Code else</label>
+        </item>
+      </items>
+    </list>
+  </codeLists>
+  <spatialReferenceSystems>
+    <spatialReferenceSystem srid="EPSG:4326">
+      <label xml:lang="en">WGS 84</label>
+      <description xml:lang="en">WGS 84</description>
+      <wkt><![CDATA[GEOGCS["WGS 84",
+		  		DATUM["WGS_1984",
+		  			SPHEROID["WGS 84",6378137,298.257223563, AUTHORITY["EPSG","7030"]],
+		        	AUTHORITY["EPSG","6326"]],
+	    		PRIMEM["Greenwich",0,
+	        		AUTHORITY["EPSG","8901"]],
+	    		UNIT["degree",0.01745329251994328,
+	        		AUTHORITY["EPSG","9122"]],
+	    		AUTHORITY["EPSG","4326"]]]]>
+      </wkt>
+    </spatialReferenceSystem>
+  </spatialReferenceSystems>
+  <referenceDataSchema>
+    <samplingPoint />
+  </referenceDataSchema>
+  <schema>
+    <entity id="1" name="plot" ui:tab="plot_tab" ui:tabSet="plot_tab_set">
+      <label type="instance">Plot</label>
+      <label type="instance" xml:lang="es">Parcela</label>
+      <label type="instance" xml:lang="fr">Parcelle</label>
+      <text id="2" name="id" required="true" key="true" type="short">
+        <label type="instance">Id</label>
+        <label type="instance" xml:lang="es">Id</label>
+        <label type="instance" xml:lang="fr">Id</label>
+      </text>
+      <coordinate id="3" name="location">
+        <label type="instance">Location</label>
+        <label type="instance" xml:lang="es">Posicion</label>
+        <label type="instance" xml:lang="fr">Lieu</label>
+      </coordinate>
+      <text id="4" name="operator" type="short">
+        <label type="instance">Operator</label>
+        <label type="instance" xml:lang="es">Operador</label>
+        <label type="instance" xml:lang="fr">Opérateur</label>
+      </text>
+      <number id="5" name="elevation" collectearth:fromcsv="true" type="integer">
+        <label type="instance">Elevation</label>
+        <label type="instance" xml:lang="es">Elevacion</label>
+        <label type="instance" xml:lang="fr">Elevation</label>
+      </number>
+      <number id="6" name="slope" collectearth:fromcsv="true" type="real">
+        <label type="instance">Slope</label>
+        <label type="instance" xml:lang="es">Pendiente</label>
+        <label type="instance" xml:lang="fr">Pente</label>
+      </number>
+      <number id="7" name="aspect" collectearth:fromcsv="true" type="real">
+        <label type="instance">Aspect</label>
+        <label type="instance" xml:lang="es">Exposicion</label>
+        <label type="instance" xml:lang="fr">Aspect</label>
+      </number>
+      <text id="1018" name="region" ui:tab="plot_tab" collectearth:fromcsv="true" type="short">
+        <label type="instance">Region</label>
+      </text>
+      <text id="1019" name="country" ui:tab="plot_tab" collectearth:fromcsv="true" type="short">
+        <label type="instance">Country</label>
+      </text>
+      <text id="1020" name="geometry" required="true" ui:tab="plot_tab" collectearth:fromcsv="true" type="short">
+        <label type="instance">Geometry</label>
+      </text>
+      <number id="1021" name="area" ui:tab="plot_tab" collectearth:fromcsv="true" type="real">
+        <label type="instance">Unit Area</label>
+      </number>
+      <code id="1007" name="map_class" ui:tab="plot_tab" collectearth:fromcsv="true" list="class">
+        <label type="instance">Map Class</label>
+      </code>
+      <boolean id="8" name="actively_saved">
+        <label type="instance">Actively saved by user</label>
+        <label type="instance" xml:lang="es">Guardado por el usuario activamente</label>
+        <label type="instance" xml:lang="fr">Sauvé par l'utilisateur</label>
+      </boolean>
+      <date id="9" name="actively_saved_on" relevant="false()">
+        <label type="instance">Last saved on</label>
+        <label type="instance" xml:lang="es">Guardado por ultima vez</label>
+        <label type="instance" xml:lang="fr">Sauvé la dernière fois sur</label>
+      </date>
+      <text id="10" name="plot_file" relevant="false()" type="short">
+        <label type="instance">CSV file that contains the plot</label>
+        <label type="instance" xml:lang="es">Archivo CSV que contiene al plot</label>
+        <label type="instance" xml:lang="fr">Fichier CSV qui contient le point</label>
+      </text>
+      <code id="1008" name="ref_class" required="true" ui:tab="plot_tab" ui:layoutType="dropdown" list="class">
+        <label type="instance">Class</label>
+      </code>
+      <code id="1009" name="confidence" required="true" ui:tab="plot_tab" list="confidence">
+        <label type="instance">Confidence</label>
+      </code>
+      <text id="1013" name="comments" ui:tab="tab_1012" type="memo">
+        <label type="instance">Comments</label>
+      </text>
+    </entity>
+  </schema>
+</survey>

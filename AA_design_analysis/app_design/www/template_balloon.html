@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<script type="text/javascript">
+	/**
+	 * 
+	 * Values expected ( for the "HTTP parameters" -> "Collect format"
+	 * conversion to work )
+	 * 
+	 * All inputs that have proccesable information ( hidden or otherwise) should
+	 * start with "collect_" :
+	 * 
+	 * If the input is text then it should be followed by "text_" If the input is a
+	 * code (option in combo-box for instance) then it should be followed by "code_"
+	 * If the input is a date then it should be followed by "date_" If the input is
+	 * a coordinate then it should be followed by "coord_" ( the value expected has
+	 * the format "longitude,latitude" ) If the input is an integer then it should
+	 * be followed by "integer_" If the input is a boolean then it should be
+	 * followed by "boolean_"
+	 * 
+	 * When multiple values can be sent ( in a multiple select for instance ) the
+	 * data sent in the Http parameters has to be separated using " " ( a space )
+	 *
+	 * When a value has multiple values they will be separated with "===" i.e.
+	 * collect_code_human_impact_type = "fire===logging===grazing"
+	 * 
+	 * Other inputs: earth_skip_filled
+	 * 
+	 */
+	 
+ 	/**
+ 	* STATIC CONSTANTS 
+ 	* DO NOT REMOVE THIS LINE
+ 	*/
+	var DEBUG = false; // if set to true, log messages will appear in a box in the bottom part of the balloon
+ 	var NEXT_ID = "$[next_id]";
+ 	var HOST = "$[host]";
+ 	
+ 	var SUBMIT_LABEL = "Send";
+    var NEXT_LABEL = "Next";
+    var PREVIOUS_LABEL = "Previous";
+    
+    var COLLECT_NOT_RUNNING = "The Collect Earth server is not running!";
+    var PLACEMARK_ALREADY_FILLED = "The data for this plot has already been filled";
+    
+    
+    // By default all Collect Earth surveys are defined as having at least the id attribute "id" which is stored by the balloon as collect_text_id
+    // If more id attributes are present in the survey then their names ( using the protocoal for the transmission e.g. "collect_code_year") will be specified in this list :
+    // the value of this variable should be something like ['collect_text_id'] or ['collect_text_id','collect_code_measurement']
+    var EXTRA_ID_ATTRIBUTES = ['collect_text_id'];
+    
+    
+	</script>
+	
+	<script src="earthFiles/jquery/jquery.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/jquery/jquery-ui.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/jquery/jquery.blockUI.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/jquery/jquery.selectBoxIt.min.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/jquery/jquery.steps.openforis.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/bootstrap/bootstrap.min.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/bootstrap/moment.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/bootstrap/bootstrap-datetimepicker.min.js?v=$[randomNumber]"></script>
+
+	<script src="earthFiles/openforis/of.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/openforis/of-arrays.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/openforis/of-ui.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/openforis/of-ui-forms.js?v=$[randomNumber]"></script>
+	<script src="earthFiles/openforis/of-ui-forms-validation.js?v=$[randomNumber]"></script>
+	
+	<script src="earthFiles/js/earth.js?v=$[randomNumber]"></script>
+	
+	<link href="earthFiles/jquery/jquery-ui.css?v=$[randomNumber]" rel="stylesheet" />
+	<link href="earthFiles/jquery/jquery.selectBoxIt.css?v=$[randomNumber]" rel="stylesheet" />
+	<link href="earthFiles/jquery/jquery-steps.css?v=$[randomNumber]" rel="stylesheet" />
+	<link href="earthFiles/bootstrap/bootstrap.css?v=$[randomNumber]" rel="stylesheet" />
+	<link href="earthFiles/bootstrap/bootstrap-datetimepicker.min.css?v=$[randomNumber]" rel="stylesheet"  />
+	
+	<link href="earthFiles/css/earth.css?v=$[randomNumber]" rel="stylesheet" />
+	<!--
+	
+		Handle the fonts for different languages that don't have their own glyphs opn the standard interface
+		Right now we only have Lao
+		
+		The TTF file needs to be loaded through the same URL than the balloon to avoid cross referencing issues
+		Use the two character code of the language as the name of the font  
+	-->
+	<style  type="text/css">
+	        @font-face {
+		      font-family: 'lo'; 
+			  src: url('$[host]generated/earthFiles/fonts/Phetsarath_OT.ttf');
+			}
+			
+			@font-face {
+		      font-family: 'mn'; 
+			  src: url('$[host]generated/earthFiles/fonts/arhangai.ttf');
+			}
+		
+			body {
+				font-family: "en","Trebuchet MS", "Helvetica", "Arial", "Verdana",
+					"sans-serif";
+			}
+	</style>
+</head>
+
+<body>
+
+	<div id="dialogSuccess">
+		<table>
+			<tr>
+				<td valign="top">
+					<span class="ui-icon ui-icon-circle-check"
+						style="float: left; margin: 0 7px 70px 0;"> </span>
+				</td>
+				<td valign="top">
+					<div id="succ_mess">
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="contentDiv"  style="height:600px;width:100%;">
+		<div id="scrollingDiv" style="overflow :visible;" class="earthDiv">
+			<form id="formAll" class="form-horizontal" action="$[host]save-data-expanded">
+			<!-- <form id="formAll" class="form-horizontal" action="http://127.0.0.1:8028/earth/save-data-expanded"> -->
+								
+				<input type="hidden" id="collect_coord_location" 
+					name="collect_coord_location" value="$[latitude],$[longitude]"
+					class="extra" />
+				
+				<input type="hidden" id="collect_text_plot_file" 
+					name="collect_text_plot_file" value="$[plot_file]"
+					class="extra" />
+
+				<input type="hidden" id="collect_boolean_actively_saved"
+					name="collect_boolean_actively_saved" value="false" />
+					
+<!-- DO NOT REMOVE THIS LINE - IT GENERATES THE EXTRA FIELDS FROM THE CSV-BALLOON INTEGRATION -->
+<!-- START OF EXTRA CSV DATA -->
+<input type="hidden" id="collect_text_id" name="collect_text_id" value="$[EXTRA_id]" class="extra" />
+<input type="hidden" id="collect_integer_elevation" name="collect_integer_elevation" value="$[EXTRA_elevation]" class="extra" />
+<input type="hidden" id="collect_real_slope" name="collect_real_slope" value="$[EXTRA_slope]" class="extra" />
+<input type="hidden" id="collect_real_aspect" name="collect_real_aspect" value="$[EXTRA_aspect]" class="extra" />
+<input type="hidden" id="collect_text_region" name="collect_text_region" value="$[EXTRA_region]" class="extra" />
+<input type="hidden" id="collect_text_country" name="collect_text_country" value="$[EXTRA_country]" class="extra" />
+<input type="hidden" id="collect_text_geometry" name="collect_text_geometry" value="$[EXTRA_geometry]" class="extra" />
+<input type="hidden" id="collect_real_area" name="collect_real_area" value="$[EXTRA_area]" class="extra" />
+<input type="hidden" id="collect_code_map_class" name="collect_code_map_class" value="$[EXTRA_map_class]" class="extra" />
+
+<!-- END OF EXTRA CSV DATA -->
+		
+<!-- DO NOT REMOVE THIS LINE - IT GENERATES THE DYNAMIC FIELDS FROM THE SURVEY DEFINITION -->
+<!-- START OF DYNAMIC FIELDS -->
+<div class="steps">
+<h3>Plot</h3>
+<section class="step">
+<div class="form-group">
+<label class="control-label col-sm-4" for="collect_code_ref_class">Class</label>
+<div class="col-sm-8">
+<select class="form-control selectboxit show-menu-arrow show-tick" data-field-type="CODE_SELECT" data-width="75px" id="collect_code_ref_class" name="collect_code_ref_class"><option value="">Nothing selected</option><option value="a">Code a</option><option value="2">Code 2</option><option value="something">Code else</option></select>
+</div>
+</div>
+<div class="form-group">
+<label class="control-label col-sm-4" for="collect_code_confidence">Confidence</label>
+<div class="col-sm-8">
+<div class="code-items-group" id="collect_code_confidence_group">
+<input class="form-control" data-field-type="CODE_BUTTON_GROUP" id="collect_code_confidence" name="collect_code_confidence" type="hidden">
+<div class="code-items" data-toggle="buttons-radio" id="collect_code_confidence_group_0">
+<button class="btn btn-info code-item" data-code-item-id="1010" type="button" value="hi">High</button><button class="btn btn-info code-item" data-code-item-id="1011" type="button" value="lo">Low</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<h3>Comments</h3>
+<section class="step">
+<div class="form-group">
+<label class="control-label col-sm-4" for="collect_text_comments">Comments</label>
+<div class="col-sm-8">
+<textarea class="form-control" id="collect_text_comments" name="collect_text_comments" rows="3"> </textarea>
+</div>
+</div>
+</section>
+</div>
+
+<!-- END OF DYNAMIC FIELDS -->
+			</form>
+		</div>
+	</div>
+	<iframe style="display: none" src="http://127.0.0.1:$[local_port]/earth/ancillaryWindows?id=$[EXTRA_id]" height="0" width="0"></iframe>
+</body>
+</html>

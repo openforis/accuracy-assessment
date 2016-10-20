@@ -1,0 +1,111 @@
+<Schema name="aa_template_polygon">
+  <Cube name="Collect Earth Plot" cache="true" enabled="true">
+    <Table name="plot" schema="${saikuDbSchema}"/>
+    <Dimension name="Id" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Id" column="id" uniqueMembers="true" levelType="Regular" type="String"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Location" type="" visible="true">
+      <Hierarchy type="StandardDimension" visible="true" hasAll="true">
+        <Level name="Location - Latitude" column="location_y" uniqueMembers="true"/>
+        <Level name="Location - Longitude" column="location_x" uniqueMembers="true"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Operator" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Operator" column="operator" uniqueMembers="true" levelType="Regular" type="String"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Elevation" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Elevation" column="elevation" uniqueMembers="true" levelType="Regular" type="Integer"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Slope" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Slope" column="slope" uniqueMembers="true" levelType="Regular" type="Numeric"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Aspect" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Aspect" column="aspect" uniqueMembers="true" levelType="Regular" type="Numeric"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Region" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Region" column="region" uniqueMembers="true" levelType="Regular" type="String"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Country" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Country" column="country" uniqueMembers="true" levelType="Regular" type="String"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Geometry" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Geometry" column="geometry" uniqueMembers="true" levelType="Regular" type="String"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Unit Area" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Unit Area" column="area" uniqueMembers="true" levelType="Regular" type="Numeric"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Map Class" foreignKey="map_class_code_id" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Table name="class_code" schema="${saikuDbSchema}"/>
+        <Level name="Map Class" table="class_code" column="class_code_id" nameColumn="class_label_en" uniqueMembers="true" levelType="Regular" type="Integer"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Actively saved by user" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Actively saved by user" column="actively_saved" uniqueMembers="true" levelType="Regular" type="String"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Last saved on" type="" visible="true">
+      <Hierarchy type="TimeDimension" allMemberName="attrLabel" visible="true" hasAll="true">
+        <Level name="Last saved on - Year" column="actively_saved_on_year" uniqueMembers="true" levelType="TimeYears" type="Numeric"/>
+        <Level name="Last saved on - Month" column="actively_saved_on_month" uniqueMembers="true" levelType="TimeMonths" type="Numeric"/>
+        <Level name="Last saved on - Day" column="actively_saved_on_day" uniqueMembers="true" levelType="TimeDays" type="Numeric"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="CSV file that contains the plot" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="CSV file that contains the plot" column="plot_file" uniqueMembers="true" levelType="Regular" type="String"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Class" foreignKey="ref_class_code_id" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Table name="class_code" schema="${saikuDbSchema}"/>
+        <Level name="Class" table="class_code" column="class_code_id" nameColumn="class_label_en" uniqueMembers="true" levelType="Regular" type="Integer"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Confidence" foreignKey="confidence_code_id" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Table name="confidence_code" schema="${saikuDbSchema}"/>
+        <Level name="Confidence" table="confidence_code" column="confidence_code_id" nameColumn="confidence_label_en" uniqueMembers="true" levelType="Regular" type="Integer"/>
+      </Hierarchy>
+    </Dimension>
+    <Dimension name="Comments" type="StandardDimension" visible="true">
+      <Hierarchy visible="true" hasAll="true">
+        <Level name="Comments" column="comments" uniqueMembers="true" levelType="Regular" type="String"/>
+      </Hierarchy>
+    </Dimension>
+    <Measure name="plot_count" column="_plot_id" datatype="Integer" aggregator="distinct count" caption="Plot Count"/>
+    <Measure name="area" column="expansion_factor" datatype="Integer" aggregator="sum" caption="Area (HA)" formatString="###,###"/>
+    <Measure name="plot_weight" column="plot_weight" datatype="Integer" aggregator="sum" caption="Plot Weight" formatString="#,###"/>
+    <Measure name="elevation_min" column="elevation" datatype="Numeric" aggregator="min" caption="Elevation min" formatString="#.##"/>
+    <Measure name="elevation_max" column="elevation" datatype="Numeric" aggregator="max" caption="Elevation max" formatString="#.##"/>
+    <Measure name="elevation_avg" column="elevation" datatype="Numeric" aggregator="avg" caption="Elevation avg" formatString="#.##"/>
+    <Measure name="slope_min" column="slope" datatype="Numeric" aggregator="min" caption="Slope min" formatString="#.##"/>
+    <Measure name="slope_max" column="slope" datatype="Numeric" aggregator="max" caption="Slope max" formatString="#.##"/>
+    <Measure name="slope_avg" column="slope" datatype="Numeric" aggregator="avg" caption="Slope avg" formatString="#.##"/>
+    <Measure name="aspect_min" column="aspect" datatype="Numeric" aggregator="min" caption="Aspect min" formatString="#.##"/>
+    <Measure name="aspect_max" column="aspect" datatype="Numeric" aggregator="max" caption="Aspect max" formatString="#.##"/>
+    <Measure name="aspect_avg" column="aspect" datatype="Numeric" aggregator="avg" caption="Aspect avg" formatString="#.##"/>
+    <Measure name="area_min" column="area" datatype="Numeric" aggregator="min" caption="Unit Area min" formatString="#.##"/>
+    <Measure name="area_max" column="area" datatype="Numeric" aggregator="max" caption="Unit Area max" formatString="#.##"/>
+    <Measure name="area_avg" column="area" datatype="Numeric" aggregator="avg" caption="Unit Area avg" formatString="#.##"/>
+  </Cube>
+</Schema>

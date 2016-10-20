@@ -1,0 +1,27 @@
+[general] 
+creator=R package 'raster' 
+created= 2011-11-12 14:47:38 
+[georeference] 
+nrows= 780 
+ncols= 756 
+xmin= -8.7 
+ymin= 4.3 
+xmax= -2.4 
+ymax= 10.8 
+projection= +proj=longlat +ellps=WGS84 
+[data] 
+datatype= INT2S 
+byteorder= little 
+nbands= 1 
+bandorder= BIL 
+categorical= FALSE 
+minvalue= -34 
+maxvalue= 1291 
+nodatavalue= -9999 
+[legend] 
+legendtype=  
+values=  
+color=  
+[description] 
+layername= CIV_msk_alt 
+history=  
