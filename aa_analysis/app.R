@@ -451,26 +451,25 @@ server <- function(input, output,session) {
     ## select the column with the area column
     output$areaCol <- renderUI({
       req(input$areafilename)
-      # validate(
-      #   need(input$areafilename, "Missing input: Please select the area file")
-      # )
-      # if(is.element('map_area',names(areas_read()))==FALSE){
+      if(is.element('map_area',names(areas_read()))==FALSE){
         selectInput('selectAreaCol', 
                     'Choose the map area column from the area file', 
                     choices= names(areas_read()),
-                    multiple = FALSE)
-      # }
+                    multiple = FALSE,
+                    selected = c("area",'map_area','areas',"Area",'AREA'))
+      }
     })
     
     ## select the column with the classes in the area file
     output$classCol <- renderUI({
       req(input$areafilename)
-      # if(is.element('map_class',names(areas_read()))==FALSE){
+      if(is.element('map_class',names(areas_read()))==FALSE){
         selectInput('selectClassCol', 
                     'Choose the class column from the area file', 
                     choices= names(areas_read()),
-                    multiple = FALSE)
-      # }
+                    multiple = FALSE,
+                    selected = c("map_code","map_class"))
+      }
     })
 
     ## columns in data table to display
