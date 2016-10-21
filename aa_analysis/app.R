@@ -222,7 +222,10 @@ ui <- dashboardPage(skin='green',
                     uiOutput("column_ref"),
                     uiOutput("column_map"),
                     uiOutput("areaCol"),
-                    uiOutput("classCol")
+                    uiOutput("classCol"),
+                    checkboxInput("plot_size_col", label="Do you have a column in the reference data input file with the plot size of each sample?"),
+                    uiOutput("refPlotSize")
+                    
               ),
               # New box
               box(title= "Display data", status = "success", solidHeader= TRUE, width= 8,
@@ -406,7 +409,8 @@ server <- function(input, output,session) {
       ############### Read the name chosen from dropdown menu
       df = parseFilePaths(volumes, input$areafilename)
       file_path = as.character(df[,"datapath"])
-      areas_i <- read.csv(file_path) 
+      areas_read <- read.csv(file_path) 
+      areas_read
       })
   
     ## Collect earth output file
@@ -422,9 +426,10 @@ server <- function(input, output,session) {
     
     ## select column with reference data
     output$column_ref <- renderUI({
-      validate(
-        need(input$CEfilename, "Missing input: Please select the file containing the reference and map data")
-      )
+      # validate(
+      #   need(input$CEfilename, "Missing input: Please select the file containing the reference and map data")
+      # )
+      req(input$CEfilename)
       selectInput('reference_data', 
                   'Choose the column with the reference data information', 
                   choices= names(df_i()),
@@ -445,25 +450,27 @@ server <- function(input, output,session) {
     
     ## select the column with the area column
     output$areaCol <- renderUI({
-      validate(
-        need(input$areafilename, "Missing input: Please select the area file")
-      )
-      if(is.element('map_area',names(areas_i()))==FALSE){
+      req(input$areafilename)
+      # validate(
+      #   need(input$areafilename, "Missing input: Please select the area file")
+      # )
+      # if(is.element('map_area',names(areas_read()))==FALSE){
         selectInput('selectAreaCol', 
                     'Choose the map area column from the area file', 
-                    choices= names(areas_i()),
+                    choices= names(areas_read()),
                     multiple = FALSE)
-      }
+      # }
     })
     
     ## select the column with the classes in the area file
     output$classCol <- renderUI({
-      if(is.element('map_class',names(areas_i()))==FALSE){
+      req(input$areafilename)
+      # if(is.element('map_class',names(areas_read()))==FALSE){
         selectInput('selectClassCol', 
                     'Choose the class column from the area file', 
-                    choices= names(areas_i()),
+                    choices= names(areas_read()),
                     multiple = FALSE)
-      }
+      # }
     })
 
     ## columns in data table to display
@@ -490,17 +497,32 @@ server <- function(input, output,session) {
       areas
     })
     
+    ## select the column with size of each plot in the reference data file
+    output$refPlotSize <- renderUI({
+      if(input$plot_size_col==T){
+        if(is.element('area',names(df_i()))==FALSE){
+          selectInput('refAreaCol', 
+                      'Choose the plot size column from the reference data file', 
+                      choices= names(df_i()),
+                      multiple = FALSE)
+        }
+      }
+    })
+    
     ## Modify the df_i to fit the different formats
-    df_i_map <- reactive({
+    df_i_map <- reactive({ 
+
       req(input$CEfilename)
       df_i <- df_i()
       colnames(df_i)[names(df_i) == input$map_data] <- "map_code"
       colnames(df_i)[names(df_i) == input$reference_data] <- "ref_code"
+      if(!is.null(input$refAreaCol))colnames(df_i)[names(df_i) == input$refAreaCol] <- "area"
       
       ### If the file doesn't contain an area column, set the area to 1
       if(!("area" %in% names(df_i))){
         df_i$area <- 1
       }
+      print(names(df_i))
       df_i_map <- as.data.frame(df_i)
       
     })
@@ -647,10 +669,8 @@ server <- function(input, output,session) {
       need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'")
     )
     df_i_map<- df_i_map()
-    xcrd <- as.character(input$selectX)
-    ycrd <- as.character(input$selectY)
     dfa <- SpatialPointsDataFrame(
-      coords=df_i_map[,c(xcrd,ycrd)],
+      coords=as.matrix(df_i_map[,c(input$selectX,input$selectY)]),
       data=df_i_map,
       proj4string=CRS("+proj=longlat +datum=WGS84"),
       match.ID=F)
