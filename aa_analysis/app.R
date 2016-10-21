@@ -400,7 +400,7 @@ server <- function(input, output,session) {
   #   })
 
   ## Map area CSV
-    areas_i   <- reactive({
+    areas_read   <- reactive({
       req(input$areafilename)
       print("read data of area")
       ############### Read the name chosen from dropdown menu
@@ -481,18 +481,26 @@ server <- function(input, output,session) {
       df_i[, input$show_vars, drop = FALSE]
     })
     
-   
+   ## standardize the column names for the area file
+    areas_i <- reactive({
+      req(input$areafilename)
+      areas <- areas_read()
+      if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_class"}
+      if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas) == input$selectAreaCol] <- "map_area"}
+      areas
+    })
     
     ## Modify the df_i to fit the different formats
     df_i_map <- reactive({
       req(input$CEfilename)
       df_i <- df_i()
+      colnames(df_i)[names(df_i) == input$map_data] <- "map_code"
+      colnames(df_i)[names(df_i) == input$reference_data] <- "ref_code"
       
       ### If the file doesn't contain an area column, set the area to 1
       if(!("area" %in% names(df_i))){
         df_i$area <- 1
       }
-     
       df_i_map <- as.data.frame(df_i)
       
     })
@@ -564,12 +572,10 @@ server <- function(input, output,session) {
     #beginCluster()
     print("Legend")
     df_i_map <- df_i_map()
-    map_code <- input$map_data
-    
-    if(!is.null(input$map_data)){legend_i <- levels(as.factor(df_i_map[,map_code]))}
-    if(!is.null(input$map)){
-      lcmap
-    }
+    if(!is.null(input$map_data)){legend_i <- levels(as.factor(df_i_map$map_code))}
+    # if(!is.null(input$map)){
+    #   lcmap
+    # }
     legend_i 
   })
   
@@ -643,8 +649,6 @@ server <- function(input, output,session) {
     df_i_map<- df_i_map()
     xcrd <- as.character(input$selectX)
     ycrd <- as.character(input$selectY)
-    map_code <- as.character(input$map_data)
-    print(map_code)
     dfa <- SpatialPointsDataFrame(
       coords=df_i_map[,c(xcrd,ycrd)],
       data=df_i_map,
@@ -679,8 +683,8 @@ server <- function(input, output,session) {
     
     areas <- areas_i()
     legend <- legend_i()
-    ref_code <- input$reference_data
-    map_code <- input$map_data
+    ref_code <- "ref_code"
+    map_code <- "map_code"
     
     
     print("test matrix")
