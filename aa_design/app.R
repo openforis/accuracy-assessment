@@ -211,17 +211,17 @@ ui <- dashboardPage(
 
            ####################################################################################
            # New box
-           box(title= "Set output folder", status = "success", solidHeader= TRUE,
-              "All products of the AA design will be stored there:
+           box(title= "Output folder", status = "success", solidHeader= TRUE,
+              "All products of the AA design will be stored here:
               areas of the map, sampling sizes, point file",
               br(),
-              shinyDirButton('outdir', 'Select output folder', 'Please select a folder', FALSE),
+              # shinyDirButton('outdir', 'Select output folder', 'Please select a folder', FALSE),
               textOutput("outdirpath")
               ),
 
            ####################################################################################
            # New box
-           conditionalPanel("is.null(input.IsManualAreaCSV)==F && is.null(input.outdir)==F",
+           conditionalPanel("is.null(input.IsManualAreaCSV)==F",
                  box(title= "Manual selection of areas ?", status = "success", solidHeader= TRUE,
                
                             uiOutput("dynUI_ManualArea"),
@@ -485,12 +485,12 @@ server <- function(input, output,session) {
   
   ##################################################################################################################################    
   ############### Select output directory
-  shinyDirChoose(input,
-                 'outdir',
-                 updateFreq = 1000,
-                 session=session,
-                 roots=volumes
-                    )
+  # shinyDirChoose(input,
+  #                'outdir',
+  #                updateFreq = 1000,
+  #                session=session,
+  #                roots=volumes
+  #                   )
   
     ##################################################################################################################################    
     ############### Find out Map type and store the variable
@@ -530,17 +530,17 @@ server <- function(input, output,session) {
   
   ################################# Output directory path
   outdir <- reactive({
-    validate(
-      need(input$outdir, "Missing input: Please select the output directory")
-    )
-    # req(input$outdir)
-    dirpath <- parseDirPath(volumes, input$outdir)
-    dirpath <- gsub(" ","",dirpath)
-    if(is.null(dirpath)){
-      cat(as.character("No directory selected"))
-    }else{
-      dirpath}
-    
+    # validate(
+    #   need(input$outdir, "Missing input: Please select the output directory")
+    # )
+    # 
+    req(input$file)
+    df <- parseFilePaths(volumes, input$file)
+    file_path <- as.character(df[,"datapath"])
+    dirn <- dirname(file_path)
+    subDir <- 'aa_design_output'
+    dir.create(file.path(dirn, subDir))
+    paste0(dirn,'/',subDir)
     })  
   
   
