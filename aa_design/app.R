@@ -223,7 +223,7 @@ ui <- dashboardPage(
            # New box
            conditionalPanel("is.null(input.IsManualAreaCSV)==F",
                  box(title= "Manual selection of areas ?", status = "success", solidHeader= TRUE,
-               
+                            
                             uiOutput("dynUI_ManualArea"),
                             uiOutput("selectUI_area_CSV_raster"),
             
@@ -514,14 +514,14 @@ server <- function(input, output,session) {
   })
   
   ################################# Display the file path
-  output$filepath = renderPrint({
+  output$filepath <- renderPrint({
     validate(
       need(input$file, "Missing input: Please select the map file")
     )
     
-    df = parseFilePaths(volumes, input$file)
-    file_path = as.character(df[,"datapath"])
-    nofile = as.character("No file selected")
+    df <- parseFilePaths(volumes, input$file)
+    file_path <- as.character(df[,"datapath"])
+    nofile <- as.character("No file selected")
     if(is.null(file_path)){
       cat(nofile)
     }else{
@@ -614,9 +614,12 @@ server <- function(input, output,session) {
   # Input manual map area for a raster
   output$selectUI_area_CSV_raster <- renderUI({
     req(mapType()== "raster_type",input$IsManualAreaRaster)
+    df <- parseFilePaths(volumes, input$file)
+    file_path <- as.character(df[,"datapath"])
+    dirn <- dirname(file_path)
     selectInput('IsManualAreaCSV',
                 label= 'Map area file name. Must be in csv',
-                list.files(path = outdir(),
+                list.files(path = dirn,
                            recursive = FALSE,
                            pattern = "\\.csv$"),
                 selected="area_rast.csv")
@@ -628,12 +631,11 @@ server <- function(input, output,session) {
   rasterAreaCSV <- reactive({
     req(mapType()== "raster_type",input$IsManualAreaCSV)
     inputfile <- input$IsManualAreaCSV
-    dir <- paste0(outdir(),'/', inputfile)
-    # dir <- paste0(input$dirname,'/', inputfile)
-    print('dir')
-    print(dir)
+    df <- parseFilePaths(volumes, input$file)
+    file_path <- as.character(df[,"datapath"])
+    dirn <- dirname(file_path)
+    dir <- paste0(dirn,'/', inputfile)
     manualareacsv <- read.csv(dir)
-    print(manualareacsv)
     as.data.frame(manualareacsv)
   })
   
