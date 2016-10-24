@@ -157,9 +157,9 @@ ui <- dashboardPage(skin='green',
                            Users are, however, kindly asked to report any errors or deficiencies in this product to FAO.",
                            br(),
                            br(),
-                           img(src="sepal-logo-EN-white.jpg", height = 100, width = 210),
-                           img(src="UNREDD_LOGO_COLOUR.jpg", height = 80, width = 100),
-                           img(src="Open-foris-Logo160.jpg", height = 70, width = 70),
+                           img(src="thumbnails/sepal-logo-EN-white.jpg", height = 100, width = 210),
+                           img(src="thumbnails/UNREDD_LOGO_COLOUR.jpg", height = 80, width = 100),
+                           img(src="thumbnails/Open-foris-Logo160.jpg", height = 70, width = 70),
                            br()
                   ), 
                   
@@ -167,18 +167,19 @@ ui <- dashboardPage(skin='green',
                   # New tabPanel
                   tabPanel("References and Documents",
                            br(),
-                           img(src="GFOI_MG_cover.PNG", height = 250, width = 200),
-                           a(href="http://www.gfoi.org/wp-content/uploads/2015/04/GFOIMGD_English.pdf"," GFOI MGD Section 3.7 and Module 2.7",target="_blank"),
+                           img(src="thumbnails/REDDCompass_webpage.png", height = 100, width = 200),
+                           a(href="www.reddcompass.org","REDD Compass",target="_blank"),
                            br(),
-                           img(src="AA_cover.PNG", height = 250, width = 200),
-                           a(href="https://dl.dropboxusercontent.com/u/11506740/AccuracyAssessment%20Final%20NFMA%2046%20A4.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank"),
                            br(),
-                           img(src="Olofsson2014_cover.PNG", height = 150, width = 200),
-                           a(href="http://reddcommunity.org/sites/default/files/field/publications/Olofsson_et_al_2014_RSE.pdf"," Olofsson et al. (2014): Good practices for estimating area and assessing accuracy of land change",target="_blank")                          
-                           
+                           img(src="thumbnails/Olofsson2014_cover.PNG", height = 90, width = 200),
+                           a(href="http://reddcr.go.cr/sites/default/files/centro-de-documentacion/olofsson_et_al._2014_-_good_practices_for_estimating_area_and_assessing_accuracy_of_land_change.pdf"," Olofsson et al. (2014): Good practices for estimating area and assessing accuracy of land change",target="_blank"),
+                           br(),
+                           br(),
+                           img(src="thumbnails/AA_cover.PNG", height = 250, width = 200),
+                           a(href="https://dl.dropboxusercontent.com/u/11506740/AccuracyAssessment%20Final%20NFMA%2046%20A4.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank")
                   )
                 )
-              )
+               )
       ),
       
       ####################################################################################
@@ -426,9 +427,6 @@ server <- function(input, output,session) {
     
     ## select column with reference data
     output$column_ref <- renderUI({
-      # validate(
-      #   need(input$CEfilename, "Missing input: Please select the file containing the reference and map data")
-      # )
       req(input$CEfilename)
       selectInput('reference_data', 
                   'Choose the column with the reference data information', 
@@ -492,7 +490,7 @@ server <- function(input, output,session) {
       req(input$areafilename)
       areas <- areas_read()
       if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_class"}
-      if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas) == input$selectAreaCol] <- "map_area"}
+      if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas)  == input$selectAreaCol]  <- "map_area"}
       areas
     })
     
@@ -730,6 +728,7 @@ server <- function(input, output,session) {
   ################################################
   
   accuracy_all <- reactive({
+    
     matrix <- matrix_all()
     if(input$filter_presence==T){    
       df <- df_f()
@@ -737,6 +736,10 @@ server <- function(input, output,session) {
     areas <- areas_i()
     legend <- legend_i()
     
+    
+   if(all(as.character(areas$map_class) %in% legend)){
+      
+      
     matrix_w<-matrix
     for(i in 1:length(legend)){
       for(j in 1:length(legend)){
@@ -763,24 +766,24 @@ server <- function(input, output,session) {
     }
     
     confusion<-data.frame(matrix(nrow=length(legend)+1,ncol=9))
-    names(confusion)<-c("class","code","Pa","PaW","Ua","area","bias_corrected_area","se","ci")
+    names(confusion)<-c("class","code","Pa","PaW","Ua","area","corr","se","ci")
     
     ### Integration of all elements into one dataframe
     for(i in 1:length(legend)){
       confusion[i,]$class<-areas[areas$map_class==legend[i],]$map_class
-      confusion[i,]$code<-areas[areas$map_class==legend[i],]$map_class
-      confusion[i,]$Pa<-matrix[i,i]/sum(matrix[,i])
-      confusion[i,]$Ua<-matrix[i,i]/sum(matrix[i,])
-      confusion[i,]$PaW<-matrix_w[i,i]/sum(matrix_w[,i])
-      confusion[i,]$bias_corrected_area<-sum(matrix_w[,i])*sum(areas$map_area)
-      confusion[i,]$area<-areas[areas$map_class==legend[i],]$map_area
-      confusion[i,]$se<-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
-      confusion[i,]$ci<-confusion[i,]$se*1.96
+      confusion[i,]$code <-areas[areas$map_class==legend[i],]$map_class
+      confusion[i,]$Pa   <-matrix[i,i]/sum(matrix[,i])
+      confusion[i,]$Ua   <-matrix[i,i]/sum(matrix[i,])
+      confusion[i,]$PaW  <-matrix_w[i,i]/sum(matrix_w[,i])
+      confusion[i,]$corr <-sum(matrix_w[,i])*sum(areas$map_area)
+      confusion[i,]$area <-areas[areas$map_class==legend[i],]$map_area
+      confusion[i,]$se   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
+      confusion[i,]$ci   <-confusion[i,]$se*1.96
     }
     
     ### Compute overall accuracy
     confusion[length(legend)+1,]<-c("Total","",sum(diag(matrix))/sum(matrix[]),sum(diag(matrix_w))/sum(matrix_w[]),"",sum(areas$map_area),sum(areas$map_area),"","")
-    confusion
+    confusion}
   })
   
   # ################################################    
@@ -792,13 +795,16 @@ server <- function(input, output,session) {
       need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
       need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
     )
-    item<-data.frame(accuracy_all())
-    item<-item[,c("class","PaW","Ua","area","bias_corrected_area","ci")]
-    item$PaW<-floor(as.numeric(item$PaW)*100)
-    item$Ua<-floor(as.numeric(item$Ua)*100)
-    item$area<-floor(as.numeric(item$area))
-    item$bias_corrected_area<-floor(as.numeric(item$bias_corrected_area))
-    item$ci<-floor(as.numeric(item$ci))
+    validate(
+      need(all(areas_i()$map_class %in% legend_i()),"Mismatch between class names in Area and Validation file"))
+    
+    item      <-data.frame(accuracy_all())
+    item      <-item[,c("class","PaW","Ua","area","corr","ci")]
+    item$PaW  <-floor(as.numeric(item$PaW)*100)
+    item$Ua   <-floor(as.numeric(item$Ua)*100)
+    item$area <-floor(as.numeric(item$area))
+    item$corr <-floor(as.numeric(item$corr))
+    item$ci   <-floor(as.numeric(item$ci))
     names(item) <-c("Class","PA","UA","Map areas","Bias corrected areas","CI")
     item
   },include.rownames=FALSE,digits=0)
@@ -812,6 +818,7 @@ server <- function(input, output,session) {
       need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
       need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
     )
+    
     if(input$filter_presence==T){    
       df <- df_f()
     }else{df <- df_i_map()}
@@ -822,7 +829,7 @@ server <- function(input, output,session) {
     dimnames(item) <- list(legend,legend)
     #dimnames(item) <- list(areas$class[areas$code %in% as.numeric(legend)],areas$class[areas$code %in% as.numeric(legend)])
     item                                  
-  },digits=0)
+  },digits=0,rownames = T)
   
   
   # #################################################    
@@ -834,24 +841,29 @@ server <- function(input, output,session) {
   
   ## could also include user specified axis and title labels
   output$histogram_all <- renderPlot({
+    
     validate(
       need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
       need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
-    )
+      )
+    
+    validate(
+      need(all(areas_i()$map_class %in% legend_i()),"Mismatch between class names in Area and Validation file"))
+    
     dfa<-as.data.frame(accuracy_all())
     legend <- legend_i()
     
     dfa<-dfa[c(1:length(legend)),]
     dfa[dfa=="NaN"]<-0
     dfa$ci<-as.numeric(dfa$ci)
-    dfa$bias_corrected_area<-as.numeric(dfa$bias_corrected_area)
+    dfa$corr<-as.numeric(dfa$corr)
     
     avg.plot <- ggplot(data=dfa,
-                     aes(x=class,y=bias_corrected_area))
+                     aes(x=class,y=corr))
     ggplot
     avg.plot+
       geom_bar(stat="identity",fill="darkgrey")+
-      geom_errorbar(aes(ymax=bias_corrected_area+ci, ymin=bias_corrected_area-ci))+
+      geom_errorbar(aes(ymax=corr+ci, ymin=corr-ci))+
       labs(x = "Map classes", y = "Bias-corrected areas")+
       theme_bw()
   })

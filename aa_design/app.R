@@ -161,9 +161,9 @@ ui <- dashboardPage(
                  Users are, however, kindly asked to report any errors or deficiencies in this product to FAO.",
                  br(),
                  br(),
-                 img(src="sepal-logo-EN-white.jpg", height = 100, width = 210),
-                 img(src="UNREDD_LOGO_COLOUR.jpg",  height = 80,  width = 100),
-                 img(src="Open-foris-Logo160.jpg",  height = 70,  width = 70),
+                 img(src="thumbnails/sepal-logo-EN-white.jpg", height = 100, width = 210),
+                 img(src="thumbnails/UNREDD_LOGO_COLOUR.jpg",  height = 80,  width = 100),
+                 img(src="thumbnails/Open-foris-Logo160.jpg",  height = 70,  width = 70),
                  br()
         ), 
         
@@ -171,14 +171,16 @@ ui <- dashboardPage(
         # New tabPanel
         tabPanel("References and Documents",
                  br(),
-                 img(src="GFOI_MG_cover.PNG", height = 250, width = 200),
-                 a(href="http://www.gfoi.org/wp-content/uploads/2015/04/GFOIMGD_English.pdf"," GFOI MGD Section 3.7 and Module 2.7",target="_blank"),
+                 img(src="thumbnails/REDDCompass_webpage.png", height = 100, width = 200),
+                 a(href="www.reddcompass.org","REDD Compass",target="_blank"),
                  br(),
-                 img(src="AA_cover.PNG", height = 250, width = 200),
-                 a(href="https://dl.dropboxusercontent.com/u/11506740/AccuracyAssessment%20Final%20NFMA%2046%20A4.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank"),
                  br(),
-                 img(src="Olofsson2014_cover.PNG", height = 150, width = 200),
-                 a(href="http://reddcommunity.org/sites/default/files/field/publications/Olofsson_et_al_2014_RSE.pdf"," Olofsson et al. (2014): Good practices for estimating area and assessing accuracy of land change",target="_blank")
+                 img(src="thumbnails/Olofsson2014_cover.PNG", height = 90, width = 200),
+                 a(href="http://reddcr.go.cr/sites/default/files/centro-de-documentacion/olofsson_et_al._2014_-_good_practices_for_estimating_area_and_assessing_accuracy_of_land_change.pdf"," Olofsson et al. (2014): Good practices for estimating area and assessing accuracy of land change",target="_blank"),
+                 br(),
+                 br(),
+                 img(src="thumbnails/AA_cover.PNG", height = 250, width = 200),
+                 a(href="https://dl.dropboxusercontent.com/u/11506740/AccuracyAssessment%20Final%20NFMA%2046%20A4.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank")
                  )
         )
       )
@@ -197,11 +199,6 @@ ui <- dashboardPage(
                 "The input map can represent a single time or multiple times (change) made from satellite images or acquired from available map data of land cover or land use.",
                 br(),
                 
-                # add a choice between raster and vector input
-                # change this to observe
-#                 radioButtons("mapType",label="What type of map input will you use?",
-#                              choices = list("Raster" = "raster_type", "Vector" = "vector_type")
-#                              ),
                 shinyFilesButton('file', 
                                  'Input map (raster or vector format)', 
                                  'Please select a file', 
@@ -394,7 +391,7 @@ ui <- dashboardPage(
                 tags$li("Wi is the mapped proportion of area of class i"),
                 tags$li("Si is the standard deviation of stratum i.")
               ),
-              img(src="AA_equation1.PNG", height = 100, width = 330)
+              img(src="thumbnails/AA_equation1.PNG", height = 100, width = 330)
               )
             )
           ),
@@ -418,11 +415,19 @@ ui <- dashboardPage(
           ####################################################################################
           # New box
           box(
-            title= "Create a CSV with the sample points and attribute data", status = "success", solidHeader= TRUE,
-            "This CSV file can be input directly into Collect Earth to assign the class to the reference data.",
+            title= "Create a Collect Earth Project file (.cep) to start validation work", status = "success", solidHeader= TRUE,
+            "This file requires to have google Earth and Collect Earth installed",
             
-            selectInput('countrycode',
-                        'Choose country name', getData('ISO3')[,2], selected=NULL),
+            selectizeInput(
+              'countrycode',
+              'Choose country name if you want additional national data for the samples',
+              choices = getData('ISO3')[,2],
+              options = list(
+                placeholder = 'Please select a country from the list below',
+                onInitialize = I('function() { this.setValue(""); }')
+              )
+            ),
+            
             
             textInput("basename_CE", 
                       label = h3("Basename of Collect Earth file to export"),
@@ -483,15 +488,6 @@ server <- function(input, output,session) {
                   restrictions=system.file(package='base'))
   
   
-  ##################################################################################################################################    
-  ############### Select output directory
-  # shinyDirChoose(input,
-  #                'outdir',
-  #                updateFreq = 1000,
-  #                session=session,
-  #                roots=volumes
-  #                   )
-  
     ##################################################################################################################################    
     ############### Find out Map type and store the variable
     mapType <- reactive({
@@ -530,10 +526,7 @@ server <- function(input, output,session) {
   
   ################################# Output directory path
   outdir <- reactive({
-    # validate(
-    #   need(input$outdir, "Missing input: Please select the output directory")
-    # )
-    # 
+    
     req(input$file)
     df <- parseFilePaths(volumes, input$file)
     file_path <- as.character(df[,"datapath"])
@@ -614,11 +607,13 @@ server <- function(input, output,session) {
   # Input manual map area for a raster
   output$selectUI_area_CSV_raster <- renderUI({
     req(mapType()== "raster_type",input$IsManualAreaRaster)
-    df <- parseFilePaths(volumes, input$file)
-    file_path <- as.character(df[,"datapath"])
-    dirn <- dirname(file_path)
+    # df <- parseFilePaths(volumes, input$file)
+    # file_path <- as.character(df[,"datapath"])
+    # dirn <- dirname(file_path)
+    dirn <- outdir()
+    
     selectInput('IsManualAreaCSV',
-                label= 'Map area file name. Must be in csv',
+                label= 'Map area file name (csv format)',
                 list.files(path = dirn,
                            recursive = FALSE,
                            pattern = "\\.csv$"),
@@ -787,10 +782,9 @@ server <- function(input, output,session) {
         stats <- as.data.frame(read.table(paste0(outdir(),"/stats.txt")))
         names(stats) <- c('map_value', 'map_area','map_class')
         stats<-arrange(stats,map_value)
-        write.csv(stats[,1:2],paste0(outdir(),"/area_rast.csv"),row.names=F)
+        write.csv(stats[,1:3],paste0(outdir(),"/area_rast.csv"),row.names=F)
         print("Calculation with OFT-STAT: OK")
-        print(stats[,1:2])
-        stats <- stats[,1:2]
+        stats
       }
       
       ############### Use R to compute the areas
@@ -1461,7 +1455,7 @@ server <- function(input, output,session) {
       YCOORD <- coord[,2]
       XCOORD <- coord[,1]
       GEOMETRY <- rep("points",nsamples)
-      AREA   <- rep(1,nsamples)    
+      AREA   <- rep(1,nsamples)
       }
     else{
       if(mapType()== "vector_type"){
@@ -1516,12 +1510,21 @@ server <- function(input, output,session) {
         GEOMETRY <- df$GEOMETRY
         AREA <- gArea(all_features(),byid=TRUE)
         
+        ################ End of the polygon type generation of CE file
         }
-      ################ End of the polygon type generation of CE file
+      ################ End of the else loop
     }
-      
     
-      ################ Get the country boundaries and admin info
+    ################ Create dummy variables if the data from country can't be retrieved
+    ELEVATION <- rep(0,length(AREA))
+    SLOPE     <- rep(0,length(AREA))
+    ASPECT    <- rep(0,length(AREA))
+    ADM1_NAME <- rep("region",length(AREA))
+    COUNTRY   <- rep("country",length(AREA))
+    
+    ################ Get the country boundaries and admin info
+    if(input$countrycode %in% getData('ISO3')[,2]){
+    
       country <-  input$countrycode
       print(country)
       
@@ -1530,7 +1533,7 @@ server <- function(input, output,session) {
         value = 0, 
         {
           setProgress(value=.1)
-          country <- getData('ISO3',path='www/')[,1][getData('ISO3',path='www/')[,2]== country]
+          country <- getData('ISO3',path='www/getDataFiles/')[,1][getData('ISO3',path='www/getDataFiles/')[,2]== country]
           #country <- "KHM"
         })
       
@@ -1539,7 +1542,7 @@ server <- function(input, output,session) {
         value = 0, 
         {
           setProgress(value=.1)
-          adm <- getData ('GADM',path='www/', country= country, level=1)
+          adm <- getData ('GADM',path='www/getDataFiles/', country= country, level=1)
         })
       
       ptdf<-SpatialPointsDataFrame(
@@ -1556,7 +1559,7 @@ server <- function(input, output,session) {
         message= 'Downloading elevation data', 
         value = 0, 
         {
-          elevation <- getData("alt",path='www/', country = country)
+          elevation <- getData("alt",path='www/getDataFiles/', country = country)
         })
       slope  <- terrain(elevation, opt = "slope")
       aspect <- terrain(elevation, opt = "aspect")
@@ -1573,6 +1576,7 @@ server <- function(input, output,session) {
       ADM1_NAME <- adm1[,6]
       ADM1_NAME <- str_replace_all(ADM1_NAME,"[[:punct:]]","")
       COUNTRY <- adm1[,4]
+      }
       
       ################ Bind all vectors together in one matrix
       m <- as.data.frame(cbind(ID, YCOORD, XCOORD, ELEVATION, SLOPE, ASPECT, ADM1_NAME, COUNTRY, GEOMETRY,AREA))
@@ -1586,8 +1590,7 @@ server <- function(input, output,session) {
       
       ################ Export the csv file with points
       write.csv(m,paste0("www/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
-      #write.csv(m,paste0("www/cep_template/pts_",gsub(" ","_","testtesttest"),".csv"),row.names=F)
-    
+      
     
     ################ Create a dummy distribution for the analysis
     pts <- m
@@ -1610,9 +1613,9 @@ server <- function(input, output,session) {
     tmp$month        <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][2]
     tmp$day          <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][3]
     tmp$plot         <- "response.csv"
-    tmp$ref_class     <- pts$map_class
+    tmp$ref_class    <- pts$map_class
     tmp$confidence   <- "FALSE"
-    tmp$map_class     <- pts$map_class
+    tmp$map_class    <- pts$map_class
 
     table(tmp$ref_class,tmp$map_class)
 
@@ -1648,8 +1651,6 @@ server <- function(input, output,session) {
     
     ################# Find the codes to be inserted in the CEP files
     dfss <- strat_sample()
-    #dfss<-read.csv("C:/Users/dannunzio/Documents/aa_input/sampling.csv")
-    
     
     codes <- data.frame(
       cbind(
@@ -1660,7 +1661,7 @@ server <- function(input, output,session) {
     
     
     ################# Modify balloon
-    balloon <- readLines("www/template_balloon.html")
+    balloon <- readLines("www/cep_template/template_files/template_balloon.html")
     
     middle <- ""
     
@@ -1676,7 +1677,7 @@ server <- function(input, output,session) {
     writeLines(balloon,"www/cep_template/balloon.html")
     
     ################# Modify placemark
-    placemark <- readLines("www/template_placemark.idm.xml")
+    placemark <- readLines("www/cep_template/template_files/template_placemark.idm.xml")
     head_block <- placemark[1:47]
     tail_bock  <- placemark[60:length(placemark)]
     
@@ -1700,9 +1701,8 @@ server <- function(input, output,session) {
     writeLines(placemark_out,"www/cep_template/placemark.idm.xml")
     
     ################# Modify properties_file
-    basename <- input$basename_CE
-    #basename <- "my_basename"
-    properties    <- readLines("www/template_project_definition.properties")
+    basename      <- input$basename_CE
+    properties    <- readLines("www/cep_template/template_files/template_project_definition.properties")
     properties[7] <- paste0("csv=${project_path}/pts_",gsub(" ","_",basename),".csv")
     properties[12]<- paste0("survey_name=aa_",gsub(" ","_",basename)) 
     
@@ -1724,23 +1724,7 @@ server <- function(input, output,session) {
       write.csv(to_export,xx,row.names=FALSE)}
   )
   
-  # output$download_CE_shp <- downloadHandler(
-  #   filename = function(){
-  #     paste(input$basename_CE,".zip",sep="")},
-  #   content = function(file) {
-  #     to_export <- spdf()
-  #     
-  #     writeOGR(to_export, dsn=paste0(outdir(),"/",input$basename_CE, ".shp"), layer=input$basename_CE,
-  #              driver="ESRI Shapefile")
-  #     
-  #     zip(zipfile=paste0(outdir(),"/", input$basename_CE, ".zip"), 
-  #         files=Sys.glob(paste0(outdir(),"/", input$basename_CE, ".*")))
-  #     
-  #     file.copy(paste0(outdir(),"/",input$basename_CE,".zip"), file)
-  #     }
-  #   )
-  
-  
+
   output$download_CEP <- downloadHandler(
     filename = function(){
     paste(input$basename_CE,".cep",sep="")},
