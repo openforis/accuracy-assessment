@@ -1534,7 +1534,7 @@ server <- function(input, output,session) {
         {
           setProgress(value=.1)
           country <- getData('ISO3',path='www/getDataFiles/')[,1][getData('ISO3',path='www/getDataFiles/')[,2]== country]
-          #country <- "KHM"
+          
         })
       
       withProgress(
