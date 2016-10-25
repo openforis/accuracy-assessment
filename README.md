@@ -1,41 +1,54 @@
-## Synopsis
+## Accuracy assessment design and analysis tool
 
-Accuracy assessment design and analysis tool: take a geospatial map (raster or vector format) as input and outputs a file to perform validation within Collect Earth
+This application functions with R shiny package
+
+In a first step, the aa_design takes a geospatial map (raster or vector format) as input and outputs a file to perform validation within Collect Earth.
+
+In a second step, the validation results are used by the aa_analysis to produce confusion matrix, compute accuracies, correct biases for area estimates and compute confidence intervals
 
 
 ## Installation
 
-Libraries needed are: 
--raster
--rgeos
--rgdal
--shiny
--shinyFiles
--shinydashboard
--htmltools
--ggplot2
--xtable
--dismo
--plyr
--stringr
--snow
--leaflet
--RColorBrewer
--DT
+Libraries needed are:
+ 
+raster
+rgeos
+rgdal
+
+shiny
+shinyFiles
+shinydashboard
+htmltools
+snow
+
+plyr
+stringr
+xtable
+DT
+dismo
+
+ggplot2
+leaflet
+RColorBrewer
 
 They will be downloaded if missing, may take long the first time
+
 
 ## Tests
 
 Launch the app with the following commands in R:
 
-library(shiny)
-runGitHub("openforis/accuracy-assessment",subdir="aa_design")
-runGitHub("openforis/accuracy-assessment",subdir="aa_analysis")
+> library(shiny)
+
+> runGitHub("openforis/accuracy-assessment",subdir="aa_design")
+
+> runGitHub("openforis/accuracy-assessment",subdir="aa_analysis")
+
 
 ## Contributors
 
 Remi d'Annunzio, Yelena Finegold, Antonia Ortmann, Erik Lindquist
+
 Contact either : remi.dannunzio@fao.org or yelena.finegold@fao.org
 
 
