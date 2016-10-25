@@ -19,6 +19,23 @@
 ## Last update: 2016/10/24
 ## aa_analysis  / ui
 ####################################################################################
+options(stringsAsFactors=FALSE)
+options(shiny.launch.browser=T)
+
+########################################
+# include all the needed packages here #
+
+packages <- function(x){
+  x <- as.character(match.call()[[2]])
+  if (!require(x,character.only=TRUE)){
+    install.packages(pkgs=x,repos="http://cran.r-project.org")
+    require(x,character.only=TRUE)
+  }
+}
+
+packages(shiny)
+packages(shinydashboard)
+packages(shinyFiles)
 
 
 shinyUI(
