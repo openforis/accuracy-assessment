@@ -170,7 +170,7 @@ shinyUI(
                br(),
                br(),
                img(src="thumbnails/AA_cover.PNG", height = 250, width = 200),
-               a(href="https://dl.dropboxusercontent.com/u/11506740/AccuracyAssessment%20Final%20NFMA%2046%20A4.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank")
+               a(href="http://www.fao.org/3/a-i5601e.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank")
       )
     )
       )
