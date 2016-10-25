@@ -1300,7 +1300,8 @@ shinyServer(
     placemark_out <- c(head_block,block_lines,tail_bock)
     
     placemark_out[3] <- paste0('\ \ <project>',gsub(" ","_",basename),'</project>')
-    
+    placemark_out[4] <- paste0('\ \ <uri>http://www.openforis.org/idm/uri_',gsub(" ","_",basename),'</uri>')
+      
     writeLines(placemark_out,"www/cep_template/placemark.idm.xml")
     
     ################# Modify properties_file
