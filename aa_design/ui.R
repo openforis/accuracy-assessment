@@ -37,9 +37,22 @@ packages <- function(x){
   }
 }
 
+packages(ggplot2)
+packages(xtable)
+packages(raster)
 packages(shiny)
 packages(shinydashboard)
+packages(dismo)
+packages(stringr)
+packages(snow)
+packages(plyr)
+packages(leaflet)
+packages(RColorBrewer)
+packages(DT)
+packages(rgeos)
+packages(rgdal)
 packages(shinyFiles)
+packages(htmltools)
 
 shinyUI(
   dashboardPage(
