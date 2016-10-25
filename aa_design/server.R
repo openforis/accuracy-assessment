@@ -1250,7 +1250,8 @@ shinyServer(
     ################# Generate the CEP file
     
     ################# Find the codes to be inserted in the CEP files
-    dfss <- strat_sample()
+    dfss     <- strat_sample()
+    basename <- input$basename_CE
     
     codes <- data.frame(
       cbind(
@@ -1298,10 +1299,12 @@ shinyServer(
     
     placemark_out <- c(head_block,block_lines,tail_bock)
     
+    placemark_out[3] <- paste0('\ \ <project>',gsub(" ","_",basename),'</project>')
+    
     writeLines(placemark_out,"www/cep_template/placemark.idm.xml")
     
     ################# Modify properties_file
-    basename      <- input$basename_CE
+    
     properties    <- readLines("www/cep_template/template_files/template_project_definition.properties")
     properties[7] <- paste0("csv=${project_path}/pts_",gsub(" ","_",basename),".csv")
     properties[12]<- paste0("survey_name=aa_",gsub(" ","_",basename)) 
@@ -1331,7 +1334,7 @@ shinyServer(
     content = function(file) {
       to_export <- CEfile()
       setwd("www/cep_template/")
-      zip(zipfile=paste0(outdir(),"/", input$basename_CE, ".cep"),Sys.glob(paste0("*")))
+      zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),Sys.glob(paste0("*")))
       setwd("../../")
       file.copy(paste0(outdir(),"/",input$basename_CE,".cep"), file)
     }
