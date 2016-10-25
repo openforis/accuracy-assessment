@@ -11,25 +11,25 @@ In a second step, the validation results are used by the aa_analysis to produce 
 
 Needed libraries are:
  
-  raster
-  rgeos
-  rgdal
+raster
+rgeos
+rgdal
 
-  shiny
-  shinyFiles
-  shinydashboard
-  htmltools
-  snow
+shiny
+shinyFiles
+shinydashboard
+htmltools
+snow
 
-  plyr
-  stringr
-  xtable
-  DT
-  dismo
+plyr
+stringr
+xtable
+DT
+dismo
 
-  ggplot2
-  leaflet
-  RColorBrewer
+ggplot2
+leaflet
+RColorBrewer
 
 They will be downloaded if missing, may take long the first time
 
@@ -39,7 +39,9 @@ They will be downloaded if missing, may take long the first time
 Launch the app with the following commands in R:
 
 > library(shiny)
+
 > runGitHub("openforis/accuracy-assessment",subdir="aa_design")
+
 > runGitHub("openforis/accuracy-assessment",subdir="aa_analysis")
 
 
