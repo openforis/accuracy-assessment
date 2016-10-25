@@ -1186,7 +1186,7 @@ shinyServer(
       m$map_class <- as.character(map_code)
       
       ################ Clean existing csv files
-      system("rm www/cep_template/*.csv")
+      unlink("www/cep_template/*.csv")
       
       ################ Export the csv file with points
       write.csv(m,paste0("www/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
