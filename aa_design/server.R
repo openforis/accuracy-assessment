@@ -38,6 +38,7 @@ packages <- function(x){
   }
 }
 packages(ggplot2)
+packages(utils)
 packages(xtable)
 packages(raster)
 packages(shiny)
