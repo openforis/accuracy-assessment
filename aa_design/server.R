@@ -37,30 +37,38 @@ packages <- function(x){
     require(x,character.only=TRUE)
   }
 }
-packages(ggplot2)
-packages(xtable)
+
+## Packages for geospatial data handling
 packages(raster)
-packages(shiny)
-packages(shinydashboard)
-packages(dismo)
-packages(stringr)
-packages(snow)
-packages(plyr)
-packages(leaflet)
-packages(RColorBrewer)
-packages(DT)
 packages(rgeos)
 packages(rgdal)
-packages(shinyFiles)
-packages(htmltools)
 
+## Packages for Shiny 
+packages(shiny)
+packages(shinydashboard)
+packages(shinyFiles)
+packages(snow)
+packages(htmltools)
+packages(devtools)
+
+## Packages for data table handling
+packages(xtable)
+packages(DT)
+packages(dismo)
+packages(stringr)
+packages(plyr)
+
+## Packages for graphics and interactive maps
+packages(ggplot2)
+packages(leaflet)
+packages(RColorBrewer)
 
 ####################################################################################
-# Start the server portion
+####### Start Server
+
 shinyServer(
   
  function(input, output,session) {
-  
   ####################################################################################
   ####### Step 1 : compute areas of each strata of the map ###########################
   ####################################################################################
@@ -74,8 +82,8 @@ shinyServer(
   ##################################################################################################################################    
   ############### HARDCODED ROOT FOLDER : everything will be lower
   volumes <- c('User directory'=Sys.getenv("HOME"),
-               'C drive' = 'C:/',
-               'Windows drive' = '/media/xubuntu/OSDisk/Users/dannunzio/Documents/')
+               'C:/  drive' = 'C:/',
+               'Root drive' = '/')
   
   
   ##################################################################################################################################    
@@ -226,10 +234,8 @@ shinyServer(
   rasterAreaCSV <- reactive({
     req(mapType()== "raster_type",input$IsManualAreaCSV)
     inputfile <- input$IsManualAreaCSV
-    df <- parseFilePaths(volumes, input$file)
-    file_path <- as.character(df[,"datapath"])
-    dirn <- dirname(file_path)
-    dir <- paste0(dirn,'/', inputfile)
+    
+    dir <- paste0(outdir(),'/', inputfile)
     manualareacsv <- read.csv(dir)
     as.data.frame(manualareacsv)
   })

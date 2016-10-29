@@ -8,7 +8,10 @@ In a second step, the validation results are used by the aa_analysis to produce 
 
 
 ## Installation
+# R from www.r-project.org
+Take default parameters
 
+# Rstudio from www.rstudio.org
 Needed libraries are:
  
 raster
@@ -32,6 +35,18 @@ leaflet
 RColorBrewer
 
 They will be downloaded if missing, may take long the first time
+
+# If running in Windows, also need Rtools from https://cran.r-project.org/bin/windows/Rtools/
+
+Locate the folder that Rtools is installed (usually 'C:\Rtools')
+Add C:\Rtools\bin path to the system path
+-Go to Control Panel >> System and Security >> System
+-Go to Advanced System Settings
+-Open Advanced tab
+-Click Environmental Variables... button
+-Select Path variable and click Edit button
+-Add ';C:\Rtools\bin' at the end of the line 
+
 
 
 ## Tests

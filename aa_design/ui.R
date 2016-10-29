@@ -26,7 +26,7 @@ print("Starting the process")
 options(stringsAsFactors=FALSE)
 options(shiny.launch.browser=T)
 
-########################################
+####################################################################################
 # include all the needed packages here #
 
 packages <- function(x){
@@ -37,22 +37,33 @@ packages <- function(x){
   }
 }
 
-packages(ggplot2)
-packages(xtable)
+## Packages for geospatial data handling
 packages(raster)
-packages(shiny)
-packages(shinydashboard)
-packages(dismo)
-packages(stringr)
-packages(snow)
-packages(plyr)
-packages(leaflet)
-packages(RColorBrewer)
-packages(DT)
 packages(rgeos)
 packages(rgdal)
+
+## Packages for Shiny 
+packages(shiny)
+packages(shinydashboard)
 packages(shinyFiles)
+packages(snow)
 packages(htmltools)
+packages(devtools)
+
+## Packages for data table handling
+packages(xtable)
+packages(DT)
+packages(dismo)
+packages(stringr)
+packages(plyr)
+
+## Packages for graphics and interactive maps
+packages(ggplot2)
+packages(leaflet)
+packages(RColorBrewer)
+
+####################################################################################
+####### Start User Interface
 
 shinyUI(
   dashboardPage(
