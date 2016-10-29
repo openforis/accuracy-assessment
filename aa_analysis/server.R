@@ -138,6 +138,7 @@ shinyServer(
     areas_read
   })
   
+  
   ## Collect earth output file
   df_i  <- reactive({
     req(input$CEfilename)
@@ -149,6 +150,7 @@ shinyServer(
     
   })
   
+  
   ## select column with reference data in validation file 
   output$column_ref <- renderUI({
     req(input$CEfilename)
@@ -159,6 +161,7 @@ shinyServer(
                 selected = c("ref_class","ref_code"))
   })
   
+  
   ## select column with map data in validation file
   output$column_map <- renderUI({
     req(input$CEfilename)
@@ -166,9 +169,10 @@ shinyServer(
                 'Choose the column with the map data information', 
                 choices= names(df_i()),
                 multiple = FALSE,
-                selected = c("map_class","map_code"))
+                selected = c("map_code"))
     
   })
+  
   
   ## select the column with the area column in area file
   output$areaCol <- renderUI({
@@ -182,15 +186,16 @@ shinyServer(
     }
   })
   
+  
   ## select the column with the classes in the area file
   output$classCol <- renderUI({
     req(input$areafilename)
-    if(is.element('map_value',names(areas_read()))==FALSE){
+    if(is.element('map_code',names(areas_read()))==FALSE){
       selectInput('selectClassCol', 
                   'Choose the class column from the area file', 
                   choices= names(areas_read()),
                   multiple = FALSE,
-                  selected = c("map_code","map_value"))
+                  selected = c("map_code"))
     }
   })
   
@@ -206,6 +211,7 @@ shinyServer(
                 multiple = TRUE)
   })
   
+  
   ## display the collect earth output file as a Data Table
   output$inputTable <- renderDataTable({
     req(input$show_vars)
@@ -213,14 +219,16 @@ shinyServer(
     df_i[, input$show_vars, drop = FALSE]
   })
   
+  
   ## standardize the column names for the area file
   areas_i <- reactive({
     req(input$areafilename)
     areas <- areas_read()
-    if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_value"}
+    if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_code"}
     if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas)  == input$selectAreaCol]  <- "map_area"}
     areas
   })
+  
   
   ## select the column with size of each plot in the reference data file
   output$refPlotSize <- renderUI({
@@ -234,7 +242,8 @@ shinyServer(
     }
   })
   
-  ## standardize the column names for the validation
+  
+  ## standardize the column names for the validation file
   df_i_map <- reactive({ 
     
     req(input$CEfilename)
@@ -252,6 +261,7 @@ shinyServer(
     
   })
   
+  
   ################################################    
   ####    X coordinates of samples
   output$Xcrd <- renderUI({
@@ -263,6 +273,7 @@ shinyServer(
                 selected = "location_x")
     
   })
+  
   
   ################################################    
   ####    Y coordinates of samples
@@ -276,7 +287,8 @@ shinyServer(
     
   })
   
-  ################################################    
+  ####
+  ############################################    
   ####    Display samples
   output$map_check <- renderLeaflet({
     validate(
@@ -299,6 +311,7 @@ shinyServer(
       )
     m
   })
+  
   
   ####################################################################################
   ####### Step 3 : Filter data if required                 ###########################
@@ -344,6 +357,7 @@ shinyServer(
     }
   })
   
+  
   ################################################################################################
   ###### Filtered data
   df_f  <- reactive({
@@ -381,7 +395,6 @@ shinyServer(
     if(!is.null(input$map_data)){legend_i <- levels(as.factor(df$map_code))}
     legend_i 
   })
-  
 
   
   ################################################    
@@ -420,10 +433,10 @@ shinyServer(
     matrix
   })
   
+  
   ################################################    
   ################ Table of accuracies
   ################################################
-  
   accuracy_all <- reactive({
     
     matrix <- matrix_all()
@@ -434,14 +447,14 @@ shinyServer(
     legend <- legend_i()
     
     
-    if(all(legend_i()  %in% areas_i()$map_value )){
+    if(all(legend_i()  %in% areas_i()$map_code )){
       
       
       matrix_w<-matrix
       for(i in 1:length(legend)){
         for(j in 1:length(legend)){
           tryCatch({
-            matrix_w[i,j] <- matrix[i,j]/sum(matrix[i,])*areas[areas$map_value==legend[i],]$map_area/sum(areas$map_area)
+            matrix_w[i,j] <- matrix[i,j]/sum(matrix[i,])*areas[areas$map_code==legend[i],]$map_area/sum(areas$map_area)
           }, error=function(e){cat("Not relevant\n")}
           )
         }}
@@ -450,8 +463,8 @@ shinyServer(
       for(i in 1:length(legend)){
         for(j in 1:length(legend)){
           tryCatch({
-            matrix_se[i,j] <- areas[areas$map_value==legend[i],]$map_area/sum(areas$map_area)*
-              areas[areas$map_value==legend[i],]$map_area/sum(areas$map_area)*
+            matrix_se[i,j] <- areas[areas$map_code==legend[i],]$map_area/sum(areas$map_area)*
+              areas[areas$map_code==legend[i],]$map_area/sum(areas$map_area)*
               matrix[i,j]/
               sum(matrix[i,])*
               (1-matrix[i,j]/sum(matrix[i,]))/
@@ -467,13 +480,13 @@ shinyServer(
       
       ### Integration of all elements into one dataframe
       for(i in 1:length(legend)){
-        confusion[i,]$class<-areas[areas$map_value==legend[i],]$map_value
-        confusion[i,]$code <-areas[areas$map_value==legend[i],]$map_value
+        confusion[i,]$class<-areas[areas$map_code==legend[i],]$map_code
+        confusion[i,]$code <-areas[areas$map_code==legend[i],]$map_code
         confusion[i,]$Pa   <-matrix[i,i]/sum(matrix[,i])
         confusion[i,]$Ua   <-matrix[i,i]/sum(matrix[i,])
         confusion[i,]$PaW  <-matrix_w[i,i]/sum(matrix_w[,i])
         confusion[i,]$corr <-sum(matrix_w[,i])*sum(areas$map_area)
-        confusion[i,]$area <-areas[areas$map_value==legend[i],]$map_area
+        confusion[i,]$area <-areas[areas$map_code==legend[i],]$map_area
         confusion[i,]$se   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
         confusion[i,]$ci   <-confusion[i,]$se*1.96
       }
@@ -483,10 +496,10 @@ shinyServer(
       confusion}
   })
   
+  
   # ################################################    
   # ################ Output : Summary of accuracies 
   # ################################################
-  
   output$accuracy_all <- renderTable({
     validate(
       need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
@@ -494,7 +507,7 @@ shinyServer(
     )
     
     validate(
-      need(all(legend_i()  %in% areas_i()$map_value ),"Mismatch between class names in area and validation file"))
+      need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
     
     item      <-data.frame(accuracy_all())
     item      <-item[,c("class","PaW","Ua","area","corr","ci")]
@@ -507,10 +520,10 @@ shinyServer(
     item
   },include.rownames=FALSE,digits=0)
   
+  
   # #################################################    
   # ################ Output item  :  confusion matrix
   # #################################################
-  
   output$matrix_all <- renderTable({
     validate(
       need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
@@ -532,7 +545,6 @@ shinyServer(
   # #################################################    
   # ################ Output histograms adjusted areas
   # #################################################
-  
   output$histogram_all <- renderPlot({
     
     validate(
@@ -541,7 +553,7 @@ shinyServer(
     )
     
     validate(
-      need(all(legend_i()  %in% areas_i()$map_value ),"Mismatch between class names in area and validation file"))
+      need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
     
     dfa<-as.data.frame(accuracy_all())
     legend <- legend_i()

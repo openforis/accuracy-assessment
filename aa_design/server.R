@@ -241,7 +241,7 @@ shinyServer(
     selectInput("value_attribute_raster",
                 label = h5(paste("Column containing the map value")),
                 choices = categories,
-                selected = "map_value",
+                selected = "map_code",
                 multiple = FALSE
     )
   })
@@ -378,8 +378,8 @@ shinyServer(
           })
         
         stats <- as.data.frame(read.table(paste0(outdir(),"/stats.txt")))
-        names(stats) <- c('map_value', 'map_area','map_class')
-        stats<-arrange(stats,map_value)
+        names(stats) <- c('map_code', 'map_area','map_edited_class')
+        stats<-arrange(stats,map_code)
         #write.csv(stats[,1:3],paste0(outdir(),"/area_rast.csv"),row.names=F)
         print("Calculation with OFT-STAT: OK")
         stats
@@ -405,9 +405,9 @@ shinyServer(
         
         ############### Output the result as a data.frame
         stats <- as.data.frame(freq_raster)
-        names(stats) <- c('map_value', 'map_area')
-        stats<-arrange(stats,map_value)
-        stats$map_class <- stats$map_value
+        names(stats) <- c('map_code', 'map_area')
+        stats<-arrange(stats,map_code)
+        stats$map_edited_class <- stats$map_code
         #write.csv(stats,paste0(outdir(),"/area_rast.csv"),row.names=F)
         print(stats)
       }
@@ -429,9 +429,9 @@ shinyServer(
           
           selectColumns <- c(input$value_attribute_raster, input$area_attribute_raster)
           stats <- stats[selectColumns]
-          names(stats) <- c('map_value','map_area')
-          stats$map_class <- stats$map_value
-          stats<-arrange(stats, map_class)
+          names(stats) <- c('map_code','map_area')
+          stats$map_edited_class <- stats$map_code
+          stats<-arrange(stats, map_edited_class)
           
         })
     }
@@ -474,7 +474,7 @@ shinyServer(
       )
     )
     
-    names(maparea) <- c("map_value","map_area","map_class")
+    names(maparea) <- c("map_code","map_area","map_edited_class")
     maparea$map_area <- as.numeric(maparea$map_area)
     write.csv(maparea, paste0(outdir(),"/area_shp.csv"), row.names=F)
     
@@ -485,7 +485,7 @@ shinyServer(
   })
   
   ##################################################################################################################################
-  ############### Enable editing of map_class
+  ############### Enable editing of map_edited_class
   
   ## Read the map area for the raster or vector data
   mapareatable_reactive <- reactive({
@@ -508,20 +508,20 @@ shinyServer(
       mapareatable
   })
   
-  ## A user interface for each map_value and text prefilled with  map_class which can be edited
+  ## A user interface for each map_code and text prefilled with  map_edited_class which can be edited
   output$LegendInputs <- renderUI({
     req(input$areaCalcButton)
     validate(
       need(input$areaCalcButton, "Click on Area calculation and legend generation to display and edit the map classes")
     )
       mapareatable_reactive <- mapareatable_reactive()
-      ids <- as.factor(as.matrix(mapareatable_reactive$map_value))
+      ids <- as.factor(as.matrix(mapareatable_reactive$map_code))
       print(ids)
       tagList(
       lapply(1:length(ids),function(i){
         textInput(paste0("txtInput",ids[i]), 
-                  sprintf("Edit class name for map value: %s", mapareatable_reactive$map_value[i]), 
-                  value=mapareatable_reactive$map_value[i], width="80%")
+                  sprintf("Edit class name for map value: %s", mapareatable_reactive$map_code[i]), 
+                  value=mapareatable_reactive$map_code[i], width="80%")
          })
     )
   })
@@ -530,15 +530,15 @@ shinyServer(
   mapareatable_event <- eventReactive(input$submitLegend,{
     
       mapareatable_reactive <- mapareatable_reactive()
-      ids <- as.factor(as.matrix(mapareatable_reactive$map_value))
+      ids <- as.factor(as.matrix(mapareatable_reactive$map_code))
       
       # Get ids for textboxes
       txtbox_ids <- sapply(1:length(ids),function(i){
-        paste("txtInput",mapareatable_reactive$map_value[i],sep="")
+        paste("txtInput",mapareatable_reactive$map_code[i],sep="")
       })
       # Get values
       for(i in 1:length(txtbox_ids)){
-        mapareatable_reactive$map_class[i] <- sprintf(input[[ as.character(txtbox_ids[i]) ]])
+        mapareatable_reactive$map_edited_class[i] <- sprintf(input[[ as.character(txtbox_ids[i]) ]])
       }
       mapareatable_reactive
   })
@@ -637,7 +637,7 @@ shinyServer(
     )
     req(maparea_final())
     maparea <- maparea_final()
-    categories <- as.list(unique(maparea$map_class))
+    categories <- as.list(unique(maparea$map_edited_class))
     
     selectInput("cat_hi",
                 label = h5(paste("Classes to include with high confidence (Expected UA = ", input$expected_ua_hi,sep="" ), ")"),
@@ -657,7 +657,7 @@ shinyServer(
     high_ua <- input$cat_hi
     
     ## exclude classes already chosen in high expected user's accuracy
-    categories <- as.list(unique(maparea$map_class[!maparea$map_class %in% high_ua]))
+    categories <- as.list(unique(maparea$map_edited_class[!maparea$map_edited_class %in% high_ua]))
     
     selectInput("cat_lo",
                 label = h5(paste("Classes to include with low confidence (Expected UA = ", input$expected_ua_lo,sep="" ), ")"),
@@ -685,9 +685,9 @@ shinyServer(
     list_categories <- append(list_categories_hi,list_categories_lo)
     
     ############### Select only samples in selected list
-    maparea$map_class <- as.character(maparea$map_class)
+    maparea$map_edited_class <- as.character(maparea$map_edited_class)
     
-    df <- maparea[maparea$map_class %in% list_categories,]
+    df <- maparea[maparea$map_edited_class %in% list_categories,]
     sumofmapcategories <- sum(df$map_area)
     
     ############### Add a column for Weight (wi) expected Users accuracy (eua)
@@ -695,8 +695,8 @@ shinyServer(
     df$eua <- 0
     
     ############### Account for null values in the EUA
-    if(!is.null(list_categories_hi)){df[df$map_class %in% list_categories_hi,]$eua <- expected_ua_hi}
-    if(!is.null(list_categories_lo)){df[df$map_class %in% list_categories_lo,]$eua <- expected_ua_lo}
+    if(!is.null(list_categories_hi)){df[df$map_edited_class %in% list_categories_hi,]$eua <- expected_ua_hi}
+    if(!is.null(list_categories_lo)){df[df$map_edited_class %in% list_categories_lo,]$eua <- expected_ua_lo}
     
     ############### Add a column for Standard Error and Weighted SE
     df$si <- sqrt(df$eua*(1-df$eua))
@@ -809,16 +809,16 @@ shinyServer(
                                                         10+ log((sum(rp$map_area)))),xy=TRUE))
         }
       )
-      names(rand_sample) <- c("x_coord","y_coord","map_value")
+      names(rand_sample) <- c("x_coord","y_coord","map_code")
       rand_sample$id     <- row(rand_sample)[,1]
-      rp2 <- merge(rp,data.frame(table(rand_sample$map_value)),by.x="map_value",by.y="Var1",all.x=T)  
+      rp2 <- merge(rp,data.frame(table(rand_sample$map_code)),by.x="map_code",by.y="Var1",all.x=T)  
       rp2[is.na(rp2)]<-0
 
       ############### Create the list of classes that need to be specifically sampled
-      to_rtp <- rp2[rp2$Freq <  rp2$final,]$map_value
+      to_rtp <- rp2[rp2$Freq <  rp2$final,]$map_code
       
       ############### Create the list of classes that are enough represented in the random sampling
-      to_spl <- rp2[rp2$Freq >= rp2$final,]$map_value
+      to_spl <- rp2[rp2$Freq >= rp2$final,]$map_code
       
       ############### Sample points from the first class
       i = 1
@@ -827,8 +827,8 @@ shinyServer(
         rand_sample$id
         %in%
           sample(
-            rand_sample[rand_sample$map_value %in% c(to_spl[i],to_rtp[i]),]$id,
-            rp2[rp2$map_value %in% c(to_spl[i],to_rtp[i]),]$final
+            rand_sample[rand_sample$map_code %in% c(to_spl[i],to_rtp[i]),]$id,
+            rp2[rp2$map_code %in% c(to_spl[i],to_rtp[i]),]$final
           ),]
       
       ############### Loop into the well represented classes, sample and append
@@ -838,8 +838,8 @@ shinyServer(
             rand_sample$id
             %in%
               sample(
-                rand_sample[rand_sample$map_value == to_spl[i],]$id,
-                rp2[rp2$map_value == to_spl[i],]$final
+                rand_sample[rand_sample$map_code == to_spl[i],]$id,
+                rp2[rp2$map_code == to_spl[i],]$final
               ),]
           final <- rbind(final,tmp)
           }
@@ -857,14 +857,14 @@ shinyServer(
             }
           )
           
-          names(tmp_rtp) <- c("x_coord","y_coord","map_value")
+          names(tmp_rtp) <- c("x_coord","y_coord","map_code")
           tmp_rtp$id<-row(tmp_rtp)[,1]
-          sampling <- min(rp2[rp2$map_value == to_rtp[i],]$final,
-                          rp2[rp2$map_value == to_rtp[i],]$map_area)
+          sampling <- min(rp2[rp2$map_code == to_rtp[i],]$final,
+                          rp2[rp2$map_code == to_rtp[i],]$map_area)
           
           tmp<-tmp_rtp[tmp_rtp$id 
                        %in% 
-                         sample(tmp_rtp[tmp_rtp$map_value == to_rtp[i],]$id,
+                         sample(tmp_rtp[tmp_rtp$map_code == to_rtp[i],]$id,
                                 sampling
                          ),
                        ]
@@ -897,7 +897,7 @@ shinyServer(
             # shp <- readOGR("../../../../../aa_input/aa_test.shp","aa_test")
             # class_attr <- "class_chan"
             
-            legend <- levels(as.factor(rp$map_value))
+            legend <- levels(as.factor(rp$map_code))
             shp <- lcmap()
             class_attr <- input$class_attribute_vector
             
@@ -912,9 +912,9 @@ shinyServer(
               
               ## If the number of polygons is smaller than the sample size, take all polygons
               
-              if (nrow(polys) < as.numeric(rp[rp$map_value == legend[i], ]$final))
+              if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
                 {n <- nrow(polys)}else
-                {n <- as.numeric(rp[rp$map_value == legend[i], ]$final)}
+                {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
 
               ## Randomly select the polygons
               tmp <- polys[sample(nrow(polys), n), ]
@@ -928,14 +928,14 @@ shinyServer(
             # ################## Export sampling design as points
             # i=1
             # polys <- shp[shp@data[,class_attr] == legend[i],]
-            # pts<-spsample(polys,as.numeric(rp[rp$map_value == legend[i],]$final),type="stratified")
+            # pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
             # att_vec <- rep(legend[i],nrow(pts@coords))
             # df_pts<-data.frame(cbind(pts@coords,att_vec))
             # 
             # for(i in 2:length(legend)){
             #   tryCatch({
             #     polys <- shp[shp@data[,class_attr] == legend[i],]
-            #     pts<-spsample(polys,as.numeric(rp[rp$map_value == legend[i],]$final),type="stratified")
+            #     pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
             #     att_vec <- rep(legend[i],nrow(pts@coords))
             #     tmp_pts<-data.frame(cbind(pts@coords,att_vec))
             #     df_pts<-rbind(df_pts,tmp_pts)
@@ -1020,14 +1020,14 @@ shinyServer(
     
     if(mapType()== "raster_type"){
       dfa<-spdf()
-      names(dfa)<- 'map_value'
-      factpal <- colorFactor("Spectral", dfa$map_value)
+      names(dfa)<- 'map_code'
+      factpal <- colorFactor("Spectral", dfa$map_code)
       m <- leaflet() %>%
         addTiles() %>%  # Add default OpenStreetMap map tiles
-        addCircleMarkers(data = dfa, color= ~factpal(map_value),
+        addCircleMarkers(data = dfa, color= ~factpal(map_code),
                        fillOpacity = 0.4,
                        radius = 5,
-                       popup = ~paste(sprintf("Map value: %s", map_value))
+                       popup = ~paste(sprintf("Map value: %s", map_code))
                        )
       m
     }
@@ -1036,12 +1036,12 @@ shinyServer(
         dfa <- spTransform(all_features(),CRS("+proj=longlat +datum=WGS84"))
         
         class_attr <- input$class_attribute_vector
-        names(dfa)[names(dfa) == class_attr] <- c("map_value")
-        factpal   <- colorFactor("Spectral", dfa@data$map_value)
+        names(dfa)[names(dfa) == class_attr] <- c("map_code")
+        factpal   <- colorFactor("Spectral", dfa@data$map_code)
         m <- leaflet() %>%
           addTiles() %>%  # Add default OpenStreetMap map tiles
           addPolygons(
-            data = dfa, stroke = FALSE, fillOpacity = 1, color = ~ factpal(map_value), popup = ~paste(sprintf("Map value: %s", map_value))
+            data = dfa, stroke = FALSE, fillOpacity = 1, color = ~ factpal(map_code), popup = ~paste(sprintf("Map value: %s", map_code))
           )
         m
       }
@@ -1204,7 +1204,7 @@ shinyServer(
       names(m) <- c("ID", "YCOORD", "XCOORD", "ELEVATION", "SLOPE", "ASPECT", "ADM1_NAME", "COUNTRY","GEOMETRY","AREA")
       
       ################ Add the map code
-      m$map_class <- as.character(map_code)
+      m$map_code <- as.character(map_code)
       
       ################ Clean existing csv files
       unlink("www/cep_template/*.csv")
@@ -1215,7 +1215,7 @@ shinyServer(
     
     ################ Create a dummy distribution for the analysis
     pts <- m
-    legend <- levels(as.factor(pts$map_class))
+    legend <- levels(as.factor(pts$map_code))
 
     tmp              <- as.data.frame(pts$ID)
     tmp$location_srs <- "EPSG:4326"
@@ -1234,11 +1234,11 @@ shinyServer(
     tmp$month        <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][2]
     tmp$day          <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][3]
     tmp$plot         <- "response.csv"
-    tmp$ref_class    <- pts$map_class
+    tmp$ref_code     <- pts$map_code
     tmp$confidence   <- "FALSE"
-    tmp$map_class    <- pts$map_class
+    tmp$map_code     <- pts$map_code
 
-    table(tmp$ref_class,tmp$map_class)
+    table(tmp$ref_code,tmp$map_code)
 
     ## Create a random number
     tmp$rand_th      <- runif(nrow(tmp),0,1)
@@ -1247,7 +1247,7 @@ shinyServer(
     tmp$rand_leg     <- sample(legend,nrow(tmp),replace=T)
 
     ## Replace the cover column with random values where random index is inferior to threshold
-    tmp[tmp$rand_th < 0.15,]$ref_class <- tmp[tmp$rand_th < 0.15,]$rand_leg
+    tmp[tmp$rand_th < 0.15,]$ref_code <- tmp[tmp$rand_th < 0.15,]$rand_leg
 
     ## Reset the random number
     tmp$rand_th      <- runif(nrow(tmp),0,1)
@@ -1260,9 +1260,9 @@ shinyServer(
     names(df)<-c("id","location_srs","location_x","location_y","operator",
                  "elevation","slope","aspect","adm1_name","country","geometry","area",
                  "actively_saved","actively_saved_on_year","actively_saved_on_month","actively_saved_on_day",
-                 "plot_file","ref_class","confidence","map_class")
+                 "plot_file","ref_code","confidence","map_code")
 
-    table(df$ref_class,df$map_class)
+    table(df$ref_code,df$map_code)
 
     ## Export as a Mockup dataset to use in the analysis
     write.csv(df,paste(outdir(),"/collectedData_mockup_",gsub(" ","_",input$basename_CE),"_",Sys.Date(),".csv",sep=""),row.names=F)
