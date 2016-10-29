@@ -149,7 +149,7 @@ shinyServer(
     
   })
   
-  ## select column with reference data
+  ## select column with reference data in validation file 
   output$column_ref <- renderUI({
     req(input$CEfilename)
     selectInput('reference_data', 
@@ -159,18 +159,18 @@ shinyServer(
                 selected = c("ref_class","ref_code"))
   })
   
-  ## select column with map data
+  ## select column with map data in validation file
   output$column_map <- renderUI({
     req(input$CEfilename)
     selectInput('map_data', 
                 'Choose the column with the map data information', 
                 choices= names(df_i()),
                 multiple = FALSE,
-                selected = c("map_code","map_class"))
+                selected = c("map_class","map_code"))
     
   })
   
-  ## select the column with the area column
+  ## select the column with the area column in area file
   output$areaCol <- renderUI({
     req(input$areafilename)
     if(is.element('map_area',names(areas_read()))==FALSE){
@@ -185,12 +185,12 @@ shinyServer(
   ## select the column with the classes in the area file
   output$classCol <- renderUI({
     req(input$areafilename)
-    if(is.element('map_class',names(areas_read()))==FALSE){
+    if(is.element('map_value',names(areas_read()))==FALSE){
       selectInput('selectClassCol', 
                   'Choose the class column from the area file', 
                   choices= names(areas_read()),
                   multiple = FALSE,
-                  selected = c("map_code","map_class"))
+                  selected = c("map_code","map_value"))
     }
   })
   
@@ -217,7 +217,7 @@ shinyServer(
   areas_i <- reactive({
     req(input$areafilename)
     areas <- areas_read()
-    if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_class"}
+    if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_value"}
     if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas)  == input$selectAreaCol]  <- "map_area"}
     areas
   })
@@ -434,14 +434,14 @@ shinyServer(
     legend <- legend_i()
     
     
-    if(all(legend_i()  %in% areas_i()$map_class )){
+    if(all(legend_i()  %in% areas_i()$map_value )){
       
       
       matrix_w<-matrix
       for(i in 1:length(legend)){
         for(j in 1:length(legend)){
           tryCatch({
-            matrix_w[i,j] <- matrix[i,j]/sum(matrix[i,])*areas[areas$map_class==legend[i],]$map_area/sum(areas$map_area)
+            matrix_w[i,j] <- matrix[i,j]/sum(matrix[i,])*areas[areas$map_value==legend[i],]$map_area/sum(areas$map_area)
           }, error=function(e){cat("Not relevant\n")}
           )
         }}
@@ -450,8 +450,8 @@ shinyServer(
       for(i in 1:length(legend)){
         for(j in 1:length(legend)){
           tryCatch({
-            matrix_se[i,j] <- areas[areas$map_class==legend[i],]$map_area/sum(areas$map_area)*
-              areas[areas$map_class==legend[i],]$map_area/sum(areas$map_area)*
+            matrix_se[i,j] <- areas[areas$map_value==legend[i],]$map_area/sum(areas$map_area)*
+              areas[areas$map_value==legend[i],]$map_area/sum(areas$map_area)*
               matrix[i,j]/
               sum(matrix[i,])*
               (1-matrix[i,j]/sum(matrix[i,]))/
@@ -467,13 +467,13 @@ shinyServer(
       
       ### Integration of all elements into one dataframe
       for(i in 1:length(legend)){
-        confusion[i,]$class<-areas[areas$map_class==legend[i],]$map_class
-        confusion[i,]$code <-areas[areas$map_class==legend[i],]$map_class
+        confusion[i,]$class<-areas[areas$map_value==legend[i],]$map_value
+        confusion[i,]$code <-areas[areas$map_value==legend[i],]$map_value
         confusion[i,]$Pa   <-matrix[i,i]/sum(matrix[,i])
         confusion[i,]$Ua   <-matrix[i,i]/sum(matrix[i,])
         confusion[i,]$PaW  <-matrix_w[i,i]/sum(matrix_w[,i])
         confusion[i,]$corr <-sum(matrix_w[,i])*sum(areas$map_area)
-        confusion[i,]$area <-areas[areas$map_class==legend[i],]$map_area
+        confusion[i,]$area <-areas[areas$map_value==legend[i],]$map_area
         confusion[i,]$se   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
         confusion[i,]$ci   <-confusion[i,]$se*1.96
       }
@@ -494,7 +494,7 @@ shinyServer(
     )
     
     validate(
-      need(all(legend_i()  %in% areas_i()$map_class ),"Mismatch between class names in area and validation file"))
+      need(all(legend_i()  %in% areas_i()$map_value ),"Mismatch between class names in area and validation file"))
     
     item      <-data.frame(accuracy_all())
     item      <-item[,c("class","PaW","Ua","area","corr","ci")]
@@ -541,7 +541,7 @@ shinyServer(
     )
     
     validate(
-      need(all(legend_i()  %in% areas_i()$map_class ),"Mismatch between class names in area and validation file"))
+      need(all(legend_i()  %in% areas_i()$map_value ),"Mismatch between class names in area and validation file"))
     
     dfa<-as.data.frame(accuracy_all())
     legend <- legend_i()
