@@ -8,10 +8,10 @@ In a second step, the validation results are used by the aa_analysis to produce 
 
 
 ## Installation
-# R from www.r-project.org
+### R from www.r-project.org
 Take default parameters
 
-# Rstudio from www.rstudio.org
+### Rstudio from www.rstudio.org
 Needed libraries are:
  
 raster
@@ -36,7 +36,7 @@ RColorBrewer
 
 They will be downloaded if missing, may take long the first time
 
-# If running in Windows, also need Rtools from https://cran.r-project.org/bin/windows/Rtools/
+### If running in Windows, also need Rtools from https://cran.r-project.org/bin/windows/Rtools/
 
 Locate the folder that Rtools is installed (usually 'C:\Rtools')
 Add C:\Rtools\bin path to the system path
