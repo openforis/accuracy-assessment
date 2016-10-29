@@ -46,28 +46,40 @@
       <codingScheme scope="local" />
       <items>
         <item id="1030">
-          <code>Deforestation</code>
-          <label>Deforestation</label>
+          <code>2</code>
+          <label>remi</label>
         </item>
         <item id="1031">
-          <code>Forest Degradation</code>
-          <label>Forest Degradation</label>
+          <code>4</code>
+          <label>test</label>
         </item>
         <item id="1032">
-          <code>Forest enhancement</code>
-          <label>Forest enhancement</label>
+          <code>11</code>
+          <label>des choses</label>
         </item>
         <item id="1033">
-          <code>Forest preservation</code>
-          <label>Forest preservation</label>
+          <code>12</code>
+          <label>12</label>
         </item>
         <item id="1034">
-          <code>Non Forest</code>
-          <label>Non Forest</label>
+          <code>13</code>
+          <label>13</label>
         </item>
         <item id="1035">
-          <code>Sustainable forest</code>
-          <label>Sustainable forest</label>
+          <code>31</code>
+          <label>31</label>
+        </item>
+        <item id="1036">
+          <code>32</code>
+          <label>32</label>
+        </item>
+        <item id="1037">
+          <code>33</code>
+          <label>33</label>
+        </item>
+        <item id="1038">
+          <code>34</code>
+          <label>34</label>
         </item>
       </items>
     </list>
