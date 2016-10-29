@@ -38,21 +38,21 @@ They will be downloaded if missing, may take long the first time
 
 ### If running in Windows, Rtools from https://cran.r-project.org/bin/windows/Rtools/
 
->Locate the folder that Rtools is installed (usually 'C:\Rtools')
+> Locate the folder where Rtools is installed (usually 'C:\Rtools')
 
->Add C:\Rtools\bin path to the system path
+> Add C:\Rtools\bin path to the system path
 
->Go to Control Panel >> System and Security >> System
+> Go to Control Panel
 
->Go to Advanced System Settings
+> Go to Advanced System Settings
 
->Open Advanced tab
+> Open Advanced tab
 
->Click Environmental Variables... button
+> Click Environmental Variables button
 
->Select Path variable and click Edit button
+> Select Path variable and click Edit button
 
->Add ';C:\Rtools\bin' at the end of the line 
+> Add ';C:\Rtools\bin' at the end of the line 
 
 
 
