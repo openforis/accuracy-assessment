@@ -17,30 +17,8 @@ The following programs are need for the application to run:
 
 
 ### Rstudio from www.rstudio.org
-The needed packages are below, they will be downloaded if missing from your libraries (may take long the first time)
+Several packages are needed for the application to run, they will be downloaded if missing from your libraries (may take long the first time)
  
-* raster
-* rgeos
-* rgdal
-
-
-* shiny
-* shinyFiles
-* shinydashboard
-* htmltools
-* snow
-
-
-* plyr
-* stringr
-* xtable
-* DT
-* dismo
-
-
-* ggplot2
-* leaflet
-* RColorBrewer
 
 
 ### If running in Windows, Rtools from https://cran.r-project.org/bin/windows/Rtools/
