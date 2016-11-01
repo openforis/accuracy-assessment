@@ -1,7 +1,4 @@
-#### Version :
-1.0
-### Date :
-2016-11-01
+#### Stamp date : **2016-11-01**
 
 ## Accuracy assessment design and analysis tool
 
@@ -19,15 +16,15 @@ Take default parameters
 ### Rstudio from www.rstudio.org
 Needed libraries are:
  
-raster
-rgeos
-rgdal
+* raster
+* rgeos
+* rgdal
 
-shiny
-shinyFiles
-shinydashboard
-htmltools
-snow
+* shiny
+* shinyFiles
+* shinydashboard
+* htmltools
+* snow
 
 plyr
 stringr
