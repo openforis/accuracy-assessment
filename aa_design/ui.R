@@ -443,7 +443,9 @@ spatial unit is a pixel, number of polygons if the spatial unit is a polygon)"),
                     downloadButton('download_CEP', 
                                    label='Download Collect Earth Project file'),
                     downloadButton('download_CE', 
-                                   label='Download sampling points as csv')
+                                   label='Download sampling points as csv'),
+                    downloadButton('download_SHP', 
+                                   label='Download sampling points as shapefile')
                     
                     ####################################################################################
                     # End of the box
