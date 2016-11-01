@@ -1363,6 +1363,21 @@ shinyServer(
       }
     )
     
+    ##################################################################################################################################
+    ############### Enable to download the Shapefile file (shp)
+    output$download_SHP <- downloadHandler(
+      filename = function(){
+        paste(input$basename_CE,".zip",sep="")},
+      content  = function(file){
+        to_export <- spdf()
+        print(outdir())
+        writeOGR(to_export, dsn=paste0(outdir(),"/", input$basename_CE, ".shp"), layer=input$basename_CE, 
+                 driver="ESRI Shapefile")
+        zip(zipfile=paste0( input$basename_CE, ".zip"), 
+            files=Sys.glob(paste0(outdir(), "/",input$basename_CE, ".*")))
+        file.copy(paste0(outdir(),"/", input$basename_CE,".zip"), file)
+      }
+    )    
     
     ##################################################################################################################################
     ############### Turn off progress bar
