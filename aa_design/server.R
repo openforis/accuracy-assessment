@@ -372,8 +372,8 @@ shinyServer(
               print(dataname)
               
               ############### Use oft-stat to compute self-zonal stats
-              print(paste("oft-stat -i ",dataname," -o ",outdir(),"/stats.txt -um ",dataname,sep=""))
-              system(paste("oft-stat -i ",dataname," -o ",outdir(),"/stats.txt -um ",dataname,sep=""))
+              print(paste("oft-stat -i ",dataname," -o ",outdir(),"/stats.txt -um ",dataname," -nostd", sep=""))
+              system(paste("oft-stat -i ",dataname," -o ",outdir(),"/stats.txt -um ",dataname," -nostd",sep=""))
               
           })
         
@@ -382,7 +382,7 @@ shinyServer(
         stats<-arrange(stats,map_code)
         #write.csv(stats[,1:3],paste0(outdir(),"/area_rast.csv"),row.names=F)
         print("Calculation with OFT-STAT: OK")
-        stats
+        stats <- stats[,1:3]
       }
       
       ############### Use R to compute the areas
