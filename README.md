@@ -2,23 +2,27 @@
 
 ## Accuracy assessment design and analysis tool
 
-This application functions with R, Rstudio and the Shiny package
+The application functions with R, Rstudio and the Shiny package.
 
-In a first step, the aa_design takes a geospatial map (raster or vector format) as input and outputs a file to perform validation within Collect Earth.
+In a first step, the aa_design takes a geospatial map (raster or vector format) as input and outputs a file to perform validation on.
 
 In a second step, the validation results are used by the aa_analysis to produce confusion matrix, compute accuracies, correct biases for area estimates and compute confidence intervals
 
 
 ## Configuration
+
+The following programs are need for the application to run:
+
 ### R from www.r-project.org
-Take default parameters
+
 
 ### Rstudio from www.rstudio.org
-Needed libraries are:
+The needed packages are below, they will be downloaded if missing from your libraries (may take long the first time)
  
 * raster
 * rgeos
 * rgdal
+
 
 * shiny
 * shinyFiles
@@ -26,17 +30,18 @@ Needed libraries are:
 * htmltools
 * snow
 
-plyr
-stringr
-xtable
-DT
-dismo
 
-ggplot2
-leaflet
-RColorBrewer
+* plyr
+* stringr
+* xtable
+* DT
+* dismo
 
-They will be downloaded if missing, may take long the first time
+
+* ggplot2
+* leaflet
+* RColorBrewer
+
 
 ### If running in Windows, Rtools from https://cran.r-project.org/bin/windows/Rtools/
 
