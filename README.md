@@ -1,3 +1,8 @@
+#### Version :
+1.0
+### Date :
+2016-11-01
+
 ## Accuracy assessment design and analysis tool
 
 This application functions with R, Rstudio and the Shiny package
