@@ -1,13 +1,13 @@
 ## Accuracy assessment design and analysis tool
 
-This application functions with R shiny package
+This application functions with R, Rstudio and the Shiny package
 
 In a first step, the aa_design takes a geospatial map (raster or vector format) as input and outputs a file to perform validation within Collect Earth.
 
 In a second step, the validation results are used by the aa_analysis to produce confusion matrix, compute accuracies, correct biases for area estimates and compute confidence intervals
 
 
-## Installation
+## Configuration
 ### R from www.r-project.org
 Take default parameters
 
@@ -58,7 +58,13 @@ They will be downloaded if missing, may take long the first time
 
 ## Tests
 
-Launch the app with the following commands in R:
+Launch the application with the following commands in R:
+
+For the first time you have to install the Shiny package
+
+> install.packages("shiny")
+
+Then you call the library and launch the application directly
 
 > library(shiny)
 

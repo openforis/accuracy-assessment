@@ -437,15 +437,19 @@ spatial unit is a pixel, number of polygons if the spatial unit is a polygon)"),
                     
                     
                     textInput("basename_CE", 
-                              label = h3("Basename of Collect Earth file to export"),
+                              label = h3("Basename of sampling design files to export"),
                               value = paste("CE_",Sys.Date(),sep="")),
                     
                     downloadButton('download_CEP', 
-                                   label='Download Collect Earth Project file'),
+                                   label='Download as Collect Earth project (.cep)'),
+                    br(),
+                    br(),
                     downloadButton('download_CE', 
-                                   label='Download sampling points as csv'),
+                                   label='Download as tabular data (.csv)'),
+                    br(),
+                    br(),
                     downloadButton('download_SHP', 
-                                   label='Download sampling points as shapefile')
+                                   label='Download as vector data (.shp)')
                     
                     ####################################################################################
                     # End of the box

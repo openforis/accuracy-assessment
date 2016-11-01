@@ -16,7 +16,7 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2016/10/29
+## Last update: 2016/11/01
 ## aa_design / server
 ####################################################################################
 
@@ -79,11 +79,31 @@ shinyServer(
     progress$set(message="Loading maps/data", value=0)
     
     ##################################################################################################################################    
-    ############### HARDCODED ROOT FOLDER : everything will be lower
-    volumes <- c('User directory'=Sys.getenv("HOME"),
-                 'C:/  drive' = 'C:/',
-                 'Root drive' = '/')
+    ############### Find volumes
+    osSystem <- Sys.info()["sysname"]
     
+    if (osSystem == "Linux") {
+      media <- list.files("/media", full.names = T)
+      names(media)=basename(media)
+      volumes <- c(media)
+    }else 
+      if (osSystem == "Windows") {
+        volumes <- system("wmic logicaldisk get Caption", intern = T)
+        volumes <- sub(" *\\r$", "", volumes)
+        keep <- !tolower(volumes) %in% c("caption", "")
+        volumes <- volumes[keep]
+        volNames <- system("wmic logicaldisk get VolumeName", 
+                           intern = T)
+        volNames <- sub(" *\\r$", "", volNames)
+        volNames <- volNames[keep]
+        volNames <- paste0(volNames, ifelse(volNames == "", "", 
+                                            " "))
+        volNames <- paste0(volNames, "(", volumes, ")")
+        names(volumes) <- volNames
+      }
+    
+    volumes <- c('Home'=Sys.getenv("HOME"),
+                 volumes)
     
     ##################################################################################################################################    
     ############### Select input file (raster OR vector)
@@ -1157,18 +1177,23 @@ shinyServer(
             {
               setProgress(value=.1)
               adm <- getData ('GADM',path='www/getDataFiles/', country= country, level=1)
+              
+              ptdf<-SpatialPointsDataFrame(
+                coords=data.frame(cbind(XCOORD,YCOORD)),
+                data=data.frame(ID),
+                proj4string=CRS("+proj=longlat +datum=WGS84")
+              )
+              
+              proj4string(ptdf) <- proj4string(adm)
+              adm1 <- over(ptdf, adm)
+              
+              ADM1_NAME <- adm1[,6]
+              ADM1_NAME <- str_replace_all(ADM1_NAME,"[[:punct:]]","")
+              COUNTRY <- adm1[,4]
+              
             })
         }, error=function(e){cat("GADM data not retrieved \n")}
         )
-        
-        ptdf<-SpatialPointsDataFrame(
-          coords=data.frame(cbind(XCOORD,YCOORD)),
-          data=data.frame(ID),
-          proj4string=CRS("+proj=longlat +datum=WGS84")
-        )
-        
-        proj4string(ptdf) <- proj4string(adm)
-        adm1 <- over(ptdf, adm)
         
         ################ Get the SRTM DEM information for the points
         tryCatch({
@@ -1181,18 +1206,13 @@ shinyServer(
           slope  <- terrain(elevation, opt = "slope")
           aspect <- terrain(elevation, opt = "aspect")
           
-          
-          ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
+                    ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
           SLOPE     <- extract(slope,     cbind(XCOORD, YCOORD))
           ASPECT    <- extract(aspect,    cbind(XCOORD, YCOORD))
           
           rm(elevation)
           rm(slope)
           rm(aspect)
-          
-          ADM1_NAME <- adm1[,6]
-          ADM1_NAME <- str_replace_all(ADM1_NAME,"[[:punct:]]","")
-          COUNTRY <- adm1[,4]
           
         }, error=function(e){cat("SRTM data not retrieved \n")}
         )
@@ -1355,11 +1375,14 @@ shinyServer(
       filename = function(){
         paste(input$basename_CE,".cep",sep="")},
       content = function(file) {
-        to_export <- CEfile()
+        
         setwd("www/cep_template/")
-        zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),Sys.glob(paste0("*")))
+        zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),
+            file=Sys.glob(paste0("*")))
         setwd("../../")
+        
         file.copy(paste0(outdir(),"/",input$basename_CE,".cep"), file)
+        #file.remove(paste0(outdir(),"/", input$basename_CE,".cep"))
       }
     )
     
@@ -1369,13 +1392,19 @@ shinyServer(
       filename = function(){
         paste(input$basename_CE,".zip",sep="")},
       content  = function(file){
-        to_export <- spdf()
-        print(outdir())
-        writeOGR(to_export, dsn=paste0(outdir(),"/", input$basename_CE, ".shp"), layer=input$basename_CE, 
-                 driver="ESRI Shapefile")
-        zip(zipfile=paste0( input$basename_CE, ".zip"), 
-            files=Sys.glob(paste0(outdir(), "/",input$basename_CE, ".*")))
+        
+        writeOGR(obj=spdf(), 
+                 dsn=paste0(outdir(),"/shpfile_",input$basename_CE, ".shp"), 
+                 layer=paste0("shpfile_",input$basename_CE), 
+                 driver="ESRI Shapefile",overwrite_layer = T)
+        
+        zip(zipfile=paste0(outdir(),"/",input$basename_CE,".zip"), 
+            files=Sys.glob(file.path(outdir(),paste0("shpfile_",input$basename_CE,"*"))),
+            extras="-j"
+            )
+        
         file.copy(paste0(outdir(),"/", input$basename_CE,".zip"), file)
+        file.remove(paste0(outdir(),"/", input$basename_CE,".zip"))
       }
     )    
     
