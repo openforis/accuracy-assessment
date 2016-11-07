@@ -172,7 +172,7 @@ Users are, however, kindly asked to report any errors or deficiencies in this pr
                     tabPanel("References and Documents",
                              br(),
                              img(src="thumbnails/REDDCompass_webpage.png", height = 100, width = 200),
-                             a(href="www.reddcompass.org","REDD Compass",target="_blank"),
+                             a(href="https://www.reddcompass.org","REDD Compass",target="_blank"),
                              br(),
                              br(),
                              img(src="thumbnails/Olofsson2014_cover.PNG", height = 90, width = 200),
