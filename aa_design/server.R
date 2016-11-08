@@ -1381,7 +1381,8 @@ shinyServer(
         
         setwd("www/cep_template/")
         zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),
-            file=Sys.glob(paste0("*")))
+            file=Sys.glob(paste0("*")),
+            zip=my_zip_tools)
         setwd("../../")
         
         file.copy(paste0(outdir(),"/",input$basename_CE,".cep"), file)
