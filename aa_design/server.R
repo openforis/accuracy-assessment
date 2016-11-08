@@ -1371,6 +1371,7 @@ shinyServer(
       filename = function(){
         paste(input$basename_CE,".cep",sep="")},
       content = function(file) {
+        to_export <- CEfile()
         
         setwd("www/cep_template/")
         zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),
