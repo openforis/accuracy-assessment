@@ -53,9 +53,11 @@ Then you call the library and launch the application(s) directly
 
 > library(shiny)
 
-> runGitHub("openforis/accuracy-assessment",subdir="aa_design",launch.browser = getOption("shiny.launch.browser", interactive()))
+> options(shiny.launch.browser = TRUE)
 
-> runGitHub("openforis/accuracy-assessment",subdir="aa_analysis",launch.browser = getOption("shiny.launch.browser", interactive()))
+> runGitHub("openforis/accuracy-assessment",subdir="aa_design")
+
+> runGitHub("openforis/accuracy-assessment",subdir="aa_analysis")
 
 
 ## Contributors
