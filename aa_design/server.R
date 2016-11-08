@@ -848,17 +848,6 @@ shinyServer(
         
         final <- list()
         
-        # ############### Sample points from the first class
-        # i = 1
-        # 
-        # final <- rand_sample[
-        #   rand_sample$id
-        #   %in%
-        #     sample(
-        #       rand_sample[rand_sample$map_code %in% c(to_spl[i],to_rtp[i]),]$id,
-        #       rp2[rp2$map_code %in% c(to_spl[i],to_rtp[i]),]$final
-        #     ),]
-        
         ############### Loop into the well represented classes, sample and append
         if(length(to_spl) > 0){
           for(i in 1:length(to_spl)){
