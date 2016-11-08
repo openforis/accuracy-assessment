@@ -113,7 +113,7 @@ shinyServer(
     my_zip_tools <- Sys.getenv("R_ZIPCMD", "zip")
     
     if (osSystem == "Windows") {
-      my_zip_tools <- c(my_zip_tools,"C:/Rtools/bin/") 
+      my_zip_tools <- c("C:/Rtools/bin/zip.exe") 
     }
     
     ##################################################################################################################################    
