@@ -110,6 +110,12 @@ shinyServer(
     volumes <- c('Home'=Sys.getenv("HOME"),
                  volumes)
     
+    my_zip_tools <- Sys.getenv("R_ZIPCMD", "zip")
+    
+    if (osSystem == "Windows") {
+      my_zip_tools <- c(my_zip_tools,"C:/Rtools/bin/") 
+    }
+    
     ##################################################################################################################################    
     ############### Select input file (raster OR vector)
     shinyFileChoose(input, 
@@ -1397,7 +1403,8 @@ shinyServer(
         
         zip(zipfile=paste0(outdir(),"/",input$basename_CE,".zip"), 
             files=Sys.glob(file.path(outdir(),paste0("shpfile_",input$basename_CE,"*"))),
-            extras="-j"
+            extras="-j",
+            zip=my_zip_tools
             )
         
         file.copy(paste0(outdir(),"/", input$basename_CE,".zip"), file)
