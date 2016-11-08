@@ -846,20 +846,22 @@ shinyServer(
         ############### Create the list of classes that are enough represented in the random sampling
         to_spl <- rp2[rp2$Freq >= rp2$final,]$map_code
         
-        ############### Sample points from the first class
-        i = 1
+        final <- list()
         
-        final <- rand_sample[
-          rand_sample$id
-          %in%
-            sample(
-              rand_sample[rand_sample$map_code %in% c(to_spl[i],to_rtp[i]),]$id,
-              rp2[rp2$map_code %in% c(to_spl[i],to_rtp[i]),]$final
-            ),]
+        # ############### Sample points from the first class
+        # i = 1
+        # 
+        # final <- rand_sample[
+        #   rand_sample$id
+        #   %in%
+        #     sample(
+        #       rand_sample[rand_sample$map_code %in% c(to_spl[i],to_rtp[i]),]$id,
+        #       rp2[rp2$map_code %in% c(to_spl[i],to_rtp[i]),]$final
+        #     ),]
         
         ############### Loop into the well represented classes, sample and append
-        if(length(to_spl) > 1){
-          for(i in 2:length(to_spl)){
+        if(length(to_spl) > 0){
+          for(i in 1:length(to_spl)){
             tmp <- rand_sample[
               rand_sample$id
               %in%
