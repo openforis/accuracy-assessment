@@ -78,10 +78,43 @@ shinyServer(
     session$onSessionEnded(stopApp)
     
     ##################################################################################################################################    
-    ############### 
-    volumes <- c('User directory'=Sys.getenv("HOME"),
-                 'C:/  drive' = 'C:/',
-                 'Root drive' = '/')
+    ############### Show progress bar while loading everything
+    
+    progress <- shiny::Progress$new()
+    progress$set(message="Loading maps/data", value=0)
+    
+    ##################################################################################################################################    
+    ############### Find volumes
+    osSystem <- Sys.info()["sysname"]
+    
+    if (osSystem == "Linux") {
+      media <- list.files("/media", full.names = T)
+      names(media)=basename(media)
+      volumes <- c(media)
+    }else 
+      if (osSystem == "Windows") {
+        volumes <- system("wmic logicaldisk get Caption", intern = T)
+        volumes <- sub(" *\\r$", "", volumes)
+        keep <- !tolower(volumes) %in% c("caption", "")
+        volumes <- volumes[keep]
+        volNames <- system("wmic logicaldisk get VolumeName", 
+                           intern = T)
+        volNames <- sub(" *\\r$", "", volNames)
+        volNames <- volNames[keep]
+        volNames <- paste0(volNames, ifelse(volNames == "", "", 
+                                            " "))
+        volNames <- paste0(volNames, "(", volumes, ")")
+        names(volumes) <- volNames
+      }
+    
+    volumes <- c('Home'=Sys.getenv("HOME"),
+                 volumes)
+    
+    my_zip_tools <- Sys.getenv("R_ZIPCMD", "zip")
+    
+    if (osSystem == "Windows") {
+      my_zip_tools <- c("C:/Rtools/bin/zip.exe") 
+    }
     
     ##################################################################################################################################    
     ############### Select point file
