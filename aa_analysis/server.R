@@ -281,8 +281,8 @@ shinyServer(
       
       req(input$CEfilename)
       df_i <- df_i()
-      # colnames(df_i)[names(df_i) == input$map_data] <- "map_code"
-      # colnames(df_i)[names(df_i) == input$reference_data] <- "ref_code"
+      colnames(df_i)[names(df_i) == input$map_data] <- "map_code"
+      colnames(df_i)[names(df_i) == input$reference_data] <- "ref_code"
       if(!is.null(input$refAreaCol))colnames(df_i)[names(df_i) == input$refAreaCol] <- "area"
       
       ### If the file doesn't contain an area column, set the area to 1
@@ -450,7 +450,7 @@ shinyServer(
       #tmp <- as.matrix(table(df[,map_code,],df[,ref_code]))
       
       ######## Confusion matrix as sum of areas of elements
-      tmp <- tapply(df$area,df[,c(input$map_data,input$reference_data)],sum)
+      tmp <- tapply(df$area,df[,c(map_code,ref_code)],sum)
       tmp[is.na(tmp)]<- 0
       
       matrix<-matrix(0,nrow=length(legend),ncol=length(legend))
