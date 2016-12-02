@@ -495,7 +495,9 @@ shinyServer(
         
         ############### Or compute areas
         else{
-          areas  <- sapply(1:length(legend), function(x){gArea(shp[shp@data[, class_attr] == legend[x], ])})
+          print('computing areas')
+          #areas  <- sapply(1:length(legend), function(x){gArea(shp[shp@data[, class_attr] == legend[x], ])})
+          areas  <- tapply(gArea(shp,byid=T), shp@data[, class_attr], sum)
         }
         
         
@@ -908,18 +910,18 @@ shinyServer(
             value = 0, 
             {
               setProgress(value=.1)
-              rp <- strat_sample()
+              
               if(input$IsManualSampling == T){
                 validate(
                   need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
                 )
-                rp <- read.csv(paste0(outdir(),"/", input$manualSampling$name), header = T)
+                rp <- read.csv(paste0(outdir(),"/", input$ManualSamplingFile$name), header = T)
+              }
+              else{
+                rp <- strat_sample()
               }
               
-              # rp <- read.csv("../../../../../aa_input/aa_design_output/sampling.csv")
-              # shp <- readOGR("../../../../../aa_input/aa_test.shp","aa_test")
-              # class_attr <- "class_chan"
-              
+
               legend <- levels(as.factor(rp$map_code))
               shp <- lcmap()
               class_attr <- input$class_attribute_vector
