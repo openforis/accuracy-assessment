@@ -1,0 +1,15 @@
+Run Script1:
+- input: one csv file with point coordinates and other parameters
+- output: three kml files (one with the samples 2km bounding boxe and the others are tiling of the AOI for Landsat and Sentinel download)
+
+Load the 3 kml as 3 fusion tables in your personnal space
+
+Run GEE script: https://code.earthengine.google.com/ddb6c4d282d33b1457ed05ea1543d294
+- input:  3 fusion table IDs + parameters specific to the acquisition time
+- output: time series downloaded to your GoogleDrive
+
+Download from GoogleDrive to a local harddrive
+
+Run Script2:
+- input: the path of the harddrive where your Landsat and Sentinel data is stored
+- output: a floder containing the time series for each sample
