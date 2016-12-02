@@ -495,7 +495,9 @@ shinyServer(
         
         ############### Or compute areas
         else{
-          areas  <- sapply(1:length(legend), function(x){gArea(shp[shp@data[, class_attr] == legend[x], ])})
+          print('computing areas')
+          #areas  <- sapply(1:length(legend), function(x){gArea(shp[shp@data[, class_attr] == legend[x], ])})
+          areas  <- tapply(gArea(shp,byid=T), shp@data[, class_attr], sum)
         }
         
         
@@ -908,18 +910,18 @@ shinyServer(
             value = 0, 
             {
               setProgress(value=.1)
-              rp <- strat_sample()
+              
               if(input$IsManualSampling == T){
                 validate(
                   need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
                 )
-                rp <- read.csv(paste0(outdir(),"/", input$manualSampling$name), header = T)
+                rp <- read.csv(paste0(outdir(),"/", input$ManualSamplingFile$name), header = T)
+              }
+              else{
+                rp <- strat_sample()
               }
               
-              # rp <- read.csv("../../../../../aa_input/aa_design_output/sampling.csv")
-              # shp <- readOGR("../../../../../aa_input/aa_test.shp","aa_test")
-              # class_attr <- "class_chan"
-              
+
               legend <- levels(as.factor(rp$map_code))
               shp <- lcmap()
               class_attr <- input$class_attribute_vector
@@ -1078,6 +1080,14 @@ shinyServer(
       print("Check: CEfile")
       req(mapType)
       
+      ################ Copy the CEP template into the output directory
+      file.copy('www/cep_template/',outdir(),recursive = TRUE)
+      
+      ################ Create a local getDataFiles folder to receive files form getData
+      if(!file.exists(paste0(outdir(),"/getDataFiles"))){
+        dir.create(file.path(paste0(outdir(), '/getDataFiles')))
+        }
+      
       if(mapType()== "raster_type"){
         ################ If the type is raster the sp_df is POINTS, use directly
         print("Check: CEfile raster_type")
@@ -1167,7 +1177,7 @@ shinyServer(
             message= 'Downloading country names',
             value = 0,
             {setProgress(value=.1)
-              country <- getData('ISO3',path='www/getDataFiles/')[,1][getData('ISO3',path='www/getDataFiles/')[,2]== country]
+              country <- getData('ISO3',path=paste0(outdir(),"/getDataFiles"))[,1][getData('ISO3',path=paste0(outdir(),"/getDataFiles"))[,2]== country]
             })
         }, error=function(e){cat("ISO3 data not retrieved \n")}
         )
@@ -1178,7 +1188,7 @@ shinyServer(
             value = 0, 
             {
               setProgress(value=.1)
-              adm <- getData ('GADM',path='www/getDataFiles/', country= country, level=1)
+              adm <- getData ('GADM',path=paste0(outdir(),"/getDataFiles"), country= country, level=1)
               
               ptdf<-SpatialPointsDataFrame(
                 coords=data.frame(cbind(XCOORD,YCOORD)),
@@ -1203,7 +1213,7 @@ shinyServer(
             message= 'Downloading elevation data', 
             value = 0, 
             {
-              elevation <- getData("alt",path='www/getDataFiles/', country = country)
+              elevation <- getData("alt",path=paste0(outdir(),"/getDataFiles"), country = country)
             })
           slope  <- terrain(elevation, opt = "slope")
           aspect <- terrain(elevation, opt = "aspect")
@@ -1230,10 +1240,10 @@ shinyServer(
       m$map_code <- as.character(map_code)
       
       ################ Clean existing csv files
-      unlink("www/cep_template/*.csv")
+      unlink(paste0(outdir(),"/cep_template/*.csv"))
       
       ################ Export the csv file with points
-      write.csv(m,paste0("www/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
+      write.csv(m,paste0(outdir(),"/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
       
       ################ Create a dummy distribution for the analysis
       pts <- m
@@ -1318,7 +1328,7 @@ shinyServer(
       
       balloon[163] <- paste0(head,middle,tail)
       
-      writeLines(balloon,"www/cep_template/balloon.html")
+      writeLines(balloon,paste0(outdir(),"/cep_template/balloon.html"))
       
       ################# Modify placemark
       placemark <- readLines("www/cep_template/template_files/template_placemark.idm.xml")
@@ -1345,7 +1355,7 @@ shinyServer(
       placemark_out[3] <- paste0('\ \ <project>',gsub(" ","_",basename),'</project>')
       placemark_out[4] <- paste0('\ \ <uri>http://www.openforis.org/idm/uri_',gsub(" ","_",basename),'</uri>')
       
-      writeLines(placemark_out,"www/cep_template/placemark.idm.xml")
+      writeLines(placemark_out,paste0(outdir(),"/cep_template/placemark.idm.xml"))
       
       ################# Modify properties_file
       
@@ -1353,7 +1363,7 @@ shinyServer(
       properties[7] <- paste0("csv=${project_path}/pts_",gsub(" ","_",basename),".csv")
       properties[12]<- paste0("survey_name=aa_",gsub(" ","_",basename)) 
       
-      writeLines(properties,"www/cep_template/project_definition.properties")
+      writeLines(properties,paste0(outdir(),"/cep_template/project_definition.properties"))
       
       ################ The final sampling design
       m
