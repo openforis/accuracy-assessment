@@ -1,4 +1,0 @@
-# Folder to store the ’GADM’, ’countries’, ’SRTM’, ’alt’, and
-’worldclim’ files
-# obtained with getData {raster}
-# see https://cran.r-project.org/web/packages/raster/raster.pdf
