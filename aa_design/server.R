@@ -425,16 +425,16 @@ shinyServer(
           print("Computing frequency values using R")
           lcmap <- lcmap()
           ############### Use multicore clusters to compute frequency
-          beginCluster()
+          #beginCluster()
           withProgress(
             message= 'Computing frequency values.....',
             value = 0,
             {
               setProgress(value=.1)
-              freq_raster <- freq(lcmap, progress='window')
+              freq_raster <- freq(lcmap)#, progress='window')
             })
           print(freq_raster)
-          endCluster()
+          #endCluster()
           
           ############### Output the result as a data.frame
           stats <- as.data.frame(freq_raster)
@@ -832,7 +832,7 @@ shinyServer(
         }
         map <- lcmap()
         
-        beginCluster()
+        #beginCluster()
         
         ############### Generate 10x times the number of points from overall sample
         withProgress(
@@ -897,7 +897,7 @@ shinyServer(
             final <- rbind(final,tmp)                              
           }
         }
-        endCluster()
+        #endCluster()
         all_points <- final
         all_features <- all_points
       }
