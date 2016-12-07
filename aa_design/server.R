@@ -1389,11 +1389,11 @@ shinyServer(
       content = function(file) {
         to_export <- CEfile()
         
-        setwd("www/cep_template/")
+        setwd(paste0(outdir(),"/www/cep_template/"))
         zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),
             file=Sys.glob(paste0("*")),
             zip=my_zip_tools)
-        setwd("../../")
+        setwd(outdir())
         
         file.copy(paste0(outdir(),"/",input$basename_CE,".cep"), file)
         #file.remove(paste0(outdir(),"/", input$basename_CE,".cep"))
