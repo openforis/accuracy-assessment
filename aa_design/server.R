@@ -23,7 +23,7 @@
 ####################################################################################
 #######          Set options and necessary packages       ##########################
 ####################################################################################
-
+## this is a test fix
 options(stringsAsFactors=FALSE)
 options(shiny.launch.browser=T)
 
