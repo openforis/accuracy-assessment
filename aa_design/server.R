@@ -23,7 +23,7 @@
 ####################################################################################
 #######          Set options and necessary packages       ##########################
 ####################################################################################
-## this is a test fix that I want to see appear in SEPAL branch
+# bug fix flow test
 options(stringsAsFactors=FALSE)
 options(shiny.launch.browser=T)
 
