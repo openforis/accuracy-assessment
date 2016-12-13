@@ -281,6 +281,9 @@ shinyServer(
       
       req(input$CEfilename)
       df_i <- df_i()
+      if(!input$map_data == 'map_code')colnames(df_i)[names(df_i) == 'map_code'] <- 'map_code1'
+      if(!input$reference_data == 'ref_code')colnames(df_i)[names(df_i) == 'ref_code'] <- 'ref_code1'
+      
       colnames(df_i)[names(df_i) == input$map_data] <- "map_code"
       colnames(df_i)[names(df_i) == input$reference_data] <- "ref_code"
       if(!is.null(input$refAreaCol))colnames(df_i)[names(df_i) == input$refAreaCol] <- "area"
