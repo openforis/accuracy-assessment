@@ -966,7 +966,8 @@ shinyServer(
                 buffer   <- buffer(pts,buf_dist)
                 
                 ## Intersect the buffer with the polygons
-                inter    <- gIntersection(polys,buffer,byid = T)
+                inter <- gIntersection(polys,buffer,byid = T)
+                inter <- gUnaryUnion(inter)
                 
                 ## Create a temporary database file
                 dftmp    <- data.frame(
@@ -978,8 +979,9 @@ shinyServer(
                 names(tmp) <- class_attr 
                 
                 row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
-              
-                  # ## Randomly select the polygons
+                
+                
+                # ## Randomly select the polygons
                 # tmp <- polys[sample(nrow(polys), n), ]
                 
                 ## Append to the existing list
@@ -988,6 +990,7 @@ shinyServer(
                 })
               ## End of the for loop to select polygons
               }
+              
                 
               all_features <- disaggregate(out_list)
               
