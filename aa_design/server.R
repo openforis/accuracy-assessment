@@ -961,11 +961,14 @@ shinyServer(
                 polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
                 
                 ## If the number of polygons is smaller than the sample size, take all polygons
-                if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
-                {n <- nrow(polys)}else
-                {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
+                # if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
+                # {n <- nrow(polys)}else
+                # {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
                 
+                ## Select the desired number of plots within the class
+                n <- as.numeric(rp[rp$map_code == legend[i], ]$final)
                 print(n)
+                
                 ## Shoot the necessary number of points withiin these available polygons
                 pts      <- spsample(polys,n,type="stratified")
                 
