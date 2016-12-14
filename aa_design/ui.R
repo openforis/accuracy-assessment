@@ -235,6 +235,7 @@ areas of the map, sampling sizes, point file",
                                        uiOutput("selectUI_area_raster"),
                                        
                                        uiOutput("selectUI_class_vector"),
+                                       uiOutput("selectUI_mmu"),
                                        uiOutput("selectUI_area_vector"),
                                        
                                        "The map classes will be used as strata in the design of the accuracy assessment"

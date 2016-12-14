@@ -90,7 +90,7 @@ shinyServer(
     if (osSystem == "Linux") {
       media <- list.files("/media", full.names = T)
       names(media)=basename(media)
-      volumes <- c(media)
+      volumes <- c(media,"/media/xubuntu/OSDisk/Users/dannunzio/Documents/aa_input/")
     }else 
       if (osSystem == "Windows") {
         volumes <- system("wmic logicaldisk get Caption", intern = T)
@@ -338,6 +338,13 @@ shinyServer(
       )
     })
     
+    # The user can select MMU of the map in vector format
+    output$selectUI_mmu <- renderUI({
+      req(mapType()== "vector_type")
+      numericInput("mmu_vector", 
+                 label = "Minimum Mapping Unit (in unit of map)", 
+                 value = 10000, step = 1)
+    })
     
     # The user can select which column has the area information from the shapefile
     output$selectUI_area_vector <- renderUI({
@@ -817,6 +824,11 @@ shinyServer(
     
     ##################################################################################################################################
     ############### Generate validation features: points for raster based map, polygons for vector based map
+    buf_dist <- reactive({
+      mmu <- input$mmu_vector
+      buf_dist <- sqrt(mmu/pi)
+    })
+    
     all_features <- reactive({
       print('Check: all_features')
       if(mapType()== "raster_type"){
@@ -905,10 +917,7 @@ shinyServer(
       else
         if(mapType()== "vector_type"){
           print("Check: all_features vector type")
-          withProgress(
-            message= paste('Sampling the vector data'), 
-            value = 0, 
-            {
+          
               setProgress(value=.1)
               
               if(input$IsManualSampling == T){
@@ -926,28 +935,60 @@ shinyServer(
               shp <- lcmap()
               class_attr <- input$class_attribute_vector
               
-              out_list <- shp[0,]
+              ## Initialize the output vector data
+              #out_list <- shp[0,]
+              out_list <- shp[0,1]
+              names(out_list) <- class_attr
               
               ## Loop through the classes, extract the computed random number of polygons for each class and append
               
               for(i in 1:length(legend)){
-                
+                print(i)
+                withProgress(
+                  message= paste('Sampling class:',legend[i]), 
+                  value = 0, 
+                  {
+                    
                 ## Select only the polygons of the map which are present in the legend
                 polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
                 
                 ## If the number of polygons is smaller than the sample size, take all polygons
-                
                 if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
                 {n <- nrow(polys)}else
                 {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
                 
-                ## Randomly select the polygons
-                tmp <- polys[sample(nrow(polys), n), ]
+                print(n)
+                ## Shoot the necessary number of points withiin these available polygons
+                pts      <- spsample(polys,n,type="stratified")
+                
+                ## Generate buffer around point
+                buf_dist <- buf_dist()
+                buffer   <- buffer(pts,buf_dist)
+                
+                ## Intersect the buffer with the polygons
+                inter    <- gIntersection(polys,buffer,byid = T)
+                
+                ## Create a temporary database file
+                dftmp    <- data.frame(
+                  rep(legend[i],length(inter@polygons)),
+                  row.names = paste0("class",i,"poly",1:length(inter@polygons))
+                      )
+                
+                tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
+                names(tmp) <- class_attr 
+                
+                row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
+              
+                  # ## Randomly select the polygons
+                # tmp <- polys[sample(nrow(polys), n), ]
                 
                 ## Append to the existing list
                 out_list <- rbind(out_list, tmp)
+                ## End of the progress message for selecting polygons
+                })
+              ## End of the for loop to select polygons
               }
-              
+                
               all_features <- out_list
               
               # ################## Export sampling design as points
@@ -979,7 +1020,7 @@ shinyServer(
               #   )
               # 
               # all_points <- sp_df
-            })
+            
           ######## End of the Vector Loop
         }
       all_features
