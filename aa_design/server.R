@@ -338,12 +338,20 @@ shinyServer(
       )
     })
     
-    # The user can select MMU of the map in vector format
-    output$selectUI_mmu <- renderUI({
+    # The user must select MMU of the map in vector format
+    output$selectUI_mmu_vector <- renderUI({
       req(mapType()== "vector_type")
       numericInput("mmu_vector", 
                  label = "Minimum Mapping Unit (in unit of map)", 
                  value = 10000, step = 1)
+    })
+    
+    # The user must select MMU of the map in vector format
+    output$selectUI_res_vector <- renderUI({
+      req(mapType()== "vector_type")
+      numericInput("res_vector", 
+                   label = "Resolution of imagery used for mapping (in unit of map)", 
+                   value = 30, step = 1)
     })
     
     # The user can select which column has the area information from the shapefile
@@ -943,7 +951,7 @@ shinyServer(
               ## Loop through the classes, extract the computed random number of polygons for each class and append
               
               for(i in 1:length(legend)){
-                print(i)
+                print(legend[i])
                 withProgress(
                   message= paste('Sampling class:',legend[i]), 
                   value = 0, 
@@ -974,15 +982,16 @@ shinyServer(
                   rep(legend[i],length(inter@polygons)),
                   row.names = paste0("class",i,"poly",1:length(inter@polygons))
                       )
-                
+                ## Create a Spatial Polygon Data Frame with the plots and the DBF
                 tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
-                names(tmp) <- class_attr 
                 
+                ## Harmonize attribute and row names
+                names(tmp) <- class_attr 
                 row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
                 
-                
-                # ## Randomly select the polygons
-                # tmp <- polys[sample(nrow(polys), n), ]
+                ## Define minimum pixel size to eliminate slivers
+                pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+                tmp <- tmp[gArea(tmp,byid = T) > pixel_size,]
                 
                 ## Append to the existing list
                 out_list <- rbind(out_list, tmp)
