@@ -989,7 +989,7 @@ shinyServer(
               ## End of the for loop to select polygons
               }
                 
-              all_features <- out_list
+              all_features <- disaggregate(out_list)
               
               # ################## Export sampling design as points
               # i=1
