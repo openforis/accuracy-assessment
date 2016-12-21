@@ -1080,8 +1080,9 @@ shinyServer(
             value = 0, 
             {
               setProgress(value=.1)
-              all_features()
-              
+              sp_df <- all_features()
+              sp_df@data[,"ID"] <- row(sp_df@data)[,1]
+              sp_df
             })
         }
     })
@@ -1163,7 +1164,7 @@ shinyServer(
         
         ################ If the type is vector the sp_df is POLYGONS, 
         ################ Loop through all polygons, translate geometry in WKT and get first node
-        sp_df <- spTransform(all_features(),CRS("+proj=longlat +datum=WGS84"))
+        sp_df <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
         npoly <- nrow(sp_df@data)
         
         class_attr <- input$class_attribute_vector
@@ -1179,6 +1180,7 @@ shinyServer(
         for(k in 1:npoly){
           poly <- sp_df[k,]
           
+          ## Coordinates of the point will be the first coordinate of the segment
           coords <- data.frame(coordinates(poly@polygons[[1]]@Polygons[[1]]))
           
           head <- paste0('<Polygon><outerBoundaryIs><LinearRing><coordinates>')
@@ -1205,11 +1207,11 @@ shinyServer(
           df <- rbind(df,line)
         }
         
-        ID <- matrix(sample(1:npoly , npoly , replace=F),nrow = npoly , ncol =1, dimnames= list(NULL,c("ID")))
-        YCOORD <- df$YCOORD
-        XCOORD <- df$XCOORD
+        ID       <- sp_df@data$ID
+        YCOORD   <- df$YCOORD
+        XCOORD   <- df$XCOORD
         GEOMETRY <- df$GEOMETRY
-        AREA <- gArea(all_features(),byid=TRUE)
+        AREA     <- gArea(all_features(),byid=TRUE)
         
         
         ################ End of the polygon type generation of CE file
@@ -1274,7 +1276,7 @@ shinyServer(
           slope  <- terrain(elevation, opt = "slope")
           aspect <- terrain(elevation, opt = "aspect")
           
-                    ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
+          ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
           SLOPE     <- extract(slope,     cbind(XCOORD, YCOORD))
           ASPECT    <- extract(aspect,    cbind(XCOORD, YCOORD))
           

@@ -206,7 +206,7 @@ shinyServer(
                   'Choose the column with the map data information', 
                   choices= names(df_i()),
                   multiple = FALSE,
-                  selected = c("map_code"))
+                  selected = c("map_code","map_class"))
     })
     
     ## select the column with the area column in area file
@@ -229,7 +229,7 @@ shinyServer(
                     'Choose the class column from the area file', 
                     choices= names(areas_read()),
                     multiple = FALSE,
-                    selected = c("map_code"))
+                    selected = c("map_code","map_class"))
       }
     })
     
