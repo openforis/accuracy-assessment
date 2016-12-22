@@ -1211,7 +1211,8 @@ shinyServer(
         YCOORD   <- df$YCOORD
         XCOORD   <- df$XCOORD
         GEOMETRY <- df$GEOMETRY
-        AREA     <- gArea(all_features(),byid=TRUE)
+        pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+        AREA       <- gArea(all_features(),byid=TRUE)/pixel_size
         
         
         ################ End of the polygon type generation of CE file
