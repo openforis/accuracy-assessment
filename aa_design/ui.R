@@ -437,6 +437,15 @@ spatial unit is a pixel, number of polygons if the spatial unit is a polygon)"),
                       )
                     ),
                     
+                    selectizeInput(
+                      'nb_groups',
+                      'Number of operators',
+                      choices = 1:25,
+                      options = list(
+                        placeholder = 'Select the number of operators to work on the project',
+                        onInitialize = I('function() { this.setValue(1); }')
+                      )
+                    ),
                     
                     textInput("basename_CE", 
                               label = h3("Basename of sampling design files to export"),

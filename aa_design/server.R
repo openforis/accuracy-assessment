@@ -1304,7 +1304,32 @@ shinyServer(
       ################ Export the csv file with points
       write.csv(m,paste0(outdir(),"/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
       
+      nb_grp <- input$nb_groups
+      
+      pts <- m
+      
+      if(nb_grp > 1)
+        ################ Create sub-groups
+        {
+        ## Add a column to the data.frame, with index from 1 to the number of groups. repeat to the end of dataset
+        pts$group <- rep_len(1:nb_grp,length.out=nrow(pts))
+        pts <- pts[sample(pts$ID,nrow(pts),replace = F),]
+        
+        ## Loop through each group
+        for(i in 1:nb_grp){
+          ## create sub dataset for group i
+          pts_grp <- pts[pts$group == i & !is.na(pts$group),]
+          
+          ## Sort by ID
+          #pts_grp <- arrange(pts_grp,ID)
+          
+          ## Export as csv file
+          write.csv(pts_grp,paste0(outdir(),"/cep_template/pts_grp_",i,".csv",sep=""),row.names=F)
+        } ## end of Loop
+      }
+      
       ################ Create a dummy distribution for the analysis
+      
       pts <- m
       legend <- levels(as.factor(pts$map_code))
       
