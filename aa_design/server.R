@@ -86,6 +86,7 @@ shinyServer(
     ##################################################################################################################################    
     ############### Find volumes
     osSystem <- Sys.info()["sysname"]
+    volumes <- list()
     
     if (osSystem == "Linux") {
       media <- list.files("/media", full.names = T)
