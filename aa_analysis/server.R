@@ -86,6 +86,7 @@ shinyServer(
     ##################################################################################################################################    
     ############### Find volumes
     osSystem <- Sys.info()["sysname"]
+    volumes <- list()
     
     if (osSystem == "Linux") {
       media <- list.files("/media", full.names = T)
@@ -107,8 +108,9 @@ shinyServer(
         names(volumes) <- volNames
       }
     
-    volumes <- c('Home'=Sys.getenv("HOME"),
-                 volumes)
+    volumes <- c(volumes,
+                 'Home'=Sys.getenv("HOME")
+    )
     
     my_zip_tools <- Sys.getenv("R_ZIPCMD", "zip")
     

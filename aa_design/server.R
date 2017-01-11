@@ -91,7 +91,7 @@ shinyServer(
     if (osSystem == "Linux") {
       media <- list.files("/media", full.names = T)
       names(media)=basename(media)
-      volumes <- c(media,"/media/xubuntu/OSDisk/Users/dannunzio/Documents/aa_input/")
+      volumes <- c(media)
     }else 
       if (osSystem == "Windows") {
         volumes <- system("wmic logicaldisk get Caption", intern = T)
@@ -108,8 +108,9 @@ shinyServer(
         names(volumes) <- volNames
       }
     
-    volumes <- c('Home'=Sys.getenv("HOME"),
-                 volumes)
+    volumes <- c(volumes,
+                 'Home'= Sys.getenv("HOME")
+                 )
     
     my_zip_tools <- Sys.getenv("R_ZIPCMD", "zip")
     
