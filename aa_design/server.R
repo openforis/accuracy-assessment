@@ -1117,10 +1117,10 @@ shinyServer(
       }
       else{
         if(mapType()== "vector_type"){
-          dfa <- spTransform(all_features(),CRS("+proj=longlat +datum=WGS84"))
           
-          class_attr <- input$class_attribute_vector
-          names(dfa)[names(dfa) == class_attr] <- c("map_code")
+          dfa <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
+
+          names(dfa)<- "map_code"
           factpal   <- colorFactor("Spectral", dfa@data$map_code)
           m <- leaflet() %>%
             addTiles() %>%  # Add default OpenStreetMap map tiles
