@@ -928,7 +928,7 @@ shinyServer(
         if(mapType()== "vector_type"){
           print("Check: all_features vector type")
           
-              setProgress(value=.1)
+              
               
               if(input$IsManualSampling == T){
                 validate(
