@@ -108,9 +108,8 @@ shinyServer(
         names(volumes) <- volNames
       }
     
-    volumes <- c(volumes,
-                 'Home'=Sys.getenv("HOME")
-    )
+    volumes <- c('Home'= Sys.getenv("HOME"),
+                 volumes)
     
     my_zip_tools <- Sys.getenv("R_ZIPCMD", "zip")
     
