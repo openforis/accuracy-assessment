@@ -235,6 +235,8 @@ areas of the map, sampling sizes, point file",
                                        uiOutput("selectUI_area_raster"),
                                        
                                        uiOutput("selectUI_class_vector"),
+                                       uiOutput("selectUI_mmu_vector"),
+                                       uiOutput("selectUI_res_vector"),
                                        uiOutput("selectUI_area_vector"),
                                        
                                        "The map classes will be used as strata in the design of the accuracy assessment"
@@ -435,6 +437,15 @@ spatial unit is a pixel, number of polygons if the spatial unit is a polygon)"),
                       )
                     ),
                     
+                    selectizeInput(
+                      'nb_groups',
+                      'Number of operators',
+                      choices = 1:25,
+                      options = list(
+                        placeholder = 'Select the number of operators to work on the project',
+                        onInitialize = I('function() { this.setValue(1); }')
+                      )
+                    ),
                     
                     textInput("basename_CE", 
                               label = h3("Basename of sampling design files to export"),

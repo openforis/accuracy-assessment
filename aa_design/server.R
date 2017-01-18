@@ -87,6 +87,7 @@ shinyServer(
     ##################################################################################################################################    
     ############### Find volumes
     osSystem <- Sys.info()["sysname"]
+    volumes <- list()
     
     if (osSystem == "Linux") {
       media <- list.files("/media", full.names = T)
@@ -108,7 +109,7 @@ shinyServer(
         names(volumes) <- volNames
       }
     
-    volumes <- c('Home'=Sys.getenv("HOME"),
+    volumes <- c('Home'= Sys.getenv("HOME"),
                  volumes)
     
     my_zip_tools <- Sys.getenv("R_ZIPCMD", "zip")
@@ -339,6 +340,21 @@ shinyServer(
       )
     })
     
+    # The user must select MMU of the map in vector format
+    output$selectUI_mmu_vector <- renderUI({
+      req(mapType()== "vector_type")
+      numericInput("mmu_vector", 
+                 label = "Minimum Mapping Unit (in unit of map)", 
+                 value = 10000, step = 1)
+    })
+    
+    # The user must select MMU of the map in vector format
+    output$selectUI_res_vector <- renderUI({
+      req(mapType()== "vector_type")
+      numericInput("res_vector", 
+                   label = "Resolution of imagery used for mapping (in unit of map)", 
+                   value = 30, step = 1)
+    })
     
     # The user can select which column has the area information from the shapefile
     output$selectUI_area_vector <- renderUI({
@@ -818,6 +834,11 @@ shinyServer(
     
     ##################################################################################################################################
     ############### Generate validation features: points for raster based map, polygons for vector based map
+    buf_dist <- reactive({
+      mmu <- input$mmu_vector
+      buf_dist <- sqrt(mmu/pi)
+    })
+    
     all_features <- reactive({
       print('Check: all_features')
       if(mapType()== "raster_type"){
@@ -906,10 +927,7 @@ shinyServer(
       else
         if(mapType()== "vector_type"){
           print("Check: all_features vector type")
-          withProgress(
-            message= paste('Sampling the vector data'), 
-            value = 0, 
-            {
+          
               setProgress(value=.1)
               
               if(input$IsManualSampling == T){
@@ -927,29 +945,68 @@ shinyServer(
               shp <- lcmap()
               class_attr <- input$class_attribute_vector
               
-              out_list <- shp[0,]
+              ## Initialize the output vector data
+              #out_list <- shp[0,]
+              out_list <- shp[0,1]
+              names(out_list) <- class_attr
               
               ## Loop through the classes, extract the computed random number of polygons for each class and append
               
               for(i in 1:length(legend)){
-                
+                print(legend[i])
+                withProgress(
+                  message= paste('Sampling class:',legend[i]), 
+                  value = 0, 
+                  {
+                    
                 ## Select only the polygons of the map which are present in the legend
                 polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
                 
                 ## If the number of polygons is smaller than the sample size, take all polygons
+                # if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
+                # {n <- nrow(polys)}else
+                # {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
                 
-                if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
-                {n <- nrow(polys)}else
-                {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
+                ## Select the desired number of plots within the class
+                n <- as.numeric(rp[rp$map_code == legend[i], ]$final)
+                print(n)
                 
-                ## Randomly select the polygons
-                tmp <- polys[sample(nrow(polys), n), ]
+                ## Shoot the necessary number of points withiin these available polygons
+                pts      <- spsample(polys,n,type="stratified")
+                
+                ## Generate buffer around point
+                buf_dist <- buf_dist()
+                buffer   <- buffer(pts,buf_dist)
+                
+                ## Intersect the buffer with the polygons
+                inter <- gIntersection(polys,buffer,byid = T)
+                inter <- gUnaryUnion(inter)
+                
+                ## Create a temporary database file
+                dftmp    <- data.frame(
+                  rep(legend[i],length(inter@polygons)),
+                  row.names = paste0("class",i,"poly",1:length(inter@polygons))
+                      )
+                ## Create a Spatial Polygon Data Frame with the plots and the DBF
+                tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
+                
+                ## Harmonize attribute and row names
+                names(tmp) <- class_attr 
+                row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
+                
+                ## Define minimum pixel size to eliminate slivers
+                pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+                tmp <- tmp[gArea(tmp,byid = T) > pixel_size,]
                 
                 ## Append to the existing list
                 out_list <- rbind(out_list, tmp)
+                ## End of the progress message for selecting polygons
+                })
+              ## End of the for loop to select polygons
               }
               
-              all_features <- out_list
+                
+              all_features <- disaggregate(out_list)
               
               # ################## Export sampling design as points
               # i=1
@@ -980,7 +1037,7 @@ shinyServer(
               #   )
               # 
               # all_points <- sp_df
-            })
+            
           ######## End of the Vector Loop
         }
       all_features
@@ -1025,8 +1082,9 @@ shinyServer(
             value = 0, 
             {
               setProgress(value=.1)
-              all_features()
-              
+              sp_df <- all_features()
+              sp_df@data[,"ID"] <- row(sp_df@data)[,1]
+              sp_df
             })
         }
     })
@@ -1108,7 +1166,7 @@ shinyServer(
         
         ################ If the type is vector the sp_df is POLYGONS, 
         ################ Loop through all polygons, translate geometry in WKT and get first node
-        sp_df <- spTransform(all_features(),CRS("+proj=longlat +datum=WGS84"))
+        sp_df <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
         npoly <- nrow(sp_df@data)
         
         class_attr <- input$class_attribute_vector
@@ -1124,6 +1182,7 @@ shinyServer(
         for(k in 1:npoly){
           poly <- sp_df[k,]
           
+          ## Coordinates of the point will be the first coordinate of the segment
           coords <- data.frame(coordinates(poly@polygons[[1]]@Polygons[[1]]))
           
           head <- paste0('<Polygon><outerBoundaryIs><LinearRing><coordinates>')
@@ -1150,11 +1209,12 @@ shinyServer(
           df <- rbind(df,line)
         }
         
-        ID <- matrix(sample(1:npoly , npoly , replace=F),nrow = npoly , ncol =1, dimnames= list(NULL,c("ID")))
-        YCOORD <- df$YCOORD
-        XCOORD <- df$XCOORD
+        ID       <- sp_df@data$ID
+        YCOORD   <- df$YCOORD
+        XCOORD   <- df$XCOORD
         GEOMETRY <- df$GEOMETRY
-        AREA <- gArea(all_features(),byid=TRUE)
+        pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+        AREA       <- gArea(all_features(),byid=TRUE)/pixel_size
         
         
         ################ End of the polygon type generation of CE file
@@ -1219,7 +1279,7 @@ shinyServer(
           slope  <- terrain(elevation, opt = "slope")
           aspect <- terrain(elevation, opt = "aspect")
           
-                    ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
+          ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
           SLOPE     <- extract(slope,     cbind(XCOORD, YCOORD))
           ASPECT    <- extract(aspect,    cbind(XCOORD, YCOORD))
           
@@ -1246,7 +1306,32 @@ shinyServer(
       ################ Export the csv file with points
       write.csv(m,paste0(outdir(),"/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
       
+      nb_grp <- input$nb_groups
+      
+      pts <- m
+      
+      if(nb_grp > 1)
+        ################ Create sub-groups
+        {
+        ## Add a column to the data.frame, with index from 1 to the number of groups. repeat to the end of dataset
+        pts$group <- rep_len(1:nb_grp,length.out=nrow(pts))
+        pts <- pts[sample(pts$ID,nrow(pts),replace = F),]
+        
+        ## Loop through each group
+        for(i in 1:nb_grp){
+          ## create sub dataset for group i
+          pts_grp <- pts[pts$group == i & !is.na(pts$group),]
+          
+          ## Sort by ID
+          #pts_grp <- arrange(pts_grp,ID)
+          
+          ## Export as csv file
+          write.csv(pts_grp,paste0(outdir(),"/cep_template/pts_grp_",i,".csv",sep=""),row.names=F)
+        } ## end of Loop
+      }
+      
       ################ Create a dummy distribution for the analysis
+      
       pts <- m
       legend <- levels(as.factor(pts$map_code))
       

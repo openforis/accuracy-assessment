@@ -86,6 +86,7 @@ shinyServer(
     ##################################################################################################################################    
     ############### Find volumes
     osSystem <- Sys.info()["sysname"]
+    volumes <- list()
     
     if (osSystem == "Linux") {
       media <- list.files("/media", full.names = T)
@@ -107,7 +108,7 @@ shinyServer(
         names(volumes) <- volNames
       }
     
-    volumes <- c('Home'=Sys.getenv("HOME"),
+    volumes <- c('Home'= Sys.getenv("HOME"),
                  volumes)
     
     my_zip_tools <- Sys.getenv("R_ZIPCMD", "zip")
@@ -206,7 +207,7 @@ shinyServer(
                   'Choose the column with the map data information', 
                   choices= names(df_i()),
                   multiple = FALSE,
-                  selected = c("map_code"))
+                  selected = c("map_code","map_class"))
     })
     
     ## select the column with the area column in area file
@@ -229,7 +230,7 @@ shinyServer(
                     'Choose the class column from the area file', 
                     choices= names(areas_read()),
                     multiple = FALSE,
-                    selected = c("map_code"))
+                    selected = c("map_code","map_class"))
       }
     })
     
@@ -281,6 +282,9 @@ shinyServer(
       
       req(input$CEfilename)
       df_i <- df_i()
+      if(!input$map_data == 'map_code')colnames(df_i)[names(df_i) == 'map_code'] <- 'map_code1'
+      if(!input$reference_data == 'ref_code')colnames(df_i)[names(df_i) == 'ref_code'] <- 'ref_code1'
+      
       colnames(df_i)[names(df_i) == input$map_data] <- "map_code"
       colnames(df_i)[names(df_i) == input$reference_data] <- "ref_code"
       if(!is.null(input$refAreaCol))colnames(df_i)[names(df_i) == input$refAreaCol] <- "area"
