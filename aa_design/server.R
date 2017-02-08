@@ -50,6 +50,7 @@ packages(shinyFiles)
 packages(snow)
 packages(htmltools)
 packages(devtools)
+packages(RCurl)
 
 ## Packages for data table handling
 packages(xtable)
@@ -181,6 +182,27 @@ shinyServer(
     output$outdirpath = renderPrint({
       outdir()
     })
+    
+    
+    ##################################################################################################################################    
+    ## Allow to download test data
+    output$dynUI_download_test <- renderPrint({
+      req(input$download_test_button)
+      print(getwd())
+      
+      dir.create(file.path("~","aa_data_test"))
+      #getURL("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+      #list.files()
+      withProgress(
+        message= paste0('Downloading data in ',dirname("~/aa_data_test/")), 
+        value = 0, 
+        {
+        system("wget -O ~/data_test/aa_test_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+        }
+      )
+      list.files("~/aa_data_test/",pattern="aa_test_congo.tif")
+      })
+
     
     ##################################################################################################################################    
     ## Create checkboxes to enable adding custom area
@@ -385,7 +407,9 @@ shinyServer(
       req(mapType()== "raster_type", input$IsManualAreaRaster != T)
       isolate(
         radioButtons("rasterarea",label="What type of area calculation will you use?",
-                     choices = list("R" = "r", "OFT" = "oft")
+                     choices = list( "OFT" = "oft"
+                                     #,"R" = "r"
+                                     )
         )
       )
     })

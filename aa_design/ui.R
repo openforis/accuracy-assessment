@@ -206,6 +206,8 @@ The map area can be calculated in the next tab or chosen using a CSV for a raste
                       "The input map can represent a single time or multiple times (change) made from satellite images or acquired from available map data of land cover or land use.",
                       br(),
                       
+                      
+                      
                       shinyFilesButton('file', 
                                        'Input map (raster or vector format)', 
                                        'Please select a file', 
@@ -213,6 +215,14 @@ The map area can be calculated in the next tab or chosen using a CSV for a raste
                       textOutput("filepath")
                   ),
                   
+                  ####################################################################################
+                  # New box
+                  box(title= "Download test data", status = "success", solidHeader= TRUE,
+                      actionButton("download_test_button","Download test data"),
+                      uiOutput("dynUI_download_test")
+                  ),
+                  
+
                   ####################################################################################
                   # New box
                   box(title= "Output folder", status = "success", solidHeader= TRUE,
