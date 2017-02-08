@@ -197,7 +197,7 @@ shinyServer(
         message= paste0('Downloading data in ',dirname("~/aa_data_test/")), 
         value = 0, 
         {
-        system("wget -O ~/data_test/aa_test_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+        system("wget -O ~/aa_data_test/aa_test_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
         }
       )
       list.files("~/aa_data_test/",pattern="aa_test_congo.tif")
