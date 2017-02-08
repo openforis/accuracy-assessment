@@ -50,7 +50,7 @@ packages(shinyFiles)
 packages(snow)
 packages(htmltools)
 packages(devtools)
-packages(RCurl)
+#packages(RCurl)
 
 ## Packages for data table handling
 packages(xtable)
