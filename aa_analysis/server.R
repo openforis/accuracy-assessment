@@ -267,12 +267,12 @@ shinyServer(
     ## select the column with size of each plot in the reference data file
     output$refPlotSize <- renderUI({
       if(input$plot_size_col==T){
-        if(is.element('area',names(df_i()))==FALSE){
+        #if(is.element('area',names(df_i()))==FALSE){
           selectInput('refAreaCol', 
                       'Choose the plot size column from the reference data file', 
                       choices= names(df_i()),
                       multiple = FALSE)
-        }
+        #}
       }
     })
     
