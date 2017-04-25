@@ -1,5 +1,5 @@
 ####################################################################################
-#######          Shiny app for accuracy assessment design       ####################
+#######          Design for stratified area estimator           ####################
 #######                     SEPAL Branch                        ####################
 #######    contributors:  Remi d'Annunzio, Yelena Finegold,     ####################
 #######            Antonia Ortmann, Erik Lindquist              ####################
@@ -17,52 +17,11 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2016/12/07
+## Last update: 2017/04/25
 ## aa_design / server
 ####################################################################################
 
-####################################################################################
-#######          Set options and necessary packages       ##########################
-####################################################################################
-# bug fix flow test
-options(stringsAsFactors=FALSE)
-options(shiny.launch.browser=T)
 
-########################################
-# include all the needed packages here #
-
-packages <- function(x){
-  x <- as.character(match.call()[[2]])
-  if (!require(x,character.only=TRUE)){
-    install.packages(pkgs=x,repos="http://cran.r-project.org")
-    require(x,character.only=TRUE)
-  }
-}
-## Packages for geospatial data handling
-packages(raster)
-packages(rgeos)
-packages(rgdal)
-
-## Packages for Shiny 
-packages(shiny)
-packages(shinydashboard)
-packages(shinyFiles)
-packages(snow)
-packages(htmltools)
-packages(devtools)
-#packages(RCurl)
-
-## Packages for data table handling
-packages(xtable)
-packages(DT)
-packages(dismo)
-packages(stringr)
-packages(plyr)
-
-## Packages for graphics and interactive maps
-packages(ggplot2)
-packages(leaflet)
-packages(RColorBrewer)
 
 ####################################################################################
 ####### Start Server
@@ -71,8 +30,32 @@ shinyServer(
   
   function(input, output,session) {
     ####################################################################################
+    ##################### Load text boxes                    ###########################
+    ####################################################################################
+    output$chosen_language <- renderPrint({
+      
+    if(input$language == "English"){
+      source("text_english.R",local = TRUE)
+      #print("en")
+      }
+      
+    if(input$language =="Francais"){
+      source("text_french.R",local = TRUE)
+      #print("fr")
+      }
+      
+    if(input$language == "Espanol"){
+      source("text_espanol.R",local = TRUE)
+      #print("sp")
+      }
+      
+    })
+    
+    
+    ####################################################################################
     ####### Step 1 : compute areas of each strata of the map ###########################
     ####################################################################################
+    
     
     ##################################################################################################################################    
     ############### Stop session when browser is exited
@@ -135,8 +118,8 @@ shinyServer(
       print('Check: mapType')
       
       req(input$file)
-      raster_type <- c('tif')
-      vector_type <- c('shp')
+      raster_type <- c('tif','img','pix','rst','jpeg2000','grd','hdf')
+      vector_type <- c('shp','sqlite')
       
       df <- parseFilePaths(volumes, input$file)
       file_path <- as.character(df[,"datapath"])
@@ -394,7 +377,7 @@ shinyServer(
     ##################################################################################################################################
     ############### Insert the Area calculation button
     output$IsAreaCalc <- renderUI({
-      actionButton('areaCalcButton','Area calculation and legend generation')
+      actionButton('areaCalcButton',textOutput('t3_b1_button'))
     }
     )
     
@@ -670,7 +653,7 @@ shinyServer(
     
     ##################################################################################################################################
     ############### Export the computed areas as a table    
-    output$downloadData <- downloadHandler(
+    output$downloadArea <- downloadHandler(
       filename = function() { 
         paste('maparea_', Sys.Date(), '.csv', sep='') 
       },
@@ -974,93 +957,98 @@ shinyServer(
               out_list <- shp[0,1]
               names(out_list) <- class_attr
               
-              ## Loop through the classes, extract the computed random number of polygons for each class and append
-              
-              for(i in 1:length(legend)){
-                print(legend[i])
-                withProgress(
-                  message= paste('Sampling class:',legend[i]), 
-                  value = 0, 
-                  {
-                    
-                ## Select only the polygons of the map which are present in the legend
-                polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
-                
-                ## If the number of polygons is smaller than the sample size, take all polygons
-                # if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
-                # {n <- nrow(polys)}else
-                # {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
-                
-                ## Select the desired number of plots within the class
-                n <- as.numeric(rp[rp$map_code == legend[i], ]$final)
-                print(n)
-                
-                ## Shoot the necessary number of points withiin these available polygons
-                pts      <- spsample(polys,n,type="stratified")
-                
-                ## Generate buffer around point
-                buf_dist <- buf_dist()
-                buffer   <- buffer(pts,buf_dist)
-                
-                ## Intersect the buffer with the polygons
-                inter <- gIntersection(polys,buffer,byid = T)
-                inter <- gUnaryUnion(inter)
-                
-                ## Create a temporary database file
-                dftmp    <- data.frame(
-                  rep(legend[i],length(inter@polygons)),
-                  row.names = paste0("class",i,"poly",1:length(inter@polygons))
-                      )
-                ## Create a Spatial Polygon Data Frame with the plots and the DBF
-                tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
-                
-                ## Harmonize attribute and row names
-                names(tmp) <- class_attr 
-                row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
-                
-                ## Define minimum pixel size to eliminate slivers
-                pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
-                tmp <- tmp[gArea(tmp,byid = T) > pixel_size,]
-                
-                ## Append to the existing list
-                out_list <- rbind(out_list, tmp)
-                ## End of the progress message for selecting polygons
-                })
-              ## End of the for loop to select polygons
-              }
-              
-                
-              all_features <- disaggregate(out_list)
-              
-              # ################## Export sampling design as points
-              # i=1
-              # polys <- shp[shp@data[,class_attr] == legend[i],]
-              # pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
-              # att_vec <- rep(legend[i],nrow(pts@coords))
-              # df_pts<-data.frame(cbind(pts@coords,att_vec))
+              # ##########################################################################################
+              # ################## DEPRECATED POLYGON SELECTION
+              # ##########################################################################################
               # 
-              # for(i in 2:length(legend)){
-              #   tryCatch({
-              #     polys <- shp[shp@data[,class_attr] == legend[i],]
-              #     pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
-              #     att_vec <- rep(legend[i],nrow(pts@coords))
-              #     tmp_pts<-data.frame(cbind(pts@coords,att_vec))
-              #     df_pts<-rbind(df_pts,tmp_pts)
-              #   }, error=function(e){cat("No points to sample in this class \n")}
-              #   )
+              # ## Loop through the classes, extract the computed random number of polygons for each class and append
+              # 
+              # for(i in 1:length(legend)){
+              #   print(legend[i])
+              #   withProgress(
+              #     message= paste('Sampling class:',legend[i]), 
+              #     value = 0, 
+              #     {
+              #       
+              #   ## Select only the polygons of the map which are present in the legend
+              #   polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
               #   
+              #   ## If the number of polygons is smaller than the sample size, take all polygons
+              #   # if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
+              #   # {n <- nrow(polys)}else
+              #   # {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
+              #   
+              #   ## Select the desired number of plots within the class
+              #   n <- as.numeric(rp[rp$map_code == legend[i], ]$final)
+              #   print(n)
+              #   
+              #   ## Shoot the necessary number of points withiin these available polygons
+              #   pts      <- spsample(polys,n,type="stratified")
+              #   
+              #   ## Generate buffer around point
+              #   buf_dist <- buf_dist()
+              #   buffer   <- buffer(pts,buf_dist)
+              #   
+              #   ## Intersect the buffer with the polygons
+              #   inter <- gIntersection(polys,buffer,byid = T)
+              #   inter <- gUnaryUnion(inter)
+              #   
+              #   ## Create a temporary database file
+              #   dftmp    <- data.frame(
+              #     rep(legend[i],length(inter@polygons)),
+              #     row.names = paste0("class",i,"poly",1:length(inter@polygons))
+              #         )
+              #   ## Create a Spatial Polygon Data Frame with the plots and the DBF
+              #   tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
+              #   
+              #   ## Harmonize attribute and row names
+              #   names(tmp) <- class_attr 
+              #   row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
+              #   
+              #   ## Define minimum pixel size to eliminate slivers
+              #   pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+              #   tmp <- tmp[gArea(tmp,byid = T) > pixel_size,]
+              #   
+              #   ## Append to the existing list
+              #   out_list <- rbind(out_list, tmp)
+              #   ## End of the progress message for selecting polygons
+              #   })
+              # ## End of the for loop to select polygons
               # }
               # 
-              # df_pts[,1]<-as.numeric(df_pts[,1])
-              # df_pts[,2]<-as.numeric(df_pts[,2])
-              # 
-              # sp_df <- SpatialPointsDataFrame(
-              #   coords=data.frame(df_pts[,c(1,2)]),
-              #   data=data.frame(df_pts[,3]),
-              #   proj4string=CRS(proj4string(shp))
-              #   )
-              # 
-              # all_points <- sp_df
+              #   
+              # all_features <- disaggregate(out_list)
+              
+              ################## Export sampling design as points
+              i=1
+              polys <- shp[shp@data[,class_attr] == legend[i],]
+              pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
+              att_vec <- rep(legend[i],nrow(pts@coords))
+              df_pts<-data.frame(cbind(pts@coords,att_vec))
+
+              for(i in 2:length(legend)){
+                tryCatch({
+                  polys <- shp[shp@data[,class_attr] == legend[i],]
+                  pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
+                  att_vec <- rep(legend[i],nrow(pts@coords))
+                  tmp_pts<-data.frame(cbind(pts@coords,att_vec))
+                  df_pts<-rbind(df_pts,tmp_pts)
+                }, error=function(e){cat("No points to sample in this class \n")}
+                )
+
+              }
+
+              df_pts[,1]<-as.numeric(df_pts[,1])
+              df_pts[,2]<-as.numeric(df_pts[,2])
+
+              sp_df <- SpatialPointsDataFrame(
+                coords=data.frame(df_pts[,c(1,2)]),
+                data=data.frame(df_pts[,3]),
+                proj4string=CRS(proj4string(shp))
+                )
+
+              all_points <- sp_df
+              all_features <- df_pts
             
           ######## End of the Vector Loop
         }
@@ -1079,7 +1067,7 @@ shinyServer(
       )
       
       ## If input map is a raster
-      if(mapType()== "raster_type"){
+      #if(mapType()== "raster_type"){
         withProgress(
           message= paste('Processing the points'), 
           value = 0, 
@@ -1096,21 +1084,21 @@ shinyServer(
             
             sp_df <- spTransform(sp_df,CRS("+proj=longlat +datum=WGS84"))
           })
-      }
+      #}
       
-      ## If input map is a vector
-      else
-        if(mapType()== "vector_type"){
-          withProgress(
-            message= paste('Processing the points'), 
-            value = 0, 
-            {
-              setProgress(value=.1)
-              sp_df <- all_features()
-              sp_df@data[,"ID"] <- row(sp_df@data)[,1]
-              sp_df
-            })
-        }
+      # ## If input map is a vector
+      # else
+      #   if(mapType()== "vector_type"){
+      #     withProgress(
+      #       message= paste('Processing the points'), 
+      #       value = 0, 
+      #       {
+      #         setProgress(value=.1)
+      #         sp_df <- all_features()
+      #         sp_df@data[,"ID"] <- row(sp_df@data)[,1]
+      #         sp_df
+      #       })
+      #   }
     })
     
     ##################################################################################################################################
@@ -1126,7 +1114,7 @@ shinyServer(
         need(input$cat_hi,"Select the classes to include with high and low confidence in tab 3 'Classes to include'")
       )
       
-      if(mapType()== "raster_type"){
+      #if(mapType()== "raster_type"){
         dfa<-spdf()
         names(dfa)<- 'map_code'
         factpal <- colorFactor("Spectral", dfa$map_code)
@@ -1138,22 +1126,22 @@ shinyServer(
                            popup = ~paste(sprintf("Map value: %s", map_code))
           )
         m
-      }
-      else{
-        if(mapType()== "vector_type"){
-          
-          dfa <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
-
-          names(dfa)<- "map_code"
-          factpal   <- colorFactor("Spectral", dfa@data$map_code)
-          m <- leaflet() %>%
-            addTiles() %>%  # Add default OpenStreetMap map tiles
-            addPolygons(
-              data = dfa, stroke = FALSE, fillOpacity = 1, color = ~ factpal(map_code), popup = ~paste(sprintf("Map value: %s", map_code))
-            )
-          m
-        }
-      }
+      #}
+      # else{
+      #   if(mapType()== "vector_type"){
+      #     
+      #     dfa <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
+      # 
+      #     names(dfa)<- "map_code"
+      #     factpal   <- colorFactor("Spectral", dfa@data$map_code)
+      #     m <- leaflet() %>%
+      #       addTiles() %>%  # Add default OpenStreetMap map tiles
+      #       addPolygons(
+      #         data = dfa, stroke = FALSE, fillOpacity = 1, color = ~ factpal(map_code), popup = ~paste(sprintf("Map value: %s", map_code))
+      #       )
+      #     m
+      #   }
+      # }
     })
     
     
@@ -1171,7 +1159,7 @@ shinyServer(
         dir.create(file.path(paste0(outdir(), '/getDataFiles')))
         }
       
-      if(mapType()== "raster_type"){
+      #if(mapType()== "raster_type"){
         ################ If the type is raster the sp_df is POINTS, use directly
         print("Check: CEfile raster_type")
         sp_df<-spdf()
@@ -1183,66 +1171,67 @@ shinyServer(
         XCOORD <- coord[,1]
         GEOMETRY <- rep("points",nsamples)
         AREA   <- rep(1,nsamples)
-      }
-      if(mapType()== "vector_type"){
         
-        print("Check: CEfile vector_type")
-        
-        ################ If the type is vector the sp_df is POLYGONS, 
-        ################ Loop through all polygons, translate geometry in WKT and get first node
-        sp_df <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
-        npoly <- nrow(sp_df@data)
-        
-        class_attr <- input$class_attribute_vector
-        map_code <- sp_df@data[,class_attr]
-        
-        df <- data.frame(matrix(nrow=0,ncol=3))
-        names(df)<-c("XCOORD","YCOORD","GEOMETRY")
-        df$XCOORD <- as.numeric(df$XCOORD)
-        df$YCOORD <- as.numeric(df$YCOORD)
-        df$GEOMETRY <- as.character(df$GEOMETRY)
-        
-        print('Generate KML geometry, be patient...')
-        for(k in 1:npoly){
-          poly <- sp_df[k,]
-          
-          ## Coordinates of the point will be the first coordinate of the segment
-          coords <- data.frame(coordinates(poly@polygons[[1]]@Polygons[[1]]))
-          
-          head <- paste0('<Polygon><outerBoundaryIs><LinearRing><coordinates>')
-          tail <- paste0('</coordinates></LinearRing></outerBoundaryIs></Polygon>')
-          
-          first_node <- paste0(coords[1,1],",",coords[1,2])
-          middle <- first_node
-          
-          for(i in 2:nrow(coords)){
-            node <- paste0(coords[i,1],",",coords[i,2])
-            middle <- paste0(middle,"\ ",node)
-          }
-          
-          middle <- paste0(middle,"\ ",first_node)
-          kml_geom <- paste0(head,middle,tail)
-          
-          #a_point <- spsample(poly,10,type = "random")[1]
-          
-          line <- data.frame(cbind(coords[1,1],coords[1,2],kml_geom))
-          
-          names(line)<-c("XCOORD","YCOORD","GEOMETRY")
-          line$XCOORD <- as.numeric(line$XCOORD)
-          line$YCOORD <- as.numeric(line$YCOORD)
-          df <- rbind(df,line)
-        }
-        
-        ID       <- sp_df@data$ID
-        YCOORD   <- df$YCOORD
-        XCOORD   <- df$XCOORD
-        GEOMETRY <- df$GEOMETRY
-        pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
-        AREA       <- gArea(all_features(),byid=TRUE)/pixel_size
-        
-        
-        ################ End of the polygon type generation of CE file
-      }
+      #}
+      # if(mapType()== "vector_type"){
+      #   
+      #   print("Check: CEfile vector_type")
+      #   
+      #   ################ If the type is vector the sp_df is POLYGONS, 
+      #   ################ Loop through all polygons, translate geometry in WKT and get first node
+      #   sp_df <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
+      #   npoly <- nrow(sp_df@data)
+      #   
+      #   class_attr <- input$class_attribute_vector
+      #   map_code <- sp_df@data[,class_attr]
+      #   
+      #   df <- data.frame(matrix(nrow=0,ncol=3))
+      #   names(df)<-c("XCOORD","YCOORD","GEOMETRY")
+      #   df$XCOORD <- as.numeric(df$XCOORD)
+      #   df$YCOORD <- as.numeric(df$YCOORD)
+      #   df$GEOMETRY <- as.character(df$GEOMETRY)
+      #   
+      #   print('Generate KML geometry, be patient...')
+      #   for(k in 1:npoly){
+      #     poly <- sp_df[k,]
+      #     
+      #     ## Coordinates of the point will be the first coordinate of the segment
+      #     coords <- data.frame(coordinates(poly@polygons[[1]]@Polygons[[1]]))
+      #     
+      #     head <- paste0('<Polygon><outerBoundaryIs><LinearRing><coordinates>')
+      #     tail <- paste0('</coordinates></LinearRing></outerBoundaryIs></Polygon>')
+      #     
+      #     first_node <- paste0(coords[1,1],",",coords[1,2])
+      #     middle <- first_node
+      #     
+      #     for(i in 2:nrow(coords)){
+      #       node <- paste0(coords[i,1],",",coords[i,2])
+      #       middle <- paste0(middle,"\ ",node)
+      #     }
+      #     
+      #     middle <- paste0(middle,"\ ",first_node)
+      #     kml_geom <- paste0(head,middle,tail)
+      #     
+      #     #a_point <- spsample(poly,10,type = "random")[1]
+      #     
+      #     line <- data.frame(cbind(coords[1,1],coords[1,2],kml_geom))
+      #     
+      #     names(line)<-c("XCOORD","YCOORD","GEOMETRY")
+      #     line$XCOORD <- as.numeric(line$XCOORD)
+      #     line$YCOORD <- as.numeric(line$YCOORD)
+      #     df <- rbind(df,line)
+      #   }
+      #   
+      #   ID       <- sp_df@data$ID
+      #   YCOORD   <- df$YCOORD
+      #   XCOORD   <- df$XCOORD
+      #   GEOMETRY <- df$GEOMETRY
+      #   pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+      #   AREA       <- gArea(all_features(),byid=TRUE)/pixel_size
+      #   
+      #   
+      #   ################ End of the polygon type generation of CE file
+      # }
       
       ################ Create dummy variables if the data from country can't be retrieved
       ELEVATION <- rep(0,length(AREA))
