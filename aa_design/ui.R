@@ -381,7 +381,7 @@ shinyUI(
                       textOutput('t6_b2_button1'),
                       choices = getData('ISO3')[,2],
                       options = list(
-                        placeholder = 'Please select a country from the list below',#htmlOutput('t6_b2_button1_field'),
+                        placeholder = '',#Please select a country from the list below',#htmlOutput('t6_b2_button1_field'),
                         onInitialize = I('function() { this.setValue(""); }')
                       )
                     ),

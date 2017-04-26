@@ -196,9 +196,9 @@ shinyServer(
       if(is.null(mapType()))return()
       switch(mapType(),
              "raster_type" = checkboxInput("IsManualAreaRaster",
-                                           label="Do you want to use a csv with the raster areas ?"),
+                                           label=textOutput("msg_manual_area_rast")),
              "vector_type" = checkboxInput("IsManualAreaVector",
-                                           label="Do you want to use a column of the shapefile for the areas ?")
+                                           label=textOutput("msg_manual_vect_rast"))
       )
     })
     
@@ -253,7 +253,7 @@ shinyServer(
       dirn <- outdir()
       
       selectInput('IsManualAreaCSV',
-                  label= 'Map area file name (csv format)',
+                  label= textOutput("field_map_area_filename"),
                   list.files(path = dirn,
                              recursive = FALSE,
                              pattern = "\\.csv$"),
@@ -277,7 +277,7 @@ shinyServer(
       categories <- names(areacsv)
       print(categories)
       selectInput("value_attribute_raster",
-                  label = h5(paste("Column containing the map value")),
+                  label = h5(textOutput("field_column_map_value")),
                   choices = categories,
                   selected = "map_code",
                   multiple = FALSE
@@ -291,7 +291,7 @@ shinyServer(
       categories <- names(areacsv)
       print(categories)
       selectInput("area_attribute_raster",
-                  label = h5(paste("Column containing the areas")),
+                  label = h5(textOutput("field_column_area_value")),
                   choices = categories,
                   selected = "map_area",
                   multiple = FALSE
@@ -339,27 +339,27 @@ shinyServer(
       shp <- lcmap()
       categories <- names(shp@data)
       selectInput("class_attribute_vector",
-                  label = h5(paste("Attribute column for the map class")),
+                  label = h5(textOutput("field_col_map_attr_value")),
                   choices = categories,
                   multiple = FALSE
       )
     })
     
-    # The user must select MMU of the map in vector format
-    output$selectUI_mmu_vector <- renderUI({
-      req(mapType()== "vector_type")
-      numericInput("mmu_vector", 
-                 label = "Minimum Mapping Unit (in unit of map)", 
-                 value = 10000, step = 1)
-    })
-    
-    # The user must select MMU of the map in vector format
-    output$selectUI_res_vector <- renderUI({
-      req(mapType()== "vector_type")
-      numericInput("res_vector", 
-                   label = "Resolution of imagery used for mapping (in unit of map)", 
-                   value = 30, step = 1)
-    })
+    # # The user must select MMU of the map in vector format
+    # output$selectUI_mmu_vector <- renderUI({
+    #   req(mapType()== "vector_type")
+    #   numericInput("mmu_vector", 
+    #              label = "Minimum Mapping Unit (in unit of map)", 
+    #              value = 10000, step = 1)
+    # })
+    # 
+    # # The user must select MMU of the map in vector format
+    # output$selectUI_res_vector <- renderUI({
+    #   req(mapType()== "vector_type")
+    #   numericInput("res_vector", 
+    #                label = "Resolution of imagery used for mapping (in unit of map)", 
+    #                value = 30, step = 1)
+    # })
     
     # The user can select which column has the area information from the shapefile
     output$selectUI_area_vector <- renderUI({
@@ -367,7 +367,7 @@ shinyServer(
       shp <- lcmap()
       categories <- names(shp@data)
       selectInput("area_attribute2",
-                  label = h5(paste("Attribute column for the areas")),
+                  label = h5(textOutput("field_colarea_attr_value")),
                   choices = categories,
                   multiple = FALSE
       )
@@ -384,12 +384,14 @@ shinyServer(
     ##################################################################################################################################
     ############### Setup whether Calculation of area in raster mode should be done with R or OFT
     output$MapAreaCalcOption <- renderUI({
+      
       validate(
-        need(input$file, "Missing input: Please select the map file")
+        need(input$file, "Missing input: Please select the map file" 
+             )
       )
       req(mapType()== "raster_type", input$IsManualAreaRaster != T)
       isolate(
-        radioButtons("rasterarea",label="What type of area calculation will you use?",
+        radioButtons("rasterarea",label="",#"What type of area calculation will you use?",
                      choices = list( "OFT" = "oft"
                                      #,"R" = "r"
                                      )
@@ -624,8 +626,8 @@ shinyServer(
     ## Display the table
     output$mapAreaTable <- renderTable({
       validate(
-        need(input$areaCalcButton, "Click on area calculation and legend generation"),
-        need(input$submitLegend,   "Click on submit legend before continuing")
+        need(input$areaCalcButton, "Click on area calculation and legend generation"), #textOutput("missing_calc_legend "),
+        need(input$submitLegend,   "Click on submit legend before continuing")#textOutput("missing_legend ")
       )
       maparea_final()
     },
@@ -638,7 +640,7 @@ shinyServer(
       print('Check output$UIDisplayMap')
       if(is.null(mapType()))return()
       checkboxInput("IsDisplayMap",
-                    label="Do you want to display the map ? ")
+                    label=textOutput("msg_display_map"))
     })
     
     ##################################################################################################################################
@@ -673,14 +675,14 @@ shinyServer(
         need(input$submitLegend, "Click on submit legend in the previous tab")
       )
       paste(
-        "Rare classes are expected to have the lower user accuracies and should be assigned a low confidence. Here the value chosen is ",
+        textOutput("msg_rare_classes"),
         input$expected_ua_lo,
         sep="")
     })
     
     output$the_ex_ua_hi <- reactive({
       paste(
-        "Common classes are expected to have high user accuracies and should be assigned a higher confidence. Here the value chosen is ",
+        textOutput("msg_comm_classes"),
         input$expected_ua_hi,
         sep="")
     })
@@ -698,7 +700,7 @@ shinyServer(
       categories <- as.list(unique(maparea$map_edited_class))
       
       selectInput("cat_hi",
-                  label = h5(paste("Classes to include with high confidence (Expected UA = ", input$expected_ua_hi,sep="" ), ")"),
+                  label = h5(paste(textOutput("msg_classes_heua"), input$expected_ua_hi,sep="" ), ")"),
                   choices = categories,
                   multiple = TRUE
       )
@@ -718,7 +720,7 @@ shinyServer(
       categories <- as.list(unique(maparea$map_edited_class[!maparea$map_edited_class %in% high_ua]))
       
       selectInput("cat_lo",
-                  label = h5(paste("Classes to include with low confidence (Expected UA = ", input$expected_ua_lo,sep="" ), ")"),
+                  label = h5(paste(textOutput("msg_classes_leua"), input$expected_ua_lo,sep="" ), ")"),
                   choices = categories,
                   multiple = TRUE
       )
@@ -791,7 +793,7 @@ shinyServer(
       )
       df <- strat_sample()
       size <- floor(sum(as.numeric(df[,13])))
-      paste("The computed overall size is :  ",size,sep="")
+      paste(textOutput("msg_overall_size"),size,sep="")
     })
     
     ##################################################################################################################################

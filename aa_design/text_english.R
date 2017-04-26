@@ -40,6 +40,32 @@ output$basename_area_field     <- reactive({"Basename of area file to export"})
 output$basename_sampling_field <- reactive({"Basename of csv to export"})
 output$basename_export_field   <- reactive({"Basename of sampling design files to export"})
 
+############################ SERVER FIELDS
+output$field_map_area_filename <- reactive({'Map area file name (csv format)'})
+output$field_column_map_value  <- reactive({"Column containing the map value"})
+output$field_column_area_value <- reactive({"Column containing the areas"})
+output$field_col_map_attr_value<- reactive({"Attribute column for the map class"})
+output$field_colarea_attr_value<- reactive({"Attribute column for the areas"})
+
+output$msg_manual_area_rast    <- reactive({"Do you want to use a csv with the raster areas ?"})
+output$msg_manual_vect_rast    <- reactive({"Do you want to use a column of the shapefile for the areas ?"})
+output$msg_display_map         <- reactive({"Do you want to display the map ? "})
+output$msg_rare_classes        <- reactive({"Rare classes are expected to have the lower user accuracies and should be assigned a low confidence. Here the value chosen is "})
+output$msg_comm_classes        <- reactive({"Stable classes are expected to have high user accuracies and should be assigned a higher confidence. Here the value chosen is"})
+output$msg_classes_heua        <- reactive({"Classes to include with high confidence (Expected UA = "})
+output$msg_classes_leua        <- reactive({"Classes to include with low confidence (Expected UA = "})
+
+output$msg_overall_size        <- reactive({"The computed overall size is :  "})
+
+
+
+############################ PROCESSING MESSAGES
+
+############################ MISSING FILE WARNING
+# output$missing_map_file     <- reactive({"Missing input: Please select the map file"},quoted=T)
+# output$missing_calc_legend  <- reactive({"Click on area calculation and legend generation"})
+# output$missing__legend      <- reactive({""Click on submit legend before continuing"
+
 #################################################################################### 
 ############################ INTRODUCTION TAB
 #################################################################################### 
@@ -91,11 +117,12 @@ output$t1_b4_p1_title <- reactive({"Disclaimer"})
 
 output$t1_b4_p1_body  <- reactive({
   HTML(paste0(
-    "FAO declines all responsibility for errors or deficiencies in the database or software or in the documentation accompanying it for program maintenance and upgrading as well as for any damage that may arise from them.",
-    br(),
-    "FAO also declines any responsibility for updating the data and assumes no responsibility for errors and omissions in the data provided. ",
-    br(),
-    "Users are, however, kindly asked to report any errors or deficiencies in this product to FAO."
+    "FAO declines all responsibility for errors or deficiencies in the database 
+    or software or in the documentation accompanying it for program maintenance and 
+    upgrading as well as for any damage that may arise from them.<br/>
+    FAO also declines any responsibility for updating the data and assumes 
+    no responsibility for errors and omissions in the data provided.<br/>
+    Users are, however, kindly asked to report any errors or deficiencies in this product to FAO."
 ))})
 
 output$t1_b4_p2_title <- reactive({"Reference and Documents"})
@@ -109,13 +136,12 @@ output$t2_b1_title    <- reactive({"Data type"})
 
 output$t2_b1_body  <- reactive({
   HTML(paste0(
-    "First choose the type of data used for the stratification - the map",
-    br(),
-    "The map can be in raster or vector format. The map area will be calculated in the next tab.",
-    br(),
-    "The input map can represent a single time or multiple times change made from satellite images", 
-    br(),
-    "It can also be any acquired from available map data of land cover or land use."
+    "First choose the type of data used for the stratification - the map
+    <br/>
+    The map can be in raster or vector format. 
+    The map area will be calculated in the next tab.<br/>
+    The input map can represent a single time or multiple times change made from satellite images<br/>
+    It can also be any acquired from available map data of land cover or land use."
 ))})
 
 #
@@ -146,7 +172,8 @@ output$t2_b4_body  <- reactive({HTML(paste0(
 output$t2_b5_title  <- reactive({"View table data"})
 
 output$t2_b5_body   <- reactive({HTML(paste0(
-"Select columns to view in a data table. The columns are read from the shapefile database or the CSV with the raster areas"
+"Select columns to view in a data table. <br/> 
+The columns are read from the shapefile database or the CSV with the raster areas"
 ))})
 
 #################################################################################### 
@@ -157,11 +184,11 @@ output$t2_b5_body   <- reactive({HTML(paste0(
 output$t3_b1_title  <- reactive({"Area calculation"})
 
 output$t3_b1_body   <- reactive({HTML(paste0(
-  "Map areas are calculated by counting the frequency of the pixels for each map class or by summing the areas of all the polygons.",
-  br(),
-  "If using raster data the map area can be calculated using R or Open Foris Geospatial Toolkit (OFT).",
-  "R is compatible with all systems and OFT is only compatible with Linux.",
-  "Area calculations of large raster files using R will take some time."
+  "Map areas are calculated by counting the frequency of the pixels for 
+each map class or by summing the areas of all the polygons.<br/>
+  If using raster data the map area can be calculated using R or Open Foris Geospatial Toolkit (OFT).<br/>
+  R is compatible with all systems and OFT is only compatible with Linux.<br/>
+  Area calculations of large raster files using R will take some time."
 ))})
 
 
@@ -169,21 +196,20 @@ output$t3_b1_body   <- reactive({HTML(paste0(
 output$t3_b2_title  <- reactive({"Legend and Areas"})
 
 output$t3_b2_body  <- reactive({HTML(paste0(
-"The areas for each of the map categories need to be calculated in order to calculate the overall and stratified sample size." ,
-br(),
-"Make sure to click on the submit legend button to load the map area table"
+"The areas for each of the map categories need to be calculated in order to calculate the overall and stratified sample size.
+<br/>
+Make sure to click on the submit legend button to load the map area table."
 ))})
 
 ############################ AREA TAB - BOX 3
 output$t3_b3_title  <- reactive({"Legend labeling"})
 
 output$t3_b3_body  <- reactive({HTML(paste0(
-  "The legend classes need to be specified and submitted. Please wait for the map values to appear.", 
-  "Then type the names of the classes and submit the legend.",
-  br(),
-  "After submitting the legend the table with the map classes and area will appear.",
-  "The legend names can be modified at any time in this tab.",
-  br()
+  "The legend classes need to be specified and submitted. Please wait for the map values to appear. 
+  Then type the names of the classes and submit the legend.<br/>
+  After submitting the legend the table with the map classes and area will appear.
+  The legend names can be modified at any time in this tab.<br/>"
+  
 ))})
 
 
@@ -199,11 +225,12 @@ output$t3_b4_title  <- reactive({"Display map "})
 output$t4_b1_title  <- reactive({"What are the expected accuracies?"})
 
 output$t4_b1_body  <- reactive({HTML(paste0(
-"Some classes are identified easier than other classes.",
-"Usually common classes, which occupy the majority of the map, are the easiest to identify. ",
-"Rare classes, such as land change classes, which occupy a small portion of the map area, can be very difficult to identify.",
-br(),
-"This measure will influence the overall sample size. More classes with lower confidence will increase the overall sample size"
+"Some classes are identified easier than other classes. <br/>
+Usually common classes, which occupy the majority of the map, are the easiest to identify. <br/>
+Rare classes, such as land change classes, which occupy a small portion of the map area, 
+can be very difficult to identify.
+This measure will influence the overall sample size. <br/>
+More classes with lower confidence will increase the overall sample size"
 ))})
 
 ############################ Classes TAB - BOX 2
@@ -223,7 +250,8 @@ output$t4_b3_leua   <- reactive({"Low expected user accuracy"})
 output$t5_b1_title  <- reactive({"Sampling size"})
 
 output$t5_b1_body   <- reactive({HTML(paste0(
-'In the sampling design, the sample size for each map category is chosen to ensure that the sample size is large enough to produce sufficiently precise estimates of the area of the class (GFOI, 2013)'
+'In the sampling design, the sample size for each map category is chosen to ensure that 
+the sample size is large enough to produce sufficiently precise estimates of the area of the class (GFOI, 2013)'
 ))})
 
 output$t5_b1_seeoa  <- reactive({"Standard error of expected overall accuracy"})
@@ -255,9 +283,9 @@ spatial unit is a pixel, number of polygons if the spatial unit is a polygon)"),
 ############################ ALLOCATION TAB - BOX 1
 output$t6_b1_title  <- reactive({"Create a stratified random sample on the map"})
 output$t6_b1_body   <- reactive({HTML(paste0(
-"Points are randomly distributed for each of the map classes.",
-br(),
-"The number of points per class is from the 'adjusted' column in the Sample Size tab"
+"Points are randomly distributed for each of the map classes.
+<br/>
+The number of points per class is from the 'adjusted' column in the Sample Size tab"
 ))})
 
 ############################ ALLOCATION TAB - BOX 2
