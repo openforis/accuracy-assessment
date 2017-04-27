@@ -1,5 +1,6 @@
 ####################################################################################
 #######          Shiny app for accuracy assessment analysis     ####################
+#######                     SEPAL Branch                        ####################
 #######    contributors:  Remi d'Annunzio, Yelena Finegold,     ####################
 #######            Antonia Ortmann, Erik Lindquist              ####################
 #######              FAO Open Foris SEPAL project               ####################
@@ -16,9 +17,9 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2016/10/29
+## Last update: 2017/04/25
 ## aa_analysis  / server
-## bla
+## fix_yf  
 ####################################################################################
 
 
@@ -58,6 +59,7 @@ packages(DT)
 packages(dismo)
 packages(stringr)
 packages(plyr)
+packages(survey)
 
 ## Packages for graphics and interactive maps
 packages(ggplot2)
@@ -308,7 +310,7 @@ shinyServer(
                   'Choose the column with the X coordinate', 
                   choices= names(df_i_map()),
                   multiple = FALSE,
-                  selected = "location_x")
+                  selected = c("location_x",'XCOORD','xcoord'))
       
     })
     
@@ -321,7 +323,7 @@ shinyServer(
                   'Choose the column with the Y coordinate', 
                   choices= names(df_i_map()),
                   multiple = FALSE,
-                  selected = "location_y")
+                  selected = c("location_y",'YCOORD','ycoord'))
       
     })
     
@@ -340,8 +342,12 @@ shinyServer(
         match.ID=F)
       
       factpal <- colorFactor("Spectral", dfa$map_code)
+      
       m <- leaflet() %>%
-        addTiles() %>%  # Add default OpenStreetMap map tiles
+        addTiles() %>% 
+        # fitBounds(~min(long), ~min(lat), ~max(long), ~max(lat)) %>% 
+        
+        # Add default OpenStreetMap map tiles
         addCircleMarkers(data = dfa, color= ~factpal(map_code),
                          fillOpacity = 1,
                          radius = 1,
@@ -434,6 +440,56 @@ shinyServer(
       legend_i 
     })
     
+    ################################################    
+    ################ Sample only estimates
+    ################################################
+    
+    sample_only <- reactive({
+      if(input$filter_presence==T){    
+        df <- df_f()
+      }else{df <- df_i_map()}
+      legend <- legend_i()
+      areas <- areas_i()
+
+      srs<-data.frame(matrix(nrow=length(legend),ncol=8))
+      names(srs)<-c("class","code","freq","w","area","se","ci","ci_area")
+      
+      ### Integration of all elements into one dataframe
+      for(i in 1:length(legend)){
+        srs[i,]$class<-areas[areas$map_code==legend[i],]$map_code
+        srs[i,]$code <-areas[areas$map_code==legend[i],]$map_code
+        srs[i,]$freq <- table(df$ref_code)[i]
+        srs[i,]$w <- srs$freq[i]/nrow(df)
+        srs[i,]$area <- srs$w[i] * sum(areas$map_area)
+        srs[i,]$se <- sqrt(((1-srs$w[i]) * srs$w[i])/nrow(df)) 
+        srs[i,]$ci <- srs$se[i] * 1.96
+        srs[i,]$ci_area <- srs$ci[i] * sum(areas$map_area)
+      }
+      srs
+   
+    })
+    # ################################################    
+    # ################ Output : Summary of simple random areas
+    # ################################################
+    output$sample_only <- renderTable({
+      validate(
+        need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
+        need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
+      )
+      
+      validate(
+        need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
+      
+      item      <-data.frame(sample_only())
+      item      <-item[,c("code","freq","area","ci")]
+      item$freq  <-floor(as.numeric(item$freq))
+      item$area   <-floor(as.numeric(item$area))
+      item$ci_area <- floor(as.numeric(item$ci_area))
+      names(item) <- c('Class', "Number of samples", "Area estimate", 'Confidence interval')
+    
+      item
+    },include.rownames=FALSE,digits=0)
+    
     
     ################################################    
     ################ Matrix for all classes
@@ -514,19 +570,19 @@ shinyServer(
         }
         
         confusion<-data.frame(matrix(nrow=length(legend)+1,ncol=9))
-        names(confusion)<-c("class","code","Pa","PaW","Ua","area","corr","se","ci")
+        names(confusion)<-c("class","code","producers_accuracy","weighted_producers_accuracy","users_accuracy","map_pixel_count","area_estimate","standard_error","confidence_interval")
         
         ### Integration of all elements into one dataframe
         for(i in 1:length(legend)){
           confusion[i,]$class<-areas[areas$map_code==legend[i],]$map_code
           confusion[i,]$code <-areas[areas$map_code==legend[i],]$map_code
-          confusion[i,]$Pa   <-matrix[i,i]/sum(matrix[,i])
-          confusion[i,]$Ua   <-matrix[i,i]/sum(matrix[i,])
-          confusion[i,]$PaW  <-matrix_w[i,i]/sum(matrix_w[,i])
-          confusion[i,]$corr <-sum(matrix_w[,i])*sum(areas$map_area)
-          confusion[i,]$area <-areas[areas$map_code==legend[i],]$map_area
-          confusion[i,]$se   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
-          confusion[i,]$ci   <-confusion[i,]$se*1.96
+          confusion[i,]$area_estimate <-sum(matrix_w[,i])*sum(areas$map_area)
+          confusion[i,]$producers_accuracy   <-matrix[i,i]/sum(matrix[,i])
+          confusion[i,]$users_accuracy   <-matrix[i,i]/sum(matrix[i,])
+          confusion[i,]$weighted_producers_accuracy  <-matrix_w[i,i]/sum(matrix_w[,i])
+          confusion[i,]$map_pixel_count <-areas[areas$map_code==legend[i],]$map_area
+          confusion[i,]$standard_error   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
+          confusion[i,]$confidence_interval   <-confusion[i,]$standard_error*1.96
         }
         
         ### Compute overall accuracy
@@ -548,13 +604,13 @@ shinyServer(
         need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
       
       item      <-data.frame(accuracy_all())
-      item      <-item[,c("class","PaW","Ua","area","corr","ci")]
-      item$PaW  <-floor(as.numeric(item$PaW)*100)
-      item$Ua   <-floor(as.numeric(item$Ua)*100)
-      item$area <-floor(as.numeric(item$area))
-      item$corr <-floor(as.numeric(item$corr))
-      item$ci   <-floor(as.numeric(item$ci))
-      names(item) <-c("Class","PA","UA","Map areas","Bias corrected areas","CI")
+      item      <-item[,c("code","weighted_producers_accuracy","users_accuracy","map_pixel_count","area_estimate","confidence_interval")]
+      item$weighted_producers_accuracy  <-floor(as.numeric(item$weighted_producers_accuracy)*100)
+      item$users_accuracy   <-floor(as.numeric(item$users_accuracy)*100)
+      item$map_pixel_count <-floor(as.numeric(item$map_pixel_count))
+      item$area_estimate <-floor(as.numeric(item$area_estimate))
+      item$confidence_interval   <-floor(as.numeric(item$confidence_interval))
+      names(item) <-c("Class","Producer's accuracy","User's accuracy","Map pixel count","Area estimate","Confidence interval")
       item
     },include.rownames=FALSE,digits=0)
     
@@ -594,20 +650,26 @@ shinyServer(
         need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
       
       dfa<-as.data.frame(accuracy_all())
+      # dfa.srs<-as.data.frame(sample_only())
+      # dfa <- cbind(dfa,dfa.srs)
       legend <- legend_i()
       
       dfa<-dfa[c(1:length(legend)),]
       dfa[dfa=="NaN"]<-0
-      dfa$ci<-as.numeric(dfa$ci)
-      dfa$corr<-as.numeric(dfa$corr)
+      dfa$confidence_interval<-as.numeric(dfa$confidence_interval)
+      dfa$area_estimate<-as.numeric(dfa$area_estimate)
+      # dfa$area<-as.numeric(dfa$area)
+      # dfa$ci<-as.numeric(dfa$ci)
       
       avg.plot <- ggplot(data=dfa,
-                         aes(x=class,y=corr))
+                         aes(x=class,y=area_estimate))
       ggplot
       avg.plot+
         geom_bar(stat="identity",fill="darkgrey")+
-        geom_errorbar(aes(ymax=corr+ci, ymin=corr-ci))+
-        labs(x = "Map classes", y = "Bias-corrected areas")+
+        geom_errorbar(aes(ymax=area_estimate+confidence_interval, ymin=area_estimate-confidence_interval))+
+        # geom_errorbar(aes(ymax=area+ci, ymin=area-ci))+
+        
+        labs(x = "Map classes", y = "Area estimate")+
         theme_bw()
     })
     

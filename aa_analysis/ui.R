@@ -52,6 +52,8 @@ packages(DT)
 packages(dismo)
 packages(stringr)
 packages(plyr)
+packages(survey)
+
 
 ## Packages for graphics and interactive maps
 packages(ggplot2)
@@ -257,6 +259,7 @@ Users are, however, kindly asked to report any errors or deficiencies in this pr
                     # htmlOutput("display_check_cols"),
                     # tableOutput("table_check"),
                     h4("Location of the points collected"),
+                    # tags$style(type = "text/css", "#map_check {height: calc(100vh - 80px) !important;}"),
                     leafletOutput("map_check"),
                     uiOutput("Xcrd"),
                     uiOutput("Ycrd")
@@ -271,6 +274,8 @@ Users are, however, kindly asked to report any errors or deficiencies in this pr
                 fluidRow(
                   
                   box(h4("Confusion Matrix"),
+                      # confidence interval button -> 90% 95% ?60% ?99%
+                      
                       tableOutput("matrix_all"),
                       downloadButton('download_matrix', 'Download as CSV')
                   ),
@@ -279,7 +284,10 @@ Users are, however, kindly asked to report any errors or deficiencies in this pr
                       plotOutput("histogram_all")
                   ),
                   
-                  box(h4("Bias-corrected areas and accuracies"),
+                  box(h4("Stratified and simple random area estimations and accuracies"),
+                      h5("Simple random"),
+                      tableOutput("sample_only"),
+                      h5("Stratified random"),
                       tableOutput("accuracy_all"),
                       downloadButton('download_accuracy', 'Download as CSV')
                   ),
