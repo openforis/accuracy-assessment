@@ -1,5 +1,5 @@
 ####################################################################################
-#######          Shiny app for accuracy assessment analysis     ####################
+#######          Analysis for stratified area estimator         ####################
 #######                     SEPAL Branch                        ####################
 #######    contributors:  Remi d'Annunzio, Yelena Finegold,     ####################
 #######            Antonia Ortmann, Erik Lindquist              ####################
@@ -17,9 +17,8 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2017/04/25
+## Last update: 2017/04/27
 ## aa_analysis  / server
-## fix_yf  
 ####################################################################################
 
 
@@ -59,7 +58,6 @@ packages(DT)
 packages(dismo)
 packages(stringr)
 packages(plyr)
-packages(survey)
 
 ## Packages for graphics and interactive maps
 packages(ggplot2)
@@ -443,53 +441,43 @@ shinyServer(
     ################################################    
     ################ Sample only estimates
     ################################################
+    # 
+    # sample_only <- reactive({
+    #   if(input$filter_presence==T){    
+    #     df <- df_f()
+    #   }else{df <- df_i_map()}
+    #   legend <- legend_i()
+    #   areas <- areas_i()
+    # 
+    #   srs<-data.frame(matrix(nrow=length(legend),ncol=8))
+    #   names(srs)<-c("class","code","freq","w","area","se","ci","ci_area")
+    #   
+    #   
+    # 
+    # })
     
-    sample_only <- reactive({
-      if(input$filter_presence==T){    
-        df <- df_f()
-      }else{df <- df_i_map()}
-      legend <- legend_i()
-      areas <- areas_i()
-
-      srs<-data.frame(matrix(nrow=length(legend),ncol=8))
-      names(srs)<-c("class","code","freq","w","area","se","ci","ci_area")
-      
-      ### Integration of all elements into one dataframe
-      for(i in 1:length(legend)){
-        srs[i,]$class<-areas[areas$map_code==legend[i],]$map_code
-        srs[i,]$code <-areas[areas$map_code==legend[i],]$map_code
-        srs[i,]$freq <- table(df$ref_code)[i]
-        srs[i,]$w <- srs$freq[i]/nrow(df)
-        srs[i,]$area <- srs$w[i] * sum(areas$map_area)
-        srs[i,]$se <- sqrt(((1-srs$w[i]) * srs$w[i])/nrow(df)) 
-        srs[i,]$ci <- srs$se[i] * 1.96
-        srs[i,]$ci_area <- srs$ci[i] * sum(areas$map_area)
-      }
-      srs
-   
-    })
-    # ################################################    
-    # ################ Output : Summary of simple random areas
-    # ################################################
-    output$sample_only <- renderTable({
-      validate(
-        need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
-        need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
-      )
-      
-      validate(
-        need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
-      
-      item      <-data.frame(sample_only())
-      item      <-item[,c("code","freq","area","ci_area")]
-      item$freq  <-floor(as.numeric(item$freq))
-      item$area   <-floor(as.numeric(item$area))
-      item$ci_area <- floor(as.numeric(item$ci_area))
-      names(item) <- c('Class', "Number of samples", "Area estimate", 'Confidence interval')
-    
-      item
-    },include.rownames=FALSE,digits=0)
-    
+    # # ################################################    
+    # # ################ Output : Summary of simple random areas
+    # # ################################################
+    # output$sample_only <- renderTable({
+    #   validate(
+    #     need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
+    #     need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
+    #   )
+    #   
+    #   validate(
+    #     need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
+    #   
+    #   item      <-data.frame(sample_only())
+    #   item      <-item[,c("code","freq","area","ci_area")]
+    #   item$freq  <-floor(as.numeric(item$freq))
+    #   item$area   <-floor(as.numeric(item$area))
+    #   item$ci_area <- floor(as.numeric(item$ci_area))
+    #   names(item) <- c('Class', "Number of samples", "Area estimate", 'Confidence interval')
+    # 
+    #   item
+    # },include.rownames=FALSE,digits=0)
+    # 
     
     ################################################    
     ################ Matrix for all classes
@@ -529,7 +517,7 @@ shinyServer(
     
     
     ################################################    
-    ################ Table of accuracies
+    ################ Table of areas and accuracies
     ################################################
     accuracy_all <- reactive({
       
@@ -568,27 +556,62 @@ shinyServer(
             )
           }
         }
-        
-        confusion<-data.frame(matrix(nrow=length(legend)+1,ncol=9))
-        names(confusion)<-c("class","code","producers_accuracy","weighted_producers_accuracy","users_accuracy","map_pixel_count","area_estimate","standard_error","confidence_interval")
-        
+        confusion<-data.frame(matrix(nrow=length(legend),ncol=15))
+        names(confusion)<-c("class","code","producers_accuracy","weighted_producers_accuracy",
+                            "users_accuracy","map_pixel_count","stratified_area_estimate","stratified_standard_error",
+                            "stratified_confidence_interval","number_samples","srs_weight","srs_area_estimate",
+                            "srs_standard_error","srs_confidence_interval","srs_confidence_interval_area")
+        print(matrix_w)
+        print(matrix_se)
+        print(confusion)
+        print('all in one table nownonwonwonwonwo')
         ### Integration of all elements into one dataframe
         for(i in 1:length(legend)){
           confusion[i,]$class<-areas[areas$map_code==legend[i],]$map_code
+          print(confusion)
           confusion[i,]$code <-areas[areas$map_code==legend[i],]$map_code
-          confusion[i,]$area_estimate <-sum(matrix_w[,i])*sum(areas$map_area)
+          confusion[i,]$stratified_area_estimate <-sum(matrix_w[,i])*sum(areas$map_area)
           confusion[i,]$producers_accuracy   <-matrix[i,i]/sum(matrix[,i])
           confusion[i,]$users_accuracy   <-matrix[i,i]/sum(matrix[i,])
           confusion[i,]$weighted_producers_accuracy  <-matrix_w[i,i]/sum(matrix_w[,i])
           confusion[i,]$map_pixel_count <-areas[areas$map_code==legend[i],]$map_area
-          confusion[i,]$standard_error   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
-          confusion[i,]$confidence_interval   <-confusion[i,]$standard_error*1.96
+          confusion[i,]$stratified_standard_error   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
+          confusion[i,]$stratified_confidence_interval   <-confusion[i,]$stratified_standard_error*1.96
+          confusion[i,]$number_samples <- table(df$ref_code)[i]
+          confusion[i,]$srs_weight <- confusion$number_samples[i]/nrow(df)
+          confusion[i,]$srs_area_estimate <- confusion$srs_weight[i] * sum(areas$map_area)
+          confusion[i,]$srs_standard_error <- sqrt(((1-confusion$srs_weight[i]) * confusion$srs_weight[i])/nrow(df))
+          confusion[i,]$srs_confidence_interval <- confusion$srs_standard_error[i] * 1.96
+          confusion[i,]$srs_confidence_interval_area <- confusion$srs_confidence_interval[i] * sum(areas$map_area)
         }
         
         ### Compute overall accuracy
-        confusion[length(legend)+1,]<-c("Total","",sum(diag(matrix))/sum(matrix[]),sum(diag(matrix_w))/sum(matrix_w[]),"",sum(areas$map_area),sum(areas$map_area),"","")
+        # confusion[length(legend)+1,]<-c("Total","",sum(diag(matrix))/sum(matrix[]),sum(diag(matrix_w))/sum(matrix_w[]),"",sum(areas$map_area),sum(areas$map_area),"","")
         confusion}
     })
+    
+    # ################################################    
+    # ################ Output : Summary of areas 
+    # ################################################
+    output$area_all <- renderTable({
+      validate(
+        need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
+        need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
+      )
+      
+      validate(
+        need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
+      
+      item      <-data.frame(accuracy_all())
+      item      <-item[,c("code","number_samples","stratified_area_estimate","stratified_confidence_interval","srs_area_estimate","srs_confidence_interval_area")]
+      item$number_samples  <-floor(as.numeric(item$number_samples))
+      item$stratified_area_estimate   <-floor(as.numeric(item$stratified_area_estimate))
+      item$stratified_confidence_interval <-floor(as.numeric(item$stratified_confidence_interval))
+      item$srs_area_estimate <-floor(as.numeric(item$srs_area_estimate))
+      item$srs_confidence_interval_area   <-floor(as.numeric(item$srs_confidence_interval_area))
+      names(item) <- c('Class', "Number of samples", "Stratified area estimate", 'Stratified confidence interval',"SRS area estimate", 'SRS confidence interval')
+      item
+    },include.rownames=FALSE,digits=0)
     
     
     # ################################################    
@@ -604,13 +627,11 @@ shinyServer(
         need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
       
       item      <-data.frame(accuracy_all())
-      item      <-item[,c("code","weighted_producers_accuracy","users_accuracy","map_pixel_count","area_estimate","confidence_interval")]
+      item      <-item[,c("code","weighted_producers_accuracy","users_accuracy")]
       item$weighted_producers_accuracy  <-floor(as.numeric(item$weighted_producers_accuracy)*100)
       item$users_accuracy   <-floor(as.numeric(item$users_accuracy)*100)
-      item$map_pixel_count <-floor(as.numeric(item$map_pixel_count))
-      item$area_estimate <-floor(as.numeric(item$area_estimate))
-      item$confidence_interval   <-floor(as.numeric(item$confidence_interval))
-      names(item) <-c("Class","Producer's accuracy","User's accuracy","Map pixel count","Area estimate","Confidence interval")
+      
+      names(item) <-c("Class","Producer's accuracy","User's accuracy")
       item
     },include.rownames=FALSE,digits=0)
     
@@ -637,7 +658,7 @@ shinyServer(
     
     
     # #################################################    
-    # ################ Output histograms adjusted areas
+    # ################ Output histograms area estimations
     # #################################################
     output$histogram_all <- renderPlot({
       
@@ -656,17 +677,17 @@ shinyServer(
       
       dfa<-dfa[c(1:length(legend)),]
       dfa[dfa=="NaN"]<-0
-      dfa$confidence_interval<-as.numeric(dfa$confidence_interval)
-      dfa$area_estimate<-as.numeric(dfa$area_estimate)
+      dfa$stratified_confidence_interval<-as.numeric(dfa$stratified_confidence_interval)
+      dfa$stratified_area_estimate<-as.numeric(dfa$stratified_area_estimate)
       # dfa$area<-as.numeric(dfa$area)
       # dfa$ci<-as.numeric(dfa$ci)
       
       avg.plot <- ggplot(data=dfa,
-                         aes(x=class,y=area_estimate))
+                         aes(x=class,y=stratified_area_estimate))
       ggplot
       avg.plot+
         geom_bar(stat="identity",fill="darkgrey")+
-        geom_errorbar(aes(ymax=area_estimate+confidence_interval, ymin=area_estimate-confidence_interval))+
+        geom_errorbar(aes(ymax=stratified_area_estimate+stratified_confidence_interval, ymin=stratified_area_estimate-stratified_confidence_interval))+
         # geom_errorbar(aes(ymax=area+ci, ymin=area-ci))+
         
         labs(x = "Map classes", y = "Area estimate")+
@@ -690,12 +711,12 @@ shinyServer(
       })
     
     # #################################################    
-    # ################ Output histograms adjusted areas
+    # ################ Output histograms  area estimates
     # #################################################
     
     output$download_accuracy <- downloadHandler(
       filename = function() { 
-        paste('accuracy_', Sys.Date(), '.csv', sep='') 
+        paste('area_', Sys.Date(), '.csv', sep='') 
       },
       content = function(file) {
         write.csv(accuracy_all(),file,row.names = F)

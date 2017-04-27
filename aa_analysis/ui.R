@@ -1,5 +1,6 @@
 ####################################################################################
-#######          Shiny app for accuracy assessment analysis     ####################
+#######          Analysis for stratified area estimator         ####################
+#######                     SEPAL Branch                        ####################
 #######    contributors:  Remi d'Annunzio, Yelena Finegold,     ####################
 #######            Antonia Ortmann, Erik Lindquist              ####################
 #######              FAO Open Foris SEPAL project               ####################
@@ -16,7 +17,7 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2016/10/29
+## Last update: 2016/04/27
 ## aa_analysis  / ui
 ####################################################################################
 options(stringsAsFactors=FALSE)
@@ -285,9 +286,9 @@ Users are, however, kindly asked to report any errors or deficiencies in this pr
                   ),
                   
                   box(h4("Stratified and simple random area estimations and accuracies"),
-                      h5("Simple random"),
-                      tableOutput("sample_only"),
-                      h5("Stratified random"),
+                      h5("Area estimates for stratified random sample (stratified) and simple random sample (SRS)"),
+                      tableOutput("area_all"),
+                      h5("Map accuracy"),
                       tableOutput("accuracy_all"),
                       downloadButton('download_accuracy', 'Download as CSV')
                   ),
