@@ -35,17 +35,17 @@ shinyServer(
     output$chosen_language <- renderPrint({
       
     if(input$language == "English"){
-      source("text_english.R",local = TRUE)
+      source("text_english.R",local = TRUE,encoding = "UTF-8")
       #print("en")
       }
       
-    if(input$language =="Francais"){
-      source("text_french.R",local = TRUE)
+    if(input$language == "Français"){
+      source("text_french.R",local = TRUE,encoding = "UTF-8")
       #print("fr")
       }
       
-    if(input$language == "Espanol"){
-      source("text_espanol.R",local = TRUE)
+    if(input$language == "Español"){
+      source("text_espanol.R",local = TRUE,encoding = "UTF-8")
       #print("sp")
       }
       
@@ -691,6 +691,7 @@ shinyServer(
     ############### Select classes to be included with High expected User's Accuracy 
     output$selectUI_cat_hi <- renderUI({
       print('Check: output$selectUI_cat_hi')
+      print(textOutput("msg_classes_heua"))
       
       validate(
         need(input$submitLegend, "Click on submit legend in the previous tab")
@@ -700,7 +701,8 @@ shinyServer(
       categories <- as.list(unique(maparea$map_edited_class))
       
       selectInput("cat_hi",
-                  label = h5(paste(textOutput("msg_classes_heua"), input$expected_ua_hi,sep="" ), ")"),
+                  label = h5(paste("high confidence (Expected UA = ",#textOutput("msg_classes_heua"),
+                                   input$expected_ua_hi,sep="" ), ")"),
                   choices = categories,
                   multiple = TRUE
       )
@@ -720,7 +722,8 @@ shinyServer(
       categories <- as.list(unique(maparea$map_edited_class[!maparea$map_edited_class %in% high_ua]))
       
       selectInput("cat_lo",
-                  label = h5(paste(textOutput("msg_classes_leua"), input$expected_ua_lo,sep="" ), ")"),
+                  label = h5(paste("low confidence (Expected UA = ",#htmlOutput("msg_classes_leua"), 
+                                   input$expected_ua_lo,sep="" ), ")"),
                   choices = categories,
                   multiple = TRUE
       )
@@ -791,6 +794,7 @@ shinyServer(
         need(input$submitLegend, "Click on submit legend in tab 2 'Map areas'"),
         need(input$cat_hi,"Select the classes to include with high and low confidence in the previous tab")
       )
+      
       df <- strat_sample()
       size <- floor(sum(as.numeric(df[,13])))
       paste(textOutput("msg_overall_size"),size,sep="")
@@ -798,25 +802,36 @@ shinyServer(
     
     ##################################################################################################################################
     ############### What if you want to manually edit the file ? 
-    output$selectManualSampling <- renderUI({
-      print('Check: output$selectManualSampling')
-      
-      if(req(input$IsManualSampling)){
-        fileInput("ManualSamplingFile",
-                  label = h5(paste("Choose the file with manual sampling points"))
-        )
-      }
-    })
+    # output$selectManualSampling <- reactive({
+    #   print('Check: output$selectManualSampling')
+    #   paste0("Modify the file : " ,outdir(),"/","manual_sampling.csv")
+    #   
+    #   if(req(input$IsManualSampling)){
+    #     
+    #     
+    #     
+    #     # fileInput("ManualSamplingFile",
+    #     #           label = h5(paste("Choose the file with manual sampling points"))
+    #     # )
+    #     
+    #     }
+    # })
     
     ##################################################################################################################################
     ############### Display the results of sampling within the UI
     output$sampling_table <- renderTable({
       print('Check: output$sampling_table')
       if(input$IsManualSampling == T){
-        validate(
-          need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
-        )
-        df<-read.csv(paste(outdir(),"/",input$ManualSamplingFile$name,sep=""),header = T)
+        
+        # validate(
+        #   need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
+        # )
+        
+        df<-read.csv(paste(outdir(),"/","manual_sampling.csv",sep=""),header = T)
+        #df<-read.csv(paste(outdir(),"/",input$ManualSamplingFile$name,sep=""),header = T)
+        
+        
+        
       }else{
         df<- strat_sample()
         df<-df[,c(1,2,3,8,9,12,13)]
@@ -1146,6 +1161,19 @@ shinyServer(
       # }
     })
     
+    ##################################################################################################################################
+    ############### Divide work into groups
+    
+    ## Number of groups
+    nb_grp <- reactive({
+      input$nb_groups
+      })
+    
+    ## Directory
+    rootdir <- reactive({
+      getwd()
+    })
+    
     
     ################################################################################################################################
     ############### Create the Collect Earth file
@@ -1154,7 +1182,7 @@ shinyServer(
       req(mapType)
       
       ################ Copy the CEP template into the output directory
-      file.copy('www/cep_template/',outdir(),recursive = TRUE)
+      file.copy('www/cep_template/',outdir(),recursive = TRUE,overwrite = T)
       
       ################ Create a local getDataFiles folder to receive files form getData
       if(!file.exists(paste0(outdir(),"/getDataFiles"))){
@@ -1164,6 +1192,7 @@ shinyServer(
       #if(mapType()== "raster_type"){
         ################ If the type is raster the sp_df is POINTS, use directly
         print("Check: CEfile raster_type")
+        print(rootdir())
         sp_df<-spdf()
         coord <- sp_df@coords
         map_code <- sp_df@data[,1]
@@ -1310,10 +1339,12 @@ shinyServer(
       
       ################ Bind all vectors together in one matrix
       m <- as.data.frame(cbind(ID, YCOORD, XCOORD, ELEVATION, SLOPE, ASPECT, ADM1_NAME, COUNTRY, GEOMETRY,AREA))
-      names(m) <- c("ID", "YCOORD", "XCOORD", "ELEVATION", "SLOPE", "ASPECT", "ADM1_NAME", "COUNTRY","GEOMETRY","AREA")
+
       
       ################ Add the map code
       m$map_code <- as.character(map_code)
+      
+      names(m) <- c("id", "YCoordinate", "XCoordinate", "elevation", "slope", "aspect", "region", "country","geometry","area","map_class")
       
       ################ Clean existing csv files
       unlink(paste0(outdir(),"/cep_template/*.csv"))
@@ -1321,7 +1352,7 @@ shinyServer(
       ################ Export the csv file with points
       write.csv(m,paste0(outdir(),"/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
       
-      nb_grp <- input$nb_groups
+      nb_grp <- nb_grp()
       
       pts <- m
       
@@ -1330,7 +1361,7 @@ shinyServer(
         {
         ## Add a column to the data.frame, with index from 1 to the number of groups. repeat to the end of dataset
         pts$group <- rep_len(1:nb_grp,length.out=nrow(pts))
-        pts <- pts[sample(pts$ID,nrow(pts),replace = F),]
+        pts <- pts[sample(pts$id,nrow(pts),replace = F),]
         
         ## Loop through each group
         for(i in 1:nb_grp){
@@ -1348,28 +1379,28 @@ shinyServer(
       ################ Create a dummy distribution for the analysis
       
       pts <- m
-      legend <- levels(as.factor(pts$map_code))
+      legend <- levels(as.factor(pts$map_class))
       
-      tmp              <- as.data.frame(pts$ID)
+      tmp              <- as.data.frame(pts$id)
       tmp$location_srs <- "EPSG:4326"
-      tmp$location_x   <- pts$XCOORD
-      tmp$location_y   <- pts$YCOORD
+      tmp$location_x   <- pts$XCoordinate
+      tmp$location_y   <- pts$YCoordinate
       tmp$operator     <- "autobot"
-      tmp$elevation    <- pts$ELEVATION
-      tmp$slope        <- pts$SLOPE
-      tmp$aspect       <- pts$ASPECT
-      tmp$adm1_name    <- pts$ADM1_NAME
-      tmp$country      <- pts$COUNTRY
+      tmp$elevation    <- pts$elevation
+      tmp$slope        <- pts$slope
+      tmp$aspect       <- pts$aspect
+      tmp$adm1_name    <- pts$region
+      tmp$country      <- pts$country
       tmp$geom         <- "no_geom_record"
-      tmp$area         <- pts$AREA
+      tmp$area         <- pts$area
       tmp$saved        <- "FALSE"
       tmp$year         <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][1]
       tmp$month        <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][2]
       tmp$day          <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][3]
       tmp$plot         <- "response.csv"
-      tmp$ref_code     <- pts$map_code
+      tmp$ref_code     <- pts$map_class
       tmp$confidence   <- "FALSE"
-      tmp$map_code     <- pts$map_code
+      tmp$map_code     <- pts$map_class
       
       table(tmp$ref_code,tmp$map_code)
       
@@ -1494,10 +1525,11 @@ shinyServer(
         zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),
             file=Sys.glob(paste0("*")),
             zip=my_zip_tools)
-        setwd(outdir())
+        setwd(rootdir())
         
         file.copy(paste0(outdir(),"/",input$basename_CE,".cep"), file)
-        #file.remove(paste0(outdir(),"/", input$basename_CE,".cep"))
+        unlink(paste0(outdir(),"/cep_template/"), recursive = TRUE, force = TRUE)
+        
       }
     )
     

@@ -5,38 +5,38 @@
 ## w == WARNING
 
 ############################ TITLES
-output$title    <- reactive({  "Estimateur stratifie" })
+output$title    <- reactive({  "Estimateur stratifié de superficies" })
 
 output$t0_title <- reactive({  "Introduction" })
-output$t1_title <- reactive({  "Carte en entree" })
+output$t1_title <- reactive({  "Carte en entrée" })
 output$t2_title <- reactive({  "Superficie des strates" })
-output$t3_title <- reactive({  "Selection des strates" })
-output$t4_title <- reactive({  "Taille de l'echantillon" })
-output$t5_title <- reactive({  "Allocation des echantillons" })
+output$t3_title <- reactive({  "Sélection des strates" })
+output$t4_title <- reactive({  "Taille de l'échantillon" })
+output$t5_title <- reactive({  "Allocation des échantillons" })
 
 output$source_code <- reactive({  "Code source" })
 output$bug_reports <- reactive({  "Rapport de plantage" })
 
 ############################ BUTTONS
-output$download_testdata_button <- reactive({"Telecharger des donnees test"})
-output$download_area_button     <- reactive({"Telecharger le fichier des superficeis"})
-output$download_sampling_button <- reactive({"Telecharger les parametres d'echantillonnage"})
-output$download_cep_button      <- reactive({"Telecharger le projet Collect Earth (.cep)"})
-output$download_csv_button      <- reactive({'Telecharger les points en format tabulaire (.csv)'})
-output$download_shp_button      <- reactive({'Telecharger les points en format vecteur (.shp)'})
+output$download_testdata_button <- reactive({"Télécharger des données test"})
+output$download_area_button     <- reactive({"Télécharger le fichier des superficies"})
+output$download_sampling_button <- reactive({"Télécharger les parametres d'échantillonnage"})
+output$download_cep_button      <- reactive({"Télécharger le projet Collect Earth (.cep)"})
+output$download_csv_button      <- reactive({'Télécharger les points en format tabulaire (.csv)'})
+output$download_shp_button      <- reactive({'Télécharger les points en format vecteur (.shp)'})
 
-output$t2_b1_button        <- reactive({"Carte d'entree (vecteur ou rasteur)"})
-output$t3_b1_button        <- reactive({"Calcul des superficies et generation de la legende"})
-output$t3_b3_button        <- reactive({"Soumettre la legende"})
-output$t6_b2_button1       <- reactive({"Choisir un nom de pays si vous voulez des informations additionelles"})
+output$t2_b1_button        <- reactive({"Carte d'entrée (vecteur ou rasteur)"})
+output$t3_b1_button        <- reactive({"Calcul des superficies et génération de la legende"})
+output$t3_b3_button        <- reactive({"Soumettre la légende"})
+output$t6_b2_button1       <- reactive({"Choisir un nom de pays si vous voulez des informations additionnelles"})
 output$t6_b2_button1_field <- reactive({"Choisir un nom dans la liste ci-dessous"})  
 output$t6_b2_button2       <- reactive({"Nombre d'operateurs"})
-output$t6_b2_button2_field <- reactive({"Selectionner le nombre d'operateurs qui vont travailler sur le projet"})
+output$t6_b2_button2_field <- reactive({"Sélectionner le nombre d'opérateurs qui vont travailler sur le projet"})
 
 ############################ BASENAME FIELDS
-output$basename_area_field     <- reactive({"Nom du fichier superficie a exporter"})
-output$basename_sampling_field <- reactive({"Nom du fichier a exporter"})
-output$basename_export_field   <- reactive({"Nom des fichiers a exporter"})
+output$basename_area_field     <- reactive({"Nom du fichier superficie à exporter"})
+output$basename_sampling_field <- reactive({"Nom du fichier à exporter"})
+output$basename_export_field   <- reactive({"Nom des fichiers à exporter"})
 
 ############################ SERVER FIELDS
 output$field_map_area_filename <- reactive({'Nom du fichier de superficies'})
@@ -47,11 +47,11 @@ output$field_colarea_attr_value<- reactive({"Colonne qui contient la valeur de s
 
 output$msg_manual_area_rast    <- reactive({"Voulez-vous utiliser un fichier existant pour les superficies ?"})
 output$msg_manual_vect_rast    <- reactive({"Voulez-vous utiliser un colonne contenant les superficies ?"})
-output$msg_display_map         <- reactive({"Voulez-vous afficher la carte? "})
-output$msg_rare_classes        <- reactive({"Les classes rares (changement) ont une precision utilisateur attendue basse. Ici la valeur choisie est "})
-output$msg_comm_classes        <- reactive({"Les classes majoritaires (stable) ont une precision utilisateur attendue basse. Ici la valeur choisie est"})
-output$msg_classes_heua        <- reactive({"Classes a inclure avec une haute certitude (UA attendue ="})
-output$msg_classes_leua        <- reactive({"Classes a inclure avec une basse certitude (UA attendue ="})
+output$msg_display_map         <- reactive({"Voulez-vous afficher la carte?"})
+output$msg_rare_classes        <- reactive({"Les classes rares (changement) ont une précision utilisateur attendue basse. Ici la valeur choisie est "})
+output$msg_comm_classes        <- reactive({"Les classes majoritaires (stable) ont une précision utilisateur attendue basse. Ici la valeur choisie est"})
+output$msg_classes_heua        <- reactive({"Classes à inclure avec une haute certitude (UA attendue ="})
+output$msg_classes_leua        <- reactive({"Classes à inclure avec une basse certitude (UA attendue ="})
 
 output$msg_overall_size        <- reactive({"La taille totale de l'echantillon est  "})
 
@@ -64,23 +64,23 @@ output$t1_b1_title <- reactive({"Description"})
 
 output$t1_b1_body  <- reactive({
   HTML(paste0(
-    "Cet outil permet de creer un echantillonnage aleatoire stratifie pour estimer des superficies d'occupation des sols",
-    br(),
-    "L'outil fournit une interface simple pour produire un EAS a partir d'une carte donnee",
-    br(),
-    "Si vous avez des questions, merci d'ecrire a",a(href="http://www.openforis.org/support"," Open Foris support forum",target="_blank")
+    "Cet outil permet de créer un échantillonnage aléatoire stratifié pour estimer des superficies d'occupation des sols.
+    <br/>
+    L'outil fournit une interface simple pour produire un EAS à partir d'une carte donnée
+    <br/>
+    <br/>
+    Si vous avez des questions, merci d'écrire à : ",a(href="http://www.openforis.org/support"," Open Foris support forum",target="_blank")
     ))})
 
 ############################ INTRODUCTION TAB - BOX 2
 output$t1_b2_title <- reactive({"Contexte"})
 output$t1_b2_body  <- reactive({
   HTML(paste0(
-    "Cet outil permet de creer un echantillonnage aleatoire stratifie pour estimer des superficies d'occupation des sols",
-    br(),
-    "L'idee est de combiner une carte (utilisee comme stratification de la zone d'interet) avec une interpretation visuelle d'echantillons bien choisis pour produire des estimations de superficies",
-    br(),
-    "Le concept provient de l'evaluation de la precision des cartes: les erreurs d' omission et comission des cartes sont utilisees pour estimer les superficies et les incertitudes (intervalles de confiance)
-    pour chaque strate"
+    "Cet outil permet de créer un échantillonnage aléatoire stratifié pour estimer des superficies d'occupation des sols. <br/>
+    L'idee est de combiner une carte (utilisée comme stratification de la zone d'interêt) avec une interpretation 
+visuelle d'échantillons bien choisis pour produire des estimations de superficies. <br/>
+    Le concept provient de l'evaluation de la précision des cartes: les erreurs d'omission et 
+comission des cartes sont utilisées pour estimer les superficies et les incertitudes (intervalles de confiance) pour chaque strate"
     ))
 })
 
@@ -88,11 +88,11 @@ output$t1_b2_body  <- reactive({
 output$t1_b3_title <- reactive({"Comment utiliser l'outil ?"})
 output$t1_b3_body  <- reactive({
   HTML(paste(
-    "Il faut suivre les etapes suivantes, dans l'ordre", 
+    "Il faut suivre les étapes suivantes, dans l'ordre", 
     tags$ol(
-      tags$li("Selectionner la carte d'entree, en format vecteur (.shp) ou rasteur (.tif)."), 
+      tags$li("Sélectionner la carte d'entrée, en format vecteur (.shp) ou rasteur (.tif)."), 
       tags$li("Calculer les superficies de chaque strate"), 
-      tags$li("Selectionner les parametres pour chaque strate"),
+      tags$li("Sélectionner les parametres pour chaque strate"),
       tags$li("Calculaer la taille et la distribution des echantillons"),
       tags$li("Generer un projet Collect Earth")
     )
@@ -194,8 +194,6 @@ output$t3_b3_body  <- reactive({HTML(paste0(
   
 ))})
 
-
-
 ############################ AREA TAB - BOX 4
 output$t3_b4_title  <- reactive({"Afficher la carte"})
 
@@ -207,55 +205,52 @@ output$t3_b4_title  <- reactive({"Afficher la carte"})
 output$t4_b1_title  <- reactive({"Quelles sont les précisions attendues"})
 
 output$t4_b1_body  <- reactive({HTML(paste0(
-  "Some classes are identified easier than other classes. <br/>
-  Usually common classes, which occupy the majority of the map, are the easiest to identify. <br/>
-  Rare classes, such as land change classes, which occupy a small portion of the map area, 
-  can be very difficult to identify.
-  This measure will influence the overall sample size. <br/>
-  More classes with lower confidence will increase the overall sample size"
+  "Certaines classes sont mieux définies que d'autres. <br/>
+  Les classes majoritaires sont généralement bien détectées. <br/>
+  Les classes rares (changement d'occupation des sols), peuvent être beaucoup plus difficiles à identifier. <br/>
+  Ces paramètres vont changer la taille totale de l'échantillon. <br/>
+  Les classes avec une certitude faible vont augmenter la taille de l'échantillon."
 ))})
 
 ############################ Classes TAB - BOX 2
-output$t4_b2_title  <- reactive({"Choose classes expected user's accuracies"})
+output$t4_b2_title  <- reactive({"Choisir les précisions attendues des classes"})
 
 ############################ Classes TAB - BOX 3
-output$t4_b3_title  <- reactive({"Expected User's Accuracy (EUA) values for specific classes"})
+output$t4_b3_title  <- reactive({"Précisions attendues des classes"})
 
-output$t4_b3_heua   <- reactive({"High expected user accuracy"})
-output$t4_b3_leua   <- reactive({"Low expected user accuracy"})
+output$t4_b3_heua   <- reactive({"Précision attendue haute"})
+output$t4_b3_leua   <- reactive({"Précision attendue basse"})
 
 #################################################################################### 
 ############################ SAMPLING SIZE TAB
 ####################################################################################
 
 ############################  SIZE TAB - BOX 1
-output$t5_b1_title  <- reactive({"Sampling size"})
+output$t5_b1_title  <- reactive({"Taille de l'échantillon"})
 
 output$t5_b1_body   <- reactive({HTML(paste0(
-  'In the sampling design, the sample size for each map category is chosen to ensure that 
-  the sample size is large enough to produce sufficiently precise estimates of the area of the class (GFOI, 2013)'
+  "Dans l'échantillonnage, la taille de chaque catégorie est choisi de façon à 
+  ce que la taille totale soit suffisante pour estimer avec précision la superficie de la classe (GFOI, 2013)"
 ))})
 
-output$t5_b1_seeoa  <- reactive({"Standard error of expected overall accuracy"})
-output$t5_b1_mss    <- reactive({"Minimum sample size per strata"})
-output$t5_b1_modify <- reactive({"Do you want to modify the sampling size?"})
+output$t5_b1_seeoa  <- reactive({"Erreur standard de la précision globale"})
+output$t5_b1_mss    <- reactive({"Taille minimum par strate"})
+output$t5_b1_modify <- reactive({"Voulez-vous changer manuellement l'échantillonnage ?"})
 
 ############################ SIZE TAB - BOX 2
-output$t5_b2_title  <- reactive({"Distribution of samples"})
+output$t5_b2_title  <- reactive({"Distribution des échantillons par classe"})
 
 ############################ SIZE TAB - BOX 3
-output$t5_b3_title  <- reactive({"Formula to calculate the overall sample size"})
+output$t5_b3_title  <- reactive({"Formule du calcul de la taille totale"})
 
 output$t5_b3_body   <- reactive({HTML(paste0(
-  "The equation below calculates an adequate overall sample size for stratified
-random sampling that can then be distributed among the different strata.",
+  "L'équation ci-dessous calcule la taille totale de l'échantillonnage aléatoire stratifié, qui est ensuite répartie entre les différentes classes",
   br(),
   tags$ul(
-    tags$li("N is number of units in the area of interest (number of overall pixels if the
-spatial unit is a pixel, number of polygons if the spatial unit is a polygon)"),
-    tags$li("S(O) is the standard error of the estimated overall accuracy that we would like to achieve"),
-    tags$li("Wi is the mapped proportion of area of class i"),
-    tags$li("Si is the standard deviation of stratum i."))
+    tags$li("N est la population totale (superficie totale)"),
+    tags$li("S(O) est l'erreur standard de la précision globale"),
+    tags$li("Wi est la proportion de la strate i dans la carte"),
+    tags$li("Si est la déviation standard de la strate i"))
 ))})
 
 #################################################################################### 
@@ -263,12 +258,11 @@ spatial unit is a pixel, number of polygons if the spatial unit is a polygon)"),
 ####################################################################################
 
 ############################ ALLOCATION TAB - BOX 1
-output$t6_b1_title  <- reactive({"Create a stratified random sample on the map"})
+output$t6_b1_title  <- reactive({"Créer un échantillonnage aléatoire stratifié"})
 output$t6_b1_body   <- reactive({HTML(paste0(
-  "Points are randomly distributed for each of the map classes.
-<br/>
-The number of points per class is from the 'adjusted' column in the Sample Size tab"
+  "Les points sont distribués aléatoirement pour chaque classe conformément à la répartition obtenue dans l'onglet précédent
+<br/>"
 ))})
 
 ############################ ALLOCATION TAB - BOX 2
-output$t6_b2_title  <- reactive({"Create a Collect Earth Project file (.cep) to start validation work"})
+output$t6_b2_title  <- reactive({"Créer un projet Collect Earth (.cep) pour commencer l'interprétation"})

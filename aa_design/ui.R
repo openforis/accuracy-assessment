@@ -58,8 +58,8 @@ shinyUI(
         menuItem(textOutput('t5_title',inline=T), tabName = 'Responsedesign', icon = icon("globe")),
         hr(),
         br(),br(),
-        menuItem(textOutput('source_code'), icon = icon("file-code-o"),href = "https://github.com/openforis/accuracy-assessment"),
-        menuItem(textOutput('bug_reports'), icon = icon("bug"),href = "https://github.com/openforis/accuracy-assessment/issues")
+        menuItem(textOutput('source_code',inline=T), icon = icon("file-code-o"),href = "https://github.com/openforis/accuracy-assessment"),
+        menuItem(textOutput('bug_reports',inline=T), icon = icon("bug")        ,href = "https://github.com/openforis/accuracy-assessment/issues")
       )
     ),
     ####################################################################################
@@ -76,7 +76,7 @@ shinyUI(
                   box(
                     title= textOutput('t1_b0_title'), status = "success", solidHeader= TRUE,
                     selectInput(
-                      'language','',choices = c("English","Francais","Espanol")),
+                      'language','',choices = c("English","Français","Español")),
                     uiOutput("chosen_language")
                   ),
                   
@@ -290,7 +290,7 @@ shinyUI(
                   ####################################################################################
                   # New box
                   box(h4(textOutput('t4_b2_title')),
-                      htmlOutput("selectUI_cat_hi"),
+                      uiOutput("selectUI_cat_hi"),
                       htmlOutput("selectUI_cat_lo")  
                   ),
                   ####################################################################################
@@ -325,8 +325,8 @@ shinyUI(
                                    label = textOutput('t5_b1_mss'),
                                    value = 100),
                       
-                      checkboxInput("IsManualSampling",label=textOutput('t5_b1_modify')),
-                      htmlOutput("selectManualSampling")
+                      checkboxInput("IsManualSampling",label=textOutput('t5_b1_modify'))
+                      #,htmlOutput("selectManualSampling")
                   ),
                   
                   ####################################################################################
