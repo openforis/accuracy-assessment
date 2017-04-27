@@ -481,7 +481,7 @@ shinyServer(
         need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
       
       item      <-data.frame(sample_only())
-      item      <-item[,c("code","freq","area","ci")]
+      item      <-item[,c("code","freq","area","ci_area")]
       item$freq  <-floor(as.numeric(item$freq))
       item$area   <-floor(as.numeric(item$area))
       item$ci_area <- floor(as.numeric(item$ci_area))
