@@ -286,7 +286,7 @@ Users are, however, kindly asked to report any errors or deficiencies in this pr
                   ),
                   
                   box(h4("Stratified and simple random area estimations and accuracies"),
-                      h5("Area estimates for stratified random sample (stratified) and simple random sample (SRS)"),
+                      h5("Area estimates for stratified random sample and simple random sample"),
                       tableOutput("area_all"),
                       h5("Map accuracy"),
                       tableOutput("accuracy_all"),
