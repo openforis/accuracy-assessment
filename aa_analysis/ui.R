@@ -53,7 +53,7 @@ packages(DT)
 packages(dismo)
 packages(stringr)
 packages(plyr)
-packages(survey)
+packages(reshape2)
 
 
 ## Packages for graphics and interactive maps
