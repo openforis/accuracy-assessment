@@ -1,5 +1,5 @@
 ####################################################################################
-#######          Shiny app for accuracy assessment design       ####################
+#######          Design for stratified area estimator           ####################
 #######                     SEPAL Branch                        ####################
 #######    contributors:  Remi d'Annunzio, Yelena Finegold,     ####################
 #######            Antonia Ortmann, Erik Lindquist              ####################
@@ -17,52 +17,11 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2016/12/07
+## Last update: 2017/04/25
 ## aa_design / server
 ####################################################################################
 
-####################################################################################
-#######          Set options and necessary packages       ##########################
-####################################################################################
-# bug fix flow test
-options(stringsAsFactors=FALSE)
-options(shiny.launch.browser=T)
 
-########################################
-# include all the needed packages here #
-
-packages <- function(x){
-  x <- as.character(match.call()[[2]])
-  if (!require(x,character.only=TRUE)){
-    install.packages(pkgs=x,repos="http://cran.r-project.org")
-    require(x,character.only=TRUE)
-  }
-}
-## Packages for geospatial data handling
-packages(raster)
-packages(rgeos)
-packages(rgdal)
-
-## Packages for Shiny 
-packages(shiny)
-packages(shinydashboard)
-packages(shinyFiles)
-packages(snow)
-packages(htmltools)
-packages(devtools)
-#packages(RCurl)
-
-## Packages for data table handling
-packages(xtable)
-packages(DT)
-packages(dismo)
-packages(stringr)
-packages(plyr)
-
-## Packages for graphics and interactive maps
-packages(ggplot2)
-packages(leaflet)
-packages(RColorBrewer)
 
 ####################################################################################
 ####### Start Server
@@ -71,8 +30,32 @@ shinyServer(
   
   function(input, output,session) {
     ####################################################################################
+    ##################### Load text boxes                    ###########################
+    ####################################################################################
+    output$chosen_language <- renderPrint({
+      
+    if(input$language == "English"){
+      source("text_english.R",local = TRUE,encoding = "UTF-8")
+      #print("en")
+      }
+      
+    if(input$language == "Français"){
+      source("text_french.R",local = TRUE,encoding = "UTF-8")
+      #print("fr")
+      }
+      
+    if(input$language == "Español"){
+      source("text_espanol.R",local = TRUE,encoding = "UTF-8")
+      #print("sp")
+      }
+      
+    })
+    
+    
+    ####################################################################################
     ####### Step 1 : compute areas of each strata of the map ###########################
     ####################################################################################
+    
     
     ##################################################################################################################################    
     ############### Stop session when browser is exited
@@ -135,8 +118,8 @@ shinyServer(
       print('Check: mapType')
       
       req(input$file)
-      raster_type <- c('tif')
-      vector_type <- c('shp')
+      raster_type <- c('tif','img','pix','rst','jpeg2000','grd','hdf')
+      vector_type <- c('shp','sqlite')
       
       df <- parseFilePaths(volumes, input$file)
       file_path <- as.character(df[,"datapath"])
@@ -213,9 +196,9 @@ shinyServer(
       if(is.null(mapType()))return()
       switch(mapType(),
              "raster_type" = checkboxInput("IsManualAreaRaster",
-                                           label="Do you want to use a csv with the raster areas ?"),
+                                           label=textOutput("msg_manual_area_rast")),
              "vector_type" = checkboxInput("IsManualAreaVector",
-                                           label="Do you want to use a column of the shapefile for the areas ?")
+                                           label=textOutput("msg_manual_vect_rast"))
       )
     })
     
@@ -270,7 +253,7 @@ shinyServer(
       dirn <- outdir()
       
       selectInput('IsManualAreaCSV',
-                  label= 'Map area file name (csv format)',
+                  label= textOutput("field_map_area_filename"),
                   list.files(path = dirn,
                              recursive = FALSE,
                              pattern = "\\.csv$"),
@@ -294,7 +277,7 @@ shinyServer(
       categories <- names(areacsv)
       print(categories)
       selectInput("value_attribute_raster",
-                  label = h5(paste("Column containing the map value")),
+                  label = h5(textOutput("field_column_map_value")),
                   choices = categories,
                   selected = "map_code",
                   multiple = FALSE
@@ -308,7 +291,7 @@ shinyServer(
       categories <- names(areacsv)
       print(categories)
       selectInput("area_attribute_raster",
-                  label = h5(paste("Column containing the areas")),
+                  label = h5(textOutput("field_column_area_value")),
                   choices = categories,
                   selected = "map_area",
                   multiple = FALSE
@@ -356,27 +339,27 @@ shinyServer(
       shp <- lcmap()
       categories <- names(shp@data)
       selectInput("class_attribute_vector",
-                  label = h5(paste("Attribute column for the map class")),
+                  label = h5(textOutput("field_col_map_attr_value")),
                   choices = categories,
                   multiple = FALSE
       )
     })
     
-    # The user must select MMU of the map in vector format
-    output$selectUI_mmu_vector <- renderUI({
-      req(mapType()== "vector_type")
-      numericInput("mmu_vector", 
-                 label = "Minimum Mapping Unit (in unit of map)", 
-                 value = 10000, step = 1)
-    })
-    
-    # The user must select MMU of the map in vector format
-    output$selectUI_res_vector <- renderUI({
-      req(mapType()== "vector_type")
-      numericInput("res_vector", 
-                   label = "Resolution of imagery used for mapping (in unit of map)", 
-                   value = 30, step = 1)
-    })
+    # # The user must select MMU of the map in vector format
+    # output$selectUI_mmu_vector <- renderUI({
+    #   req(mapType()== "vector_type")
+    #   numericInput("mmu_vector", 
+    #              label = "Minimum Mapping Unit (in unit of map)", 
+    #              value = 10000, step = 1)
+    # })
+    # 
+    # # The user must select MMU of the map in vector format
+    # output$selectUI_res_vector <- renderUI({
+    #   req(mapType()== "vector_type")
+    #   numericInput("res_vector", 
+    #                label = "Resolution of imagery used for mapping (in unit of map)", 
+    #                value = 30, step = 1)
+    # })
     
     # The user can select which column has the area information from the shapefile
     output$selectUI_area_vector <- renderUI({
@@ -384,7 +367,7 @@ shinyServer(
       shp <- lcmap()
       categories <- names(shp@data)
       selectInput("area_attribute2",
-                  label = h5(paste("Attribute column for the areas")),
+                  label = h5(textOutput("field_colarea_attr_value")),
                   choices = categories,
                   multiple = FALSE
       )
@@ -394,19 +377,21 @@ shinyServer(
     ##################################################################################################################################
     ############### Insert the Area calculation button
     output$IsAreaCalc <- renderUI({
-      actionButton('areaCalcButton','Area calculation and legend generation')
+      actionButton('areaCalcButton',textOutput('t3_b1_button'))
     }
     )
     
     ##################################################################################################################################
     ############### Setup whether Calculation of area in raster mode should be done with R or OFT
     output$MapAreaCalcOption <- renderUI({
+      
       validate(
-        need(input$file, "Missing input: Please select the map file")
+        need(input$file, "Missing input: Please select the map file" 
+             )
       )
       req(mapType()== "raster_type", input$IsManualAreaRaster != T)
       isolate(
-        radioButtons("rasterarea",label="What type of area calculation will you use?",
+        radioButtons("rasterarea",label="",#"What type of area calculation will you use?",
                      choices = list( "OFT" = "oft"
                                      #,"R" = "r"
                                      )
@@ -641,8 +626,8 @@ shinyServer(
     ## Display the table
     output$mapAreaTable <- renderTable({
       validate(
-        need(input$areaCalcButton, "Click on area calculation and legend generation"),
-        need(input$submitLegend,   "Click on submit legend before continuing")
+        need(input$areaCalcButton, "Click on area calculation and legend generation"), #textOutput("missing_calc_legend "),
+        need(input$submitLegend,   "Click on submit legend before continuing")#textOutput("missing_legend ")
       )
       maparea_final()
     },
@@ -655,7 +640,7 @@ shinyServer(
       print('Check output$UIDisplayMap')
       if(is.null(mapType()))return()
       checkboxInput("IsDisplayMap",
-                    label="Do you want to display the map ? ")
+                    label=textOutput("msg_display_map"))
     })
     
     ##################################################################################################################################
@@ -670,7 +655,7 @@ shinyServer(
     
     ##################################################################################################################################
     ############### Export the computed areas as a table    
-    output$downloadData <- downloadHandler(
+    output$downloadArea <- downloadHandler(
       filename = function() { 
         paste('maparea_', Sys.Date(), '.csv', sep='') 
       },
@@ -690,14 +675,14 @@ shinyServer(
         need(input$submitLegend, "Click on submit legend in the previous tab")
       )
       paste(
-        "Rare classes are expected to have the lower user accuracies and should be assigned a low confidence. Here the value chosen is ",
+        textOutput("msg_rare_classes"),
         input$expected_ua_lo,
         sep="")
     })
     
     output$the_ex_ua_hi <- reactive({
       paste(
-        "Common classes are expected to have high user accuracies and should be assigned a higher confidence. Here the value chosen is ",
+        textOutput("msg_comm_classes"),
         input$expected_ua_hi,
         sep="")
     })
@@ -706,6 +691,7 @@ shinyServer(
     ############### Select classes to be included with High expected User's Accuracy 
     output$selectUI_cat_hi <- renderUI({
       print('Check: output$selectUI_cat_hi')
+      print(textOutput("msg_classes_heua"))
       
       validate(
         need(input$submitLegend, "Click on submit legend in the previous tab")
@@ -715,7 +701,8 @@ shinyServer(
       categories <- as.list(unique(maparea$map_edited_class))
       
       selectInput("cat_hi",
-                  label = h5(paste("Classes to include with high confidence (Expected UA = ", input$expected_ua_hi,sep="" ), ")"),
+                  label = h5(paste("high confidence (Expected UA = ",#textOutput("msg_classes_heua"),
+                                   input$expected_ua_hi,sep="" ), ")"),
                   choices = categories,
                   multiple = TRUE
       )
@@ -735,7 +722,8 @@ shinyServer(
       categories <- as.list(unique(maparea$map_edited_class[!maparea$map_edited_class %in% high_ua]))
       
       selectInput("cat_lo",
-                  label = h5(paste("Classes to include with low confidence (Expected UA = ", input$expected_ua_lo,sep="" ), ")"),
+                  label = h5(paste("low confidence (Expected UA = ",#htmlOutput("msg_classes_leua"), 
+                                   input$expected_ua_lo,sep="" ), ")"),
                   choices = categories,
                   multiple = TRUE
       )
@@ -806,32 +794,44 @@ shinyServer(
         need(input$submitLegend, "Click on submit legend in tab 2 'Map areas'"),
         need(input$cat_hi,"Select the classes to include with high and low confidence in the previous tab")
       )
+      
       df <- strat_sample()
       size <- floor(sum(as.numeric(df[,13])))
-      paste("The computed overall size is :  ",size,sep="")
+      paste(textOutput("msg_overall_size"),size,sep="")
     })
     
     ##################################################################################################################################
     ############### What if you want to manually edit the file ? 
-    output$selectManualSampling <- renderUI({
-      print('Check: output$selectManualSampling')
-      
-      if(req(input$IsManualSampling)){
-        fileInput("ManualSamplingFile",
-                  label = h5(paste("Choose the file with manual sampling points"))
-        )
-      }
-    })
+    # output$selectManualSampling <- reactive({
+    #   print('Check: output$selectManualSampling')
+    #   paste0("Modify the file : " ,outdir(),"/","manual_sampling.csv")
+    #   
+    #   if(req(input$IsManualSampling)){
+    #     
+    #     
+    #     
+    #     # fileInput("ManualSamplingFile",
+    #     #           label = h5(paste("Choose the file with manual sampling points"))
+    #     # )
+    #     
+    #     }
+    # })
     
     ##################################################################################################################################
     ############### Display the results of sampling within the UI
     output$sampling_table <- renderTable({
       print('Check: output$sampling_table')
       if(input$IsManualSampling == T){
-        validate(
-          need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
-        )
-        df<-read.csv(paste(outdir(),"/",input$ManualSamplingFile$name,sep=""),header = T)
+        
+        # validate(
+        #   need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
+        # )
+        
+        df<-read.csv(paste(outdir(),"/","manual_sampling.csv",sep=""),header = T)
+        #df<-read.csv(paste(outdir(),"/",input$ManualSamplingFile$name,sep=""),header = T)
+        
+        
+        
       }else{
         df<- strat_sample()
         df<-df[,c(1,2,3,8,9,12,13)]
@@ -974,93 +974,98 @@ shinyServer(
               out_list <- shp[0,1]
               names(out_list) <- class_attr
               
-              ## Loop through the classes, extract the computed random number of polygons for each class and append
-              
-              for(i in 1:length(legend)){
-                print(legend[i])
-                withProgress(
-                  message= paste('Sampling class:',legend[i]), 
-                  value = 0, 
-                  {
-                    
-                ## Select only the polygons of the map which are present in the legend
-                polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
-                
-                ## If the number of polygons is smaller than the sample size, take all polygons
-                # if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
-                # {n <- nrow(polys)}else
-                # {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
-                
-                ## Select the desired number of plots within the class
-                n <- as.numeric(rp[rp$map_code == legend[i], ]$final)
-                print(n)
-                
-                ## Shoot the necessary number of points withiin these available polygons
-                pts      <- spsample(polys,n,type="stratified")
-                
-                ## Generate buffer around point
-                buf_dist <- buf_dist()
-                buffer   <- buffer(pts,buf_dist)
-                
-                ## Intersect the buffer with the polygons
-                inter <- gIntersection(polys,buffer,byid = T)
-                inter <- gUnaryUnion(inter)
-                
-                ## Create a temporary database file
-                dftmp    <- data.frame(
-                  rep(legend[i],length(inter@polygons)),
-                  row.names = paste0("class",i,"poly",1:length(inter@polygons))
-                      )
-                ## Create a Spatial Polygon Data Frame with the plots and the DBF
-                tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
-                
-                ## Harmonize attribute and row names
-                names(tmp) <- class_attr 
-                row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
-                
-                ## Define minimum pixel size to eliminate slivers
-                pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
-                tmp <- tmp[gArea(tmp,byid = T) > pixel_size,]
-                
-                ## Append to the existing list
-                out_list <- rbind(out_list, tmp)
-                ## End of the progress message for selecting polygons
-                })
-              ## End of the for loop to select polygons
-              }
-              
-                
-              all_features <- disaggregate(out_list)
-              
-              # ################## Export sampling design as points
-              # i=1
-              # polys <- shp[shp@data[,class_attr] == legend[i],]
-              # pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
-              # att_vec <- rep(legend[i],nrow(pts@coords))
-              # df_pts<-data.frame(cbind(pts@coords,att_vec))
+              # ##########################################################################################
+              # ################## DEPRECATED POLYGON SELECTION
+              # ##########################################################################################
               # 
-              # for(i in 2:length(legend)){
-              #   tryCatch({
-              #     polys <- shp[shp@data[,class_attr] == legend[i],]
-              #     pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
-              #     att_vec <- rep(legend[i],nrow(pts@coords))
-              #     tmp_pts<-data.frame(cbind(pts@coords,att_vec))
-              #     df_pts<-rbind(df_pts,tmp_pts)
-              #   }, error=function(e){cat("No points to sample in this class \n")}
-              #   )
+              # ## Loop through the classes, extract the computed random number of polygons for each class and append
+              # 
+              # for(i in 1:length(legend)){
+              #   print(legend[i])
+              #   withProgress(
+              #     message= paste('Sampling class:',legend[i]), 
+              #     value = 0, 
+              #     {
+              #       
+              #   ## Select only the polygons of the map which are present in the legend
+              #   polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
               #   
+              #   ## If the number of polygons is smaller than the sample size, take all polygons
+              #   # if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
+              #   # {n <- nrow(polys)}else
+              #   # {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
+              #   
+              #   ## Select the desired number of plots within the class
+              #   n <- as.numeric(rp[rp$map_code == legend[i], ]$final)
+              #   print(n)
+              #   
+              #   ## Shoot the necessary number of points withiin these available polygons
+              #   pts      <- spsample(polys,n,type="stratified")
+              #   
+              #   ## Generate buffer around point
+              #   buf_dist <- buf_dist()
+              #   buffer   <- buffer(pts,buf_dist)
+              #   
+              #   ## Intersect the buffer with the polygons
+              #   inter <- gIntersection(polys,buffer,byid = T)
+              #   inter <- gUnaryUnion(inter)
+              #   
+              #   ## Create a temporary database file
+              #   dftmp    <- data.frame(
+              #     rep(legend[i],length(inter@polygons)),
+              #     row.names = paste0("class",i,"poly",1:length(inter@polygons))
+              #         )
+              #   ## Create a Spatial Polygon Data Frame with the plots and the DBF
+              #   tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
+              #   
+              #   ## Harmonize attribute and row names
+              #   names(tmp) <- class_attr 
+              #   row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
+              #   
+              #   ## Define minimum pixel size to eliminate slivers
+              #   pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+              #   tmp <- tmp[gArea(tmp,byid = T) > pixel_size,]
+              #   
+              #   ## Append to the existing list
+              #   out_list <- rbind(out_list, tmp)
+              #   ## End of the progress message for selecting polygons
+              #   })
+              # ## End of the for loop to select polygons
               # }
               # 
-              # df_pts[,1]<-as.numeric(df_pts[,1])
-              # df_pts[,2]<-as.numeric(df_pts[,2])
-              # 
-              # sp_df <- SpatialPointsDataFrame(
-              #   coords=data.frame(df_pts[,c(1,2)]),
-              #   data=data.frame(df_pts[,3]),
-              #   proj4string=CRS(proj4string(shp))
-              #   )
-              # 
-              # all_points <- sp_df
+              #   
+              # all_features <- disaggregate(out_list)
+              
+              ################## Export sampling design as points
+              i=1
+              polys <- shp[shp@data[,class_attr] == legend[i],]
+              pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
+              att_vec <- rep(legend[i],nrow(pts@coords))
+              df_pts<-data.frame(cbind(pts@coords,att_vec))
+
+              for(i in 2:length(legend)){
+                tryCatch({
+                  polys <- shp[shp@data[,class_attr] == legend[i],]
+                  pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
+                  att_vec <- rep(legend[i],nrow(pts@coords))
+                  tmp_pts<-data.frame(cbind(pts@coords,att_vec))
+                  df_pts<-rbind(df_pts,tmp_pts)
+                }, error=function(e){cat("No points to sample in this class \n")}
+                )
+
+              }
+
+              df_pts[,1]<-as.numeric(df_pts[,1])
+              df_pts[,2]<-as.numeric(df_pts[,2])
+
+              sp_df <- SpatialPointsDataFrame(
+                coords=data.frame(df_pts[,c(1,2)]),
+                data=data.frame(df_pts[,3]),
+                proj4string=CRS(proj4string(shp))
+                )
+
+              all_points <- sp_df
+              all_features <- df_pts
             
           ######## End of the Vector Loop
         }
@@ -1079,7 +1084,7 @@ shinyServer(
       )
       
       ## If input map is a raster
-      if(mapType()== "raster_type"){
+      #if(mapType()== "raster_type"){
         withProgress(
           message= paste('Processing the points'), 
           value = 0, 
@@ -1096,21 +1101,21 @@ shinyServer(
             
             sp_df <- spTransform(sp_df,CRS("+proj=longlat +datum=WGS84"))
           })
-      }
+      #}
       
-      ## If input map is a vector
-      else
-        if(mapType()== "vector_type"){
-          withProgress(
-            message= paste('Processing the points'), 
-            value = 0, 
-            {
-              setProgress(value=.1)
-              sp_df <- all_features()
-              sp_df@data[,"ID"] <- row(sp_df@data)[,1]
-              sp_df
-            })
-        }
+      # ## If input map is a vector
+      # else
+      #   if(mapType()== "vector_type"){
+      #     withProgress(
+      #       message= paste('Processing the points'), 
+      #       value = 0, 
+      #       {
+      #         setProgress(value=.1)
+      #         sp_df <- all_features()
+      #         sp_df@data[,"ID"] <- row(sp_df@data)[,1]
+      #         sp_df
+      #       })
+      #   }
     })
     
     ##################################################################################################################################
@@ -1126,7 +1131,7 @@ shinyServer(
         need(input$cat_hi,"Select the classes to include with high and low confidence in tab 3 'Classes to include'")
       )
       
-      if(mapType()== "raster_type"){
+      #if(mapType()== "raster_type"){
         dfa<-spdf()
         names(dfa)<- 'map_code'
         factpal <- colorFactor("Spectral", dfa$map_code)
@@ -1138,22 +1143,35 @@ shinyServer(
                            popup = ~paste(sprintf("Map value: %s", map_code))
           )
         m
-      }
-      else{
-        if(mapType()== "vector_type"){
-          
-          dfa <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
-
-          names(dfa)<- "map_code"
-          factpal   <- colorFactor("Spectral", dfa@data$map_code)
-          m <- leaflet() %>%
-            addTiles() %>%  # Add default OpenStreetMap map tiles
-            addPolygons(
-              data = dfa, stroke = FALSE, fillOpacity = 1, color = ~ factpal(map_code), popup = ~paste(sprintf("Map value: %s", map_code))
-            )
-          m
-        }
-      }
+      #}
+      # else{
+      #   if(mapType()== "vector_type"){
+      #     
+      #     dfa <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
+      # 
+      #     names(dfa)<- "map_code"
+      #     factpal   <- colorFactor("Spectral", dfa@data$map_code)
+      #     m <- leaflet() %>%
+      #       addTiles() %>%  # Add default OpenStreetMap map tiles
+      #       addPolygons(
+      #         data = dfa, stroke = FALSE, fillOpacity = 1, color = ~ factpal(map_code), popup = ~paste(sprintf("Map value: %s", map_code))
+      #       )
+      #     m
+      #   }
+      # }
+    })
+    
+    ##################################################################################################################################
+    ############### Divide work into groups
+    
+    ## Number of groups
+    nb_grp <- reactive({
+      input$nb_groups
+      })
+    
+    ## Directory
+    rootdir <- reactive({
+      getwd()
     })
     
     
@@ -1164,16 +1182,17 @@ shinyServer(
       req(mapType)
       
       ################ Copy the CEP template into the output directory
-      file.copy('www/cep_template/',outdir(),recursive = TRUE)
+      file.copy('www/cep_template/',outdir(),recursive = TRUE,overwrite = T)
       
       ################ Create a local getDataFiles folder to receive files form getData
       if(!file.exists(paste0(outdir(),"/getDataFiles"))){
         dir.create(file.path(paste0(outdir(), '/getDataFiles')))
         }
       
-      if(mapType()== "raster_type"){
+      #if(mapType()== "raster_type"){
         ################ If the type is raster the sp_df is POINTS, use directly
         print("Check: CEfile raster_type")
+        print(rootdir())
         sp_df<-spdf()
         coord <- sp_df@coords
         map_code <- sp_df@data[,1]
@@ -1183,66 +1202,67 @@ shinyServer(
         XCOORD <- coord[,1]
         GEOMETRY <- rep("points",nsamples)
         AREA   <- rep(1,nsamples)
-      }
-      if(mapType()== "vector_type"){
         
-        print("Check: CEfile vector_type")
-        
-        ################ If the type is vector the sp_df is POLYGONS, 
-        ################ Loop through all polygons, translate geometry in WKT and get first node
-        sp_df <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
-        npoly <- nrow(sp_df@data)
-        
-        class_attr <- input$class_attribute_vector
-        map_code <- sp_df@data[,class_attr]
-        
-        df <- data.frame(matrix(nrow=0,ncol=3))
-        names(df)<-c("XCOORD","YCOORD","GEOMETRY")
-        df$XCOORD <- as.numeric(df$XCOORD)
-        df$YCOORD <- as.numeric(df$YCOORD)
-        df$GEOMETRY <- as.character(df$GEOMETRY)
-        
-        print('Generate KML geometry, be patient...')
-        for(k in 1:npoly){
-          poly <- sp_df[k,]
-          
-          ## Coordinates of the point will be the first coordinate of the segment
-          coords <- data.frame(coordinates(poly@polygons[[1]]@Polygons[[1]]))
-          
-          head <- paste0('<Polygon><outerBoundaryIs><LinearRing><coordinates>')
-          tail <- paste0('</coordinates></LinearRing></outerBoundaryIs></Polygon>')
-          
-          first_node <- paste0(coords[1,1],",",coords[1,2])
-          middle <- first_node
-          
-          for(i in 2:nrow(coords)){
-            node <- paste0(coords[i,1],",",coords[i,2])
-            middle <- paste0(middle,"\ ",node)
-          }
-          
-          middle <- paste0(middle,"\ ",first_node)
-          kml_geom <- paste0(head,middle,tail)
-          
-          #a_point <- spsample(poly,10,type = "random")[1]
-          
-          line <- data.frame(cbind(coords[1,1],coords[1,2],kml_geom))
-          
-          names(line)<-c("XCOORD","YCOORD","GEOMETRY")
-          line$XCOORD <- as.numeric(line$XCOORD)
-          line$YCOORD <- as.numeric(line$YCOORD)
-          df <- rbind(df,line)
-        }
-        
-        ID       <- sp_df@data$ID
-        YCOORD   <- df$YCOORD
-        XCOORD   <- df$XCOORD
-        GEOMETRY <- df$GEOMETRY
-        pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
-        AREA       <- gArea(all_features(),byid=TRUE)/pixel_size
-        
-        
-        ################ End of the polygon type generation of CE file
-      }
+      #}
+      # if(mapType()== "vector_type"){
+      #   
+      #   print("Check: CEfile vector_type")
+      #   
+      #   ################ If the type is vector the sp_df is POLYGONS, 
+      #   ################ Loop through all polygons, translate geometry in WKT and get first node
+      #   sp_df <- spTransform(spdf(),CRS("+proj=longlat +datum=WGS84"))
+      #   npoly <- nrow(sp_df@data)
+      #   
+      #   class_attr <- input$class_attribute_vector
+      #   map_code <- sp_df@data[,class_attr]
+      #   
+      #   df <- data.frame(matrix(nrow=0,ncol=3))
+      #   names(df)<-c("XCOORD","YCOORD","GEOMETRY")
+      #   df$XCOORD <- as.numeric(df$XCOORD)
+      #   df$YCOORD <- as.numeric(df$YCOORD)
+      #   df$GEOMETRY <- as.character(df$GEOMETRY)
+      #   
+      #   print('Generate KML geometry, be patient...')
+      #   for(k in 1:npoly){
+      #     poly <- sp_df[k,]
+      #     
+      #     ## Coordinates of the point will be the first coordinate of the segment
+      #     coords <- data.frame(coordinates(poly@polygons[[1]]@Polygons[[1]]))
+      #     
+      #     head <- paste0('<Polygon><outerBoundaryIs><LinearRing><coordinates>')
+      #     tail <- paste0('</coordinates></LinearRing></outerBoundaryIs></Polygon>')
+      #     
+      #     first_node <- paste0(coords[1,1],",",coords[1,2])
+      #     middle <- first_node
+      #     
+      #     for(i in 2:nrow(coords)){
+      #       node <- paste0(coords[i,1],",",coords[i,2])
+      #       middle <- paste0(middle,"\ ",node)
+      #     }
+      #     
+      #     middle <- paste0(middle,"\ ",first_node)
+      #     kml_geom <- paste0(head,middle,tail)
+      #     
+      #     #a_point <- spsample(poly,10,type = "random")[1]
+      #     
+      #     line <- data.frame(cbind(coords[1,1],coords[1,2],kml_geom))
+      #     
+      #     names(line)<-c("XCOORD","YCOORD","GEOMETRY")
+      #     line$XCOORD <- as.numeric(line$XCOORD)
+      #     line$YCOORD <- as.numeric(line$YCOORD)
+      #     df <- rbind(df,line)
+      #   }
+      #   
+      #   ID       <- sp_df@data$ID
+      #   YCOORD   <- df$YCOORD
+      #   XCOORD   <- df$XCOORD
+      #   GEOMETRY <- df$GEOMETRY
+      #   pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+      #   AREA       <- gArea(all_features(),byid=TRUE)/pixel_size
+      #   
+      #   
+      #   ################ End of the polygon type generation of CE file
+      # }
       
       ################ Create dummy variables if the data from country can't be retrieved
       ELEVATION <- rep(0,length(AREA))
@@ -1319,10 +1339,12 @@ shinyServer(
       
       ################ Bind all vectors together in one matrix
       m <- as.data.frame(cbind(ID, YCOORD, XCOORD, ELEVATION, SLOPE, ASPECT, ADM1_NAME, COUNTRY, GEOMETRY,AREA))
-      names(m) <- c("ID", "YCOORD", "XCOORD", "ELEVATION", "SLOPE", "ASPECT", "ADM1_NAME", "COUNTRY","GEOMETRY","AREA")
+
       
       ################ Add the map code
       m$map_code <- as.character(map_code)
+      
+      names(m) <- c("id", "YCoordinate", "XCoordinate", "elevation", "slope", "aspect", "region", "country","geometry","area","map_class")
       
       ################ Clean existing csv files
       unlink(paste0(outdir(),"/cep_template/*.csv"))
@@ -1330,7 +1352,7 @@ shinyServer(
       ################ Export the csv file with points
       write.csv(m,paste0(outdir(),"/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
       
-      nb_grp <- input$nb_groups
+      nb_grp <- nb_grp()
       
       pts <- m
       
@@ -1339,7 +1361,7 @@ shinyServer(
         {
         ## Add a column to the data.frame, with index from 1 to the number of groups. repeat to the end of dataset
         pts$group <- rep_len(1:nb_grp,length.out=nrow(pts))
-        pts <- pts[sample(pts$ID,nrow(pts),replace = F),]
+        pts <- pts[sample(pts$id,nrow(pts),replace = F),]
         
         ## Loop through each group
         for(i in 1:nb_grp){
@@ -1357,28 +1379,28 @@ shinyServer(
       ################ Create a dummy distribution for the analysis
       
       pts <- m
-      legend <- levels(as.factor(pts$map_code))
+      legend <- levels(as.factor(pts$map_class))
       
-      tmp              <- as.data.frame(pts$ID)
+      tmp              <- as.data.frame(pts$id)
       tmp$location_srs <- "EPSG:4326"
-      tmp$location_x   <- pts$XCOORD
-      tmp$location_y   <- pts$YCOORD
+      tmp$location_x   <- pts$XCoordinate
+      tmp$location_y   <- pts$YCoordinate
       tmp$operator     <- "autobot"
-      tmp$elevation    <- pts$ELEVATION
-      tmp$slope        <- pts$SLOPE
-      tmp$aspect       <- pts$ASPECT
-      tmp$adm1_name    <- pts$ADM1_NAME
-      tmp$country      <- pts$COUNTRY
+      tmp$elevation    <- pts$elevation
+      tmp$slope        <- pts$slope
+      tmp$aspect       <- pts$aspect
+      tmp$adm1_name    <- pts$region
+      tmp$country      <- pts$country
       tmp$geom         <- "no_geom_record"
-      tmp$area         <- pts$AREA
+      tmp$area         <- pts$area
       tmp$saved        <- "FALSE"
       tmp$year         <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][1]
       tmp$month        <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][2]
       tmp$day          <- strsplit(x = as.character(Sys.Date()), split = "-" )[[1]][3]
       tmp$plot         <- "response.csv"
-      tmp$ref_code     <- pts$map_code
+      tmp$ref_code     <- pts$map_class
       tmp$confidence   <- "FALSE"
-      tmp$map_code     <- pts$map_code
+      tmp$map_code     <- pts$map_class
       
       table(tmp$ref_code,tmp$map_code)
       
@@ -1503,10 +1525,11 @@ shinyServer(
         zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),
             file=Sys.glob(paste0("*")),
             zip=my_zip_tools)
-        setwd(outdir())
+        setwd(rootdir())
         
         file.copy(paste0(outdir(),"/",input$basename_CE,".cep"), file)
-        #file.remove(paste0(outdir(),"/", input$basename_CE,".cep"))
+        unlink(paste0(outdir(),"/cep_template/"), recursive = TRUE, force = TRUE)
+        
       }
     )
     
