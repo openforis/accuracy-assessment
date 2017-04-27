@@ -30,33 +30,23 @@ shinyServer(
   
   function(input, output,session) {
     ####################################################################################
-    ##################### Load text boxes                    ###########################
+    ##################### Choose language option             ###########################
     ####################################################################################
     output$chosen_language <- renderPrint({
-      
-    if(input$language == "English"){
+      if(input$language == "English"){
       source("text_english.R",local = TRUE,encoding = "UTF-8")
       #print("en")
       }
-      
-    if(input$language == "Français"){
+      if(input$language == "Français"){
       source("text_french.R",local = TRUE,encoding = "UTF-8")
       #print("fr")
       }
-      
-    if(input$language == "Español"){
+      if(input$language == "Español"){
       source("text_espanol.R",local = TRUE,encoding = "UTF-8")
       #print("sp")
       }
-      
     })
-    
-    
-    ####################################################################################
-    ####### Step 1 : compute areas of each strata of the map ###########################
-    ####################################################################################
-    
-    
+
     ##################################################################################################################################    
     ############### Stop session when browser is exited
     
@@ -68,9 +58,14 @@ shinyServer(
     progress <- shiny::Progress$new()
     progress$set(message="Loading maps/data", value=0)
     
+    ####################################################################################
+    ####### Step 0 : read the map file and store filepath    ###########################
+    ####################################################################################
+    
     ##################################################################################################################################    
     ############### Find volumes
     osSystem <- Sys.info()["sysname"]
+    
     volumes <- list()
     
     if (osSystem == "Linux") {
@@ -244,6 +239,11 @@ shinyServer(
     })
     
     
+    
+    ####################################################################################
+    ####### Step 1 : compute areas of each strata of the map ###########################
+    ####################################################################################
+    
     ##################################################################################################################################    
     ############### Create options if areas are already pre-computed
     # Input manual map area for a raster
@@ -390,11 +390,15 @@ shinyServer(
              )
       )
       req(mapType()== "raster_type", input$IsManualAreaRaster != T)
+      
+      list_calc <- list("OFT" = "oft",
+                        "R" = "r")
+      
+      if (osSystem == "Windows") { list_calc <- list("R" = "r")}
+
       isolate(
         radioButtons("rasterarea",label="",#"What type of area calculation will you use?",
-                     choices = list( "OFT" = "oft"
-                                     #,"R" = "r"
-                                     )
+                     choices = list_calc
         )
       )
     })
@@ -856,220 +860,234 @@ shinyServer(
     ####### Step 3 : Generating Sampling Features             ##########################
     ####################################################################################
     
-    ##################################################################################################################################
-    ############### Generate validation features: points for raster based map, polygons for vector based map
+    
     buf_dist <- reactive({
       mmu <- input$mmu_vector
       buf_dist <- sqrt(mmu/pi)
     })
     
+    ##################################################################################################################################
+    ############### Launch final process
+    launch <- eventReactive(input$submitResponse,{
+      "launched"
+    })
+    
+    ##################################################################################################################################
+    ############### Generate validation features: points sampling
     all_features <- reactive({
       print('Check: all_features')
-      if(mapType()== "raster_type"){
-        rp <- strat_sample()[,c(1,2,3,13)]
-        print("Check: all_features raster type")
+      
+      if(launch() == "launched"){
         
-        if(input$IsManualSampling == T){
-          validate(
-            need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
+        if(mapType() == "raster_type"){
+          rp <- strat_sample()[,c(1,2,3,13)]
+          print("Check: all_features raster type")
+          
+          if(input$IsManualSampling == T){
+            validate(
+              need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
+            )
+            rp <- read.csv(paste0(outdir(),"/", input$ManualSamplingFile$name), header = T)
+          }
+          map <- lcmap()
+          
+          beginCluster()
+          
+          ############### Generate 10x times the number of points from overall sample
+          withProgress(
+            message= 'Generating random points ', 
+            value = 0, 
+            {
+              setProgress(value=.1)
+              rand_sample <- data.frame(sampleRandom(map,(sum(rp$final)*
+                                                            10+ log((sum(rp$map_area)))),xy=TRUE))
+            }
           )
-          rp <- read.csv(paste0(outdir(),"/", input$ManualSamplingFile$name), header = T)
-        }
-        map <- lcmap()
-        
-        beginCluster()
-        
-        ############### Generate 10x times the number of points from overall sample
-        withProgress(
-          message= 'Generating random points ', 
-          value = 0, 
-          {
-            setProgress(value=.1)
-            rand_sample <- data.frame(sampleRandom(map,(sum(rp$final)*
-                                                          10+ log((sum(rp$map_area)))),xy=TRUE))
+          names(rand_sample) <- c("x_coord","y_coord","map_code")
+          rand_sample$id     <- row(rand_sample)[,1]
+          rp2 <- merge(rp,data.frame(table(rand_sample$map_code)),by.x="map_code",by.y="Var1",all.x=T)  
+          rp2[is.na(rp2)]<-0
+          
+          ############### Create the list of classes that need to be specifically sampled
+          to_rtp <- rp2[rp2$Freq <  rp2$final,]$map_code
+          
+          ############### Create the list of classes that are enough represented in the random sampling
+          to_spl <- rp2[rp2$Freq >= rp2$final,]$map_code
+          
+          final <- list()
+          
+          ############### Loop into the well represented classes, sample and append
+          if(length(to_spl) > 0){
+            for(i in 1:length(to_spl)){
+              tmp <- rand_sample[
+                rand_sample$id
+                %in%
+                  sample(
+                    rand_sample[rand_sample$map_code == to_spl[i],]$id,
+                    rp2[rp2$map_code == to_spl[i],]$final
+                  ),]
+              final <- rbind(final,tmp)
+            }
           }
-        )
-        names(rand_sample) <- c("x_coord","y_coord","map_code")
-        rand_sample$id     <- row(rand_sample)[,1]
-        rp2 <- merge(rp,data.frame(table(rand_sample$map_code)),by.x="map_code",by.y="Var1",all.x=T)  
-        rp2[is.na(rp2)]<-0
-        
-        ############### Create the list of classes that need to be specifically sampled
-        to_rtp <- rp2[rp2$Freq <  rp2$final,]$map_code
-        
-        ############### Create the list of classes that are enough represented in the random sampling
-        to_spl <- rp2[rp2$Freq >= rp2$final,]$map_code
-        
-        final <- list()
-        
-        ############### Loop into the well represented classes, sample and append
-        if(length(to_spl) > 0){
-          for(i in 1:length(to_spl)){
-            tmp <- rand_sample[
-              rand_sample$id
-              %in%
-                sample(
-                  rand_sample[rand_sample$map_code == to_spl[i],]$id,
-                  rp2[rp2$map_code == to_spl[i],]$final
-                ),]
-            final <- rbind(final,tmp)
+          
+          ############### Loop into the subrepresented classes, raster_to_point then append
+          if(length(to_rtp) > 0){
+            for(i in 1:length(to_rtp)){
+              withProgress(
+                message= paste('Convert raster to point for rare class ',to_rtp[i],sep=""), 
+                value = 0, 
+                {
+                  setProgress(value=.1)
+                  tmp_rtp <- as.data.frame(rasterToPoints(map,fun=function(rast){rast==to_rtp[i]}))
+                }
+              )
+              
+              names(tmp_rtp) <- c("x_coord","y_coord","map_code")
+              tmp_rtp$id<-row(tmp_rtp)[,1]
+              sampling <- min(rp2[rp2$map_code == to_rtp[i],]$final,
+                              rp2[rp2$map_code == to_rtp[i],]$map_area)
+              
+              tmp<-tmp_rtp[tmp_rtp$id 
+                           %in% 
+                             sample(tmp_rtp[tmp_rtp$map_code == to_rtp[i],]$id,
+                                    sampling
+                             ),
+                           ]
+              final <- rbind(final,tmp)                              
+            }
           }
+          endCluster()
+          all_points <- final
+          all_features <- all_points
         }
         
-        ############### Loop into the subrepresented classes, raster_to_point then append
-        if(length(to_rtp) > 0){
-          for(i in 1:length(to_rtp)){
-            withProgress(
-              message= paste('Convert raster to point for rare class ',to_rtp[i],sep=""), 
-              value = 0, 
-              {
-                setProgress(value=.1)
-                tmp_rtp <- as.data.frame(rasterToPoints(map,fun=function(rast){rast==to_rtp[i]}))
-              }
+        ## If it is of vector type
+        else
+          if(mapType()== "vector_type"){
+            print("Check: all_features vector type")
+            
+            
+            
+            if(input$IsManualSampling == T){
+              validate(
+                need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
+              )
+              rp <- read.csv(paste0(outdir(),"/", input$ManualSamplingFile$name), header = T)
+            }
+            else{
+              rp <- strat_sample()
+            }
+            
+            
+            legend <- levels(as.factor(rp$map_code))
+            shp <- lcmap()
+            class_attr <- input$class_attribute_vector
+            
+            ## Initialize the output vector data
+            #out_list <- shp[0,]
+            out_list <- shp[0,1]
+            names(out_list) <- class_attr
+            
+            # ##########################################################################################
+            # ################## DEPRECATED POLYGON SELECTION
+            # ##########################################################################################
+            # 
+            # ## Loop through the classes, extract the computed random number of polygons for each class and append
+            # 
+            # for(i in 1:length(legend)){
+            #   print(legend[i])
+            #   withProgress(
+            #     message= paste('Sampling class:',legend[i]), 
+            #     value = 0, 
+            #     {
+            #       
+            #   ## Select only the polygons of the map which are present in the legend
+            #   polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
+            #   
+            #   ## If the number of polygons is smaller than the sample size, take all polygons
+            #   # if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
+            #   # {n <- nrow(polys)}else
+            #   # {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
+            #   
+            #   ## Select the desired number of plots within the class
+            #   n <- as.numeric(rp[rp$map_code == legend[i], ]$final)
+            #   print(n)
+            #   
+            #   ## Shoot the necessary number of points withiin these available polygons
+            #   pts      <- spsample(polys,n,type="stratified")
+            #   
+            #   ## Generate buffer around point
+            #   buf_dist <- buf_dist()
+            #   buffer   <- buffer(pts,buf_dist)
+            #   
+            #   ## Intersect the buffer with the polygons
+            #   inter <- gIntersection(polys,buffer,byid = T)
+            #   inter <- gUnaryUnion(inter)
+            #   
+            #   ## Create a temporary database file
+            #   dftmp    <- data.frame(
+            #     rep(legend[i],length(inter@polygons)),
+            #     row.names = paste0("class",i,"poly",1:length(inter@polygons))
+            #         )
+            #   ## Create a Spatial Polygon Data Frame with the plots and the DBF
+            #   tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
+            #   
+            #   ## Harmonize attribute and row names
+            #   names(tmp) <- class_attr 
+            #   row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
+            #   
+            #   ## Define minimum pixel size to eliminate slivers
+            #   pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
+            #   tmp <- tmp[gArea(tmp,byid = T) > pixel_size,]
+            #   
+            #   ## Append to the existing list
+            #   out_list <- rbind(out_list, tmp)
+            #   ## End of the progress message for selecting polygons
+            #   })
+            # ## End of the for loop to select polygons
+            # }
+            # 
+            #   
+            # all_features <- disaggregate(out_list)
+            
+            ################## Export sampling design as points
+            i=1
+            polys <- shp[shp@data[,class_attr] == legend[i],]
+            pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
+            att_vec <- rep(legend[i],nrow(pts@coords))
+            df_pts<-data.frame(cbind(pts@coords,att_vec))
+            
+            for(i in 2:length(legend)){
+              tryCatch({
+                polys <- shp[shp@data[,class_attr] == legend[i],]
+                pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
+                att_vec <- rep(legend[i],nrow(pts@coords))
+                tmp_pts<-data.frame(cbind(pts@coords,att_vec))
+                df_pts<-rbind(df_pts,tmp_pts)
+              }, error=function(e){cat("No points to sample in this class \n")}
+              )
+              
+            }
+            
+            df_pts[,1]<-as.numeric(df_pts[,1])
+            df_pts[,2]<-as.numeric(df_pts[,2])
+            
+            sp_df <- SpatialPointsDataFrame(
+              coords=data.frame(df_pts[,c(1,2)]),
+              data=data.frame(df_pts[,3]),
+              proj4string=CRS(proj4string(shp))
             )
             
-            names(tmp_rtp) <- c("x_coord","y_coord","map_code")
-            tmp_rtp$id<-row(tmp_rtp)[,1]
-            sampling <- min(rp2[rp2$map_code == to_rtp[i],]$final,
-                            rp2[rp2$map_code == to_rtp[i],]$map_area)
+            all_points <- sp_df
+            all_features <- df_pts
             
-            tmp<-tmp_rtp[tmp_rtp$id 
-                         %in% 
-                           sample(tmp_rtp[tmp_rtp$map_code == to_rtp[i],]$id,
-                                  sampling
-                           ),
-                         ]
-            final <- rbind(final,tmp)                              
+            ######## End of the Vector Loop
           }
-        }
-        endCluster()
-        all_points <- final
-        all_features <- all_points
+        all_features
+        
+        ######## End of the Launch Submit button
       }
       
-      ## If it is of vector type
-      else
-        if(mapType()== "vector_type"){
-          print("Check: all_features vector type")
-          
-              
-              
-              if(input$IsManualSampling == T){
-                validate(
-                  need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
-                )
-                rp <- read.csv(paste0(outdir(),"/", input$ManualSamplingFile$name), header = T)
-              }
-              else{
-                rp <- strat_sample()
-              }
-              
-
-              legend <- levels(as.factor(rp$map_code))
-              shp <- lcmap()
-              class_attr <- input$class_attribute_vector
-              
-              ## Initialize the output vector data
-              #out_list <- shp[0,]
-              out_list <- shp[0,1]
-              names(out_list) <- class_attr
-              
-              # ##########################################################################################
-              # ################## DEPRECATED POLYGON SELECTION
-              # ##########################################################################################
-              # 
-              # ## Loop through the classes, extract the computed random number of polygons for each class and append
-              # 
-              # for(i in 1:length(legend)){
-              #   print(legend[i])
-              #   withProgress(
-              #     message= paste('Sampling class:',legend[i]), 
-              #     value = 0, 
-              #     {
-              #       
-              #   ## Select only the polygons of the map which are present in the legend
-              #   polys <- shp[shp@data[, class_attr] == legend[i] & !(is.na(shp@data[, class_attr])), ]
-              #   
-              #   ## If the number of polygons is smaller than the sample size, take all polygons
-              #   # if (nrow(polys) < as.numeric(rp[rp$map_code == legend[i], ]$final))
-              #   # {n <- nrow(polys)}else
-              #   # {n <- as.numeric(rp[rp$map_code == legend[i], ]$final)}
-              #   
-              #   ## Select the desired number of plots within the class
-              #   n <- as.numeric(rp[rp$map_code == legend[i], ]$final)
-              #   print(n)
-              #   
-              #   ## Shoot the necessary number of points withiin these available polygons
-              #   pts      <- spsample(polys,n,type="stratified")
-              #   
-              #   ## Generate buffer around point
-              #   buf_dist <- buf_dist()
-              #   buffer   <- buffer(pts,buf_dist)
-              #   
-              #   ## Intersect the buffer with the polygons
-              #   inter <- gIntersection(polys,buffer,byid = T)
-              #   inter <- gUnaryUnion(inter)
-              #   
-              #   ## Create a temporary database file
-              #   dftmp    <- data.frame(
-              #     rep(legend[i],length(inter@polygons)),
-              #     row.names = paste0("class",i,"poly",1:length(inter@polygons))
-              #         )
-              #   ## Create a Spatial Polygon Data Frame with the plots and the DBF
-              #   tmp      <- SpatialPolygonsDataFrame(inter,dftmp,match.ID = F)
-              #   
-              #   ## Harmonize attribute and row names
-              #   names(tmp) <- class_attr 
-              #   row.names(tmp) <- paste0("class",i,"poly",1:length(inter@polygons))
-              #   
-              #   ## Define minimum pixel size to eliminate slivers
-              #   pixel_size <- as.numeric(input$res_vector)*as.numeric(input$res_vector)
-              #   tmp <- tmp[gArea(tmp,byid = T) > pixel_size,]
-              #   
-              #   ## Append to the existing list
-              #   out_list <- rbind(out_list, tmp)
-              #   ## End of the progress message for selecting polygons
-              #   })
-              # ## End of the for loop to select polygons
-              # }
-              # 
-              #   
-              # all_features <- disaggregate(out_list)
-              
-              ################## Export sampling design as points
-              i=1
-              polys <- shp[shp@data[,class_attr] == legend[i],]
-              pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
-              att_vec <- rep(legend[i],nrow(pts@coords))
-              df_pts<-data.frame(cbind(pts@coords,att_vec))
-
-              for(i in 2:length(legend)){
-                tryCatch({
-                  polys <- shp[shp@data[,class_attr] == legend[i],]
-                  pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
-                  att_vec <- rep(legend[i],nrow(pts@coords))
-                  tmp_pts<-data.frame(cbind(pts@coords,att_vec))
-                  df_pts<-rbind(df_pts,tmp_pts)
-                }, error=function(e){cat("No points to sample in this class \n")}
-                )
-
-              }
-
-              df_pts[,1]<-as.numeric(df_pts[,1])
-              df_pts[,2]<-as.numeric(df_pts[,2])
-
-              sp_df <- SpatialPointsDataFrame(
-                coords=data.frame(df_pts[,c(1,2)]),
-                data=data.frame(df_pts[,3]),
-                proj4string=CRS(proj4string(shp))
-                )
-
-              all_points <- sp_df
-              all_features <- df_pts
-            
-          ######## End of the Vector Loop
-        }
-      all_features
     })
     
     ##################################################################################################################################

@@ -28,6 +28,7 @@ output$download_shp_button      <- reactive({'Télécharger les points en format
 output$t2_b1_button        <- reactive({"Carte d'entrée (vecteur ou rasteur)"})
 output$t3_b1_button        <- reactive({"Calcul des superficies et génération de la legende"})
 output$t3_b3_button        <- reactive({"Soumettre la légende"})
+output$t6_b1_button        <- reactive({"Générer les points d'echantillonnage"})
 output$t6_b2_button1       <- reactive({"Choisir un nom de pays si vous voulez des informations additionnelles"})
 output$t6_b2_button1_field <- reactive({"Choisir un nom dans la liste ci-dessous"})  
 output$t6_b2_button2       <- reactive({"Nombre d'operateurs"})

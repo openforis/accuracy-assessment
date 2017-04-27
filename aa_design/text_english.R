@@ -30,6 +30,7 @@ output$download_shp_button      <- reactive({'Download as vector data (.shp)'})
 output$t2_b1_button        <- reactive({"Input map raster or vector format"})
 output$t3_b1_button        <- reactive({'Area calculation and legend generation'})
 output$t3_b3_button        <- reactive({"Submit legend"})
+output$t6_b1_button        <- reactive({"Generate sampling points"})
 output$t6_b2_button1       <- reactive({'Choose country name if you want additional national data for the samples'})
 output$t6_b2_button1_field <- reactive({'Please select a country from the list below'})  
 output$t6_b2_button2       <- reactive({'Number of operators'})
@@ -78,11 +79,11 @@ output$t1_b1_title <- reactive({"Description"})
 
 output$t1_b1_body  <- reactive({
   HTML(paste0(
-    "This interactive tool creates stratified designs to estimate areas",
-    br(),
-    "The objective of this tool is to provide a simple user interface for generating a probability dataset with stratified random sampling",
-    br(),
-    "For support ask",a(href="http://www.openforis.org/support"," Open Foris support forum",target="_blank")
+    "This interactive tool creates stratified designs to estimate areas.
+    <br/>
+    The objective of this tool is to provide a simple user interface for generating a probability dataset with stratified random sampling.
+    <br/>
+    For support ask",a(href="http://www.openforis.org/support"," Open Foris support forum",target="_blank")
     ))})
 
 ############################ INTRODUCTION TAB - BOX 2
@@ -90,11 +91,11 @@ output$t1_b2_title <- reactive({"Background"})
 
 output$t1_b2_body  <- reactive({
   HTML(paste0(
-    "The aim of this stratified sampling design tool is to produce a sampling design that can be used for area estimates",
-    br(),
-    "The idea is to combine a map (used as a stratification of the landscape of interest) with a visual map interpretation of samples to produce an area estimation",
-    br(),
-    "The concept is derived from map accuracy assessment principles: characterized frequency of errors (omission and commission) for each map class may be used to adjust area estimates and also to estimate the uncertainties (confidence intervals) for the areas for each class."
+    "The aim of this stratified sampling design tool is to produce a sampling design that can be used for area estimates. <br/>
+The idea is to combine a map (used as a stratification of the landscape of interest) with a visual map interpretation of samples to produce an area estimation. <br/>
+<br/>
+The concept is derived from map accuracy assessment principles: 
+characterized frequency of errors (omission and commission) for each map class may be used to compute area estimates and also to estimate the uncertainties (confidence intervals) for the areas for each class."
     ))})
 
 ############################ INTRODUCTION TAB - BOX 3
@@ -103,11 +104,11 @@ output$t1_b3_body  <- reactive({
   HTML(paste(
     "You have to go through all the steps in the left panel, in this order:", 
     tags$ol(
-      tags$li("Select the map data which will be assessed. The required input is either vector (.shp supported) or raster (.tif supported)."), 
+      tags$li("Select the map data which will be assessed. The required input is either vector (.shp supported) or raster (.tif supported)"), 
       tags$li("Compute the areas of each strata"), 
-      tags$li("Select the expected accuracies of the strata."),
-      tags$li("Compute the sampling size."),
-      tags$li("Draw the sampling points and export as a Collect Earth file.")
+      tags$li("Select the expected accuracies of the strata"),
+      tags$li("Compute the sampling size"),
+      tags$li("Draw the sampling points and export as a Collect Earth file")
     )
     ,sep = '<br/>'))
 })
