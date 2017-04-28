@@ -402,8 +402,9 @@ shinyServer(
     ####### Step 4 : Calculations                            ###########################
     ####################################################################################
     
-    ##################################################################################################################################
+    ################################################################################################
     ############### Legend used for the matrices
+    ################################################################################################
     legend_i  <- reactive({
       
       if(input$filter_presence==T){    
@@ -416,9 +417,9 @@ shinyServer(
       legend_i 
     })
     
-    ################################################    
+    #################################################################################################    
     ################ Matrix for all classes
-    ################################################
+    #################################################################################################
     matrix_all <- reactive({
       if(input$filter_presence==T){    
         df <- df_f()
@@ -453,9 +454,9 @@ shinyServer(
     })
     
     
-    ################################################    
+    #################################################################################################    
     ################ Table of areas and accuracies
-    ################################################
+    #################################################################################################
     accuracy_all <- reactive({
       
       matrix <- matrix_all()
@@ -523,9 +524,9 @@ shinyServer(
         confusion}
     })
     
-    # ################################################    
-    # ################ Output : Summary of areas 
-    # ################################################
+    #################################################################################################    
+    ################ Output : Summary of areas 
+    #################################################################################################
     output$area_all <- renderTable({
       validate(
         need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
@@ -542,17 +543,21 @@ shinyServer(
       item$strRS_confidence_interval <-floor(as.numeric(item$strRS_confidence_interval))
       item$simRS_area_estimate <-floor(as.numeric(item$simRS_area_estimate))
       item$simRS_confidence_interval_area   <-floor(as.numeric(item$simRS_confidence_interval_area))
-      names(item) <- c('Class', "Number of samples", "Stratified random area estimate", 'Stratified random confidence interval',"Simple random area estimate", 'Simple random confidence interval')
+      names(item) <- c("Class",
+                       "Number of samples",
+                       "Stratified random area estimate",
+                       "Stratified random confidence interval",
+                       "Simple random area estimate",
+                       "Simple random confidence interval")
       item
-    },include.rownames=FALSE,digits=0)
+      },include.rownames=FALSE,digits=0)
     
-    
-    # ################################################    
-    # ################ Output : Summary of accuracies 
-    # ################################################
+    #################################################################################################
+    ################ Output : Summary of accuracies
+    #################################################################################################
     output$accuracy_all <- renderTable({
       validate(
-        need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
+        need(input$CEfilename,   "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
         need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
       )
       
@@ -569,9 +574,9 @@ shinyServer(
     },include.rownames=FALSE,digits=0)
     
     
-    # #################################################    
-    # ################ Output item  :  confusion matrix
-    # #################################################
+    ##################################################################################################    
+    ################ Output item  :  confusion matrix
+    ##################################################################################################
     output$matrix_all <- renderTable({
       validate(
         need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
@@ -590,9 +595,9 @@ shinyServer(
     },digits=0,rownames = T)
     
     
-    # #################################################    
-    # ################ Output histograms area estimations
-    # #################################################
+    ##################################################################################################   
+    ################ Output histograms area estimations
+    ##################################################################################################
     output$histogram_all <- renderPlot({
       
       validate(
@@ -605,7 +610,9 @@ shinyServer(
       dfa<-as.data.frame(accuracy_all())
       legend <- legend_i()
       
+      ################################################################################################## 
       ################ Clean dfa dataset strRS == stratified random sampling, simRS == simple random sampling
+      ##################################################################################################
       dfa<-dfa[c(1:length(legend)),]
       dfa[dfa=="NaN"]<-0
 
@@ -615,36 +622,46 @@ shinyServer(
       dfa$simRS_confidence_interval_area<-as.numeric(dfa$simRS_confidence_interval_area)
       dfa$simRS_area_estimate<-as.numeric(dfa$simRS_area_estimate)
       
+      ################################################################################################## 
       ################ Reorganize dataset to produce a "sampling design" type column
-      melt_area <- melt(dfa[,c('class','strRS_area_estimate', 'simRS_area_estimate')], 
+      ##################################################################################################
+      melt_area <- melt(dfa[,c('class','strRS_area_estimate','simRS_area_estimate')], 
                         id='class', 
                         variable.name = 'sampling_design', 
                         value.name = 'areas')
       
-      melt_ci <- melt(dfa[,c('class','strRS_confidence_interval', 'simRS_confidence_interval_area')], 
+      melt_ci <- melt(dfa[,c('class','strRS_confidence_interval','simRS_confidence_interval_area')], 
                       id='class', 
                       variable.name = 'sampling_design_CI', 
                       value.name = 'confidence_intervals')
       
       dfa.plot <- cbind(melt_area,melt_ci)
       
+      ##################################################################################################  
       ################ Set combined levels (design_type X area_vs_CI)
+      ##################################################################################################
       levels(dfa.plot$sampling_design) <- c(levels(dfa.plot$sampling_design), c("Stratified random", 'Simple random')) 
       
       dfa.plot$sampling_design[dfa.plot$sampling_design %in%'strRS_area_estimate'] <- 'Stratified random'
       dfa.plot$sampling_design[dfa.plot$sampling_design %in%'simRS_area_estimate'] <- 'Simple random'
       
+      ################################################################################################## 
       ################ Limits for the areas + confidence_intervals
+      ##################################################################################################
       limits_strat <- aes(ymax = dfa.plot$areas + dfa.plot$confidence_intervals,
-                    ymin = dfa.plot$areas - dfa.plot$confidence_intervals)
+                          ymin = dfa.plot$areas - dfa.plot$confidence_intervals)
        
+      ##################################################################################################  
       ################ Create gg_plot
+      ##################################################################################################
       avg.plot <- ggplot(data = dfa.plot, 
                          aes(x = factor(class), 
                              y = areas,
                              fill = factor(sampling_design)))
       
+      ##################################################################################################  
       ################ Display plots with parameters
+      ##################################################################################################
       avg.plot + 
         geom_bar(stat="identity",
                           position = position_dodge(0.9)
@@ -669,9 +686,9 @@ shinyServer(
       
       })
     
-      #################################################    
-      ################ Output confusion matrix
-      #################################################
+    ##################################################################################################
+    ################ Output confusion matrix
+    ##################################################################################################
     output$download_matrix <- downloadHandler(
       filename = function() { 
         paste('matrix_', Sys.Date(), '.csv', sep='') 
@@ -683,10 +700,9 @@ shinyServer(
         write.csv(item,file)
       })
     
-    # #################################################    
-    # ################ Output histograms  area estimates
-    # #################################################
-    
+    ##################################################################################################   
+    ################ Output histograms  area estimates
+    ##################################################################################################
     output$download_accuracy <- downloadHandler(
       filename = function() { 
         paste('area_', Sys.Date(), '.csv', sep='') 
@@ -695,9 +711,9 @@ shinyServer(
         write.csv(accuracy_all(),file,row.names = F)
       })
     
-    # #################################################    
-    # ################ Output the validation file
-    # #################################################
+    ##################################################################################################    
+    ################ Output the validation file
+    ##################################################################################################
     
     output$download_input <- downloadHandler(
       filename = function() { 
@@ -707,9 +723,9 @@ shinyServer(
         write.csv(df_i_map(),file,row.names = F)
       })
     
-    # #################################################    
-    # ################ Output the area file
-    # #################################################
+    ##################################################################################################    
+    ################ Output the area file
+    ##################################################################################################
     
     output$download_area <- downloadHandler(
       filename = function() { 
@@ -719,8 +735,8 @@ shinyServer(
         write.csv(areas_i(),file,row.names = F)
       })
     
-    ##################################################################################################################################
-    ############### Turn off progress bar
+    ####################################################################################
+    ################## Turn off progress bar
     
     progress$close()
     ################## Stop the shiny server
