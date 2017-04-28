@@ -202,6 +202,7 @@ shinyServer(
     lcmap <- reactive({
       
       print("Check: lcmap")
+      
       ############### Read the name chosen from dropdown menu
       ############### Load the raster corresponding to the selected name
       ## raster
@@ -633,6 +634,7 @@ shinyServer(
         need(input$areaCalcButton, "Click on area calculation and legend generation"), #textOutput("missing_calc_legend "),
         need(input$submitLegend,   "Click on submit legend before continuing")#textOutput("missing_legend ")
       )
+      v$launch <- "finished"
       maparea_final()
     },
     include.rownames=FALSE
@@ -825,6 +827,7 @@ shinyServer(
     ############### Display the results of sampling within the UI
     output$sampling_table <- renderTable({
       print('Check: output$sampling_table')
+      
       if(input$IsManualSampling == T){
         
         # validate(
@@ -859,17 +862,14 @@ shinyServer(
     ####################################################################################
     ####### Step 3 : Generating Sampling Features             ##########################
     ####################################################################################
-    
-    
-    buf_dist <- reactive({
-      mmu <- input$mmu_vector
-      buf_dist <- sqrt(mmu/pi)
-    })
+    # buf_dist <- reactive({
+    #   mmu <- input$mmu_vector
+    #   buf_dist <- sqrt(mmu/pi)
+    # })
     
     ##################################################################################################################################
     ############### Launch final process
-    v <- reactiveValues(launch = FALSE,
-                        running = FALSE)
+    v <- reactiveValues(launch = FALSE)
     
     observeEvent(input$submitResponse,{
       v$launch <- "launched"
@@ -896,7 +896,7 @@ shinyServer(
           
           beginCluster()
           
-          v$running <- TRUE
+          
           
           ############### Generate 10x times the number of points from overall sample
           withProgress(
@@ -1088,7 +1088,7 @@ shinyServer(
             
             ######## End of the Vector Loop
           }
-        v$running <- FALSE
+        
         all_features
         
         ######## End of the Launch Submit button
@@ -1148,13 +1148,14 @@ shinyServer(
     ## render the map
     output$plotxy  <-  renderLeaflet({
       print('Check: output$plotxy')
-      if(v$running == TRUE){dev.off()}
+      
       
       validate(
         need(input$file, "Missing input: Please select the map file"),
         need(input$submitLegend, "Click on submit legend in tab 2 'Map areas'"),
         need(input$cat_hi,"Select the classes to include with high and low confidence in tab 3 'Classes to include'")
       )
+      
       
       #if(mapType()== "raster_type"){
         dfa<-spdf()
@@ -1167,6 +1168,7 @@ shinyServer(
                            radius = 5,
                            popup = ~paste(sprintf("Map value: %s", map_code))
           )
+        
         m
       #}
       # else{
