@@ -22,55 +22,31 @@
 ####################################################################################
 
 
-####################################################################################
-#######          Set options and necessary packages       ##########################
-####################################################################################
-options(shiny.launch.browser=T)
-options(stringsAsFactors=FALSE)
-
-########################################
-# include all the needed packages here #
-
-packages <- function(x){
-  x <- as.character(match.call()[[2]])
-  if (!require(x,character.only=TRUE)){
-    install.packages(pkgs=x,repos="http://cran.r-project.org")
-    require(x,character.only=TRUE)
-  }
-}
-
-## Packages for geospatial data handling
-packages(raster)
-packages(rgeos)
-packages(rgdal)
-
-## Packages for Shiny 
-packages(shiny)
-packages(shinydashboard)
-packages(shinyFiles)
-packages(snow)
-packages(htmltools)
-packages(devtools)
-
-## Packages for data table handling
-packages(xtable)
-packages(DT)
-packages(dismo)
-packages(stringr)
-packages(plyr)
-packages(reshape2)
-
-
-## Packages for graphics and interactive maps
-packages(ggplot2)
-packages(leaflet)
-packages(RColorBrewer)
 
 ####################################################################################
 ####### Start Server
 
 shinyServer(
   function(input, output,session) {    
+    
+    ####################################################################################
+    ##################### Choose language option             ###########################
+    ####################################################################################
+    output$chosen_language <- renderPrint({
+      if(input$language == "English"){
+        source("text_english.R",local = TRUE,encoding = "UTF-8")
+        #print("en")
+      }
+      if(input$language == "Français"){
+        source("text_french.R",local = TRUE,encoding = "UTF-8")
+        #print("fr")
+      }
+      if(input$language == "Español"){
+        source("text_espanol.R",local = TRUE,encoding = "UTF-8")
+        #print("sp")
+      }
+    })
+    
     ####################################################################################
     ####### Step 1 : Select input files                      ###########################
     ####################################################################################
@@ -196,7 +172,7 @@ shinyServer(
     output$column_ref <- renderUI({
       req(input$CEfilename)
       selectInput('reference_data', 
-                  'Choose the column with the reference data information', 
+                  textOutput("field_choose_col_ref"),
                   choices= names(df_i()),
                   multiple = FALSE,
                   selected = c("ref_class","ref_code"))
@@ -207,7 +183,7 @@ shinyServer(
     output$column_map <- renderUI({
       req(input$CEfilename)
       selectInput('map_data', 
-                  'Choose the column with the map data information', 
+                  textOutput("field_choose_col_map"), 
                   choices= names(df_i()),
                   multiple = FALSE,
                   selected = c("map_code","map_class"))
@@ -218,7 +194,7 @@ shinyServer(
       req(input$areafilename)
       if(is.element('map_area',names(areas_read()))==FALSE){
         selectInput('selectAreaCol', 
-                    'Choose the map area column from the area file', 
+                    textOutput("field_choose_col_map_area"),
                     choices= names(areas_read()),
                     multiple = FALSE,
                     selected = c("area",'map_area','areas',"Area",'AREA'))
@@ -230,7 +206,7 @@ shinyServer(
       req(input$areafilename)
       if(is.element('map_code',names(areas_read()))==FALSE){
         selectInput('selectClassCol', 
-                    'Choose the class column from the area file', 
+                    textOutput("field_choose_col_ref_area"), 
                     choices= names(areas_read()),
                     multiple = FALSE,
                     selected = c("map_code","map_class"))
@@ -243,7 +219,7 @@ shinyServer(
     ## columns in data table to display
     output$select_vars <- renderUI({
       selectInput('show_vars', 
-                  'Columns to show:', 
+                  'Columns', 
                   choices= names(df_i()),
                   multiple = TRUE)
     })
@@ -630,6 +606,7 @@ shinyServer(
       dfa<-as.data.frame(accuracy_all())
       legend <- legend_i()
       
+      ################ Clean dfa dataset
       dfa<-dfa[c(1:length(legend)),]
       dfa[dfa=="NaN"]<-0
 
@@ -637,35 +614,63 @@ shinyServer(
       dfa$strRS_area_estimate<-as.numeric(dfa$strRS_area_estimate)
       dfa$simRS_confidence_interval_area<-as.numeric(dfa$simRS_confidence_interval_area)
       dfa$simRS_area_estimate<-as.numeric(dfa$simRS_area_estimate)
-      melt_area <- melt(dfa[,c('class','strRS_area_estimate', 'simRS_area_estimate')], id='class', variable.name = 'sampling_design', value.name = 'areas')
-      melt_ci <- melt(dfa[,c('class','strRS_confidence_interval', 'simRS_confidence_interval_area')], id='class', variable.name = 'sampling_design_CI', value.name = 'confidence_intervals')
+      
+      ################ Reorganize dataset to produce a "sampling design" type column
+      melt_area <- melt(dfa[,c('class','strRS_area_estimate', 'simRS_area_estimate')], 
+                        id='class', 
+                        variable.name = 'sampling_design', 
+                        value.name = 'areas')
+      
+      melt_ci <- melt(dfa[,c('class','strRS_confidence_interval', 'simRS_confidence_interval_area')], 
+                      id='class', 
+                      variable.name = 'sampling_design_CI', 
+                      value.name = 'confidence_intervals')
+      
       dfa.plot <- cbind(melt_area,melt_ci)
+      
+      ################ Set combined levels (design_type X area_vs_CI)
       levels(dfa.plot$sampling_design) <- c(levels(dfa.plot$sampling_design), c("Stratified random", 'Simple random')) 
+      
       dfa.plot$sampling_design[dfa.plot$sampling_design %in%'strRS_area_estimate'] <- 'Stratified random'
       dfa.plot$sampling_design[dfa.plot$sampling_design %in%'simRS_area_estimate'] <- 'Simple random'
       
+      ################ Limits for the areas + confidence_intervals
       limits_strat <- aes(ymax = dfa.plot$areas + dfa.plot$confidence_intervals,
                     ymin = dfa.plot$areas - dfa.plot$confidence_intervals)
        
-      avg.plot <- ggplot(data = dfa.plot, aes(x = factor(class), y = areas
-                                   ,fill = factor(sampling_design)
-                                   ))
-      avg.plot + geom_bar(stat="identity",
-                    position = position_dodge(0.9)) +
-         geom_errorbar(limits_strat, position = position_dodge(0.9),
+      ################ Create gg_plot
+      avg.plot <- ggplot(data = dfa.plot, 
+                         aes(x = factor(class), 
+                             y = areas,
+                             fill = factor(sampling_design)
+                             )
+                         )
+      
+      ################ Display plots with parameters
+      avg.plot + 
+        geom_bar(stat="identity",
+                          position = position_dodge(0.9)
+                          ) +
+        geom_errorbar(limits_strat, position = position_dodge(0.9),
                        width = 0.25) +
-         labs(x = "Class", y = "Area estimate") +
-         ggtitle("Area estimates from stratified and simple random sampling designs") +
-         scale_fill_discrete(name = "Sample design")+
-         theme_bw()
-
-    })
+        labs(x = "Class", y = "Area estimate") +
+        ggtitle("Area estimates from stratified and simple random sampling designs") +
+        scale_fill_manual(name = "Sample design",values=c("#009E73","#0072B2"))+
+        theme_bw()
+      
+      # ################ Some color examples to pick from
+      # (random_palette <- sample(colors(),10))
+      # (hex_palette <- paste0("#",
+      #                        format(as.hexmode(col2rgb(random_palette)[1,]),width = 2),
+      #                        format(as.hexmode(col2rgb(random_palette)[2,]),width = 2),
+      #                        format(as.hexmode(col2rgb(random_palette)[3,]),width = 2))
+      # )
+      
+      })
     
-    
-    # #################################################    
-    # ################ Output confusion matrix
-    # #################################################
-    
+      #################################################    
+      ################ Output confusion matrix
+      #################################################
     output$download_matrix <- downloadHandler(
       filename = function() { 
         paste('matrix_', Sys.Date(), '.csv', sep='') 

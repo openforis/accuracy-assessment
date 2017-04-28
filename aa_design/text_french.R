@@ -5,7 +5,7 @@
 ## w == WARNING
 
 ############################ TITLES
-output$title    <- reactive({  "Estimateur stratifié de superficies" })
+output$title    <- reactive({  "Estimateur stratifié de superficies - Design" })
 
 output$t0_title <- reactive({  "Introduction" })
 output$t1_title <- reactive({  "Carte en entrée" })
@@ -93,9 +93,9 @@ output$t1_b3_body  <- reactive({
     tags$ol(
       tags$li("Sélectionner la carte d'entrée, en format vecteur (.shp) ou rasteur (.tif)."), 
       tags$li("Calculer les superficies de chaque strate"), 
-      tags$li("Sélectionner les parametres pour chaque strate"),
-      tags$li("Calculaer la taille et la distribution des echantillons"),
-      tags$li("Generer un projet Collect Earth")
+      tags$li("Sélectionner les paramètres pour chaque strate"),
+      tags$li("Calculer la taille et la distribution des échantillons"),
+      tags$li("Générer un projet Collect Earth")
     )
     ,sep = '<br/>'))
 })
@@ -122,7 +122,7 @@ output$t2_b1_title    <- reactive({"Type de données"})
 
 output$t2_b1_body  <- reactive({
   HTML(paste0(
-    "Il faut d' abord choisir la carte qui sera utilisée dans la stratification.
+    "Il faut d'abord choisir la carte qui sera utilisée dans la stratification.
     <br/>
     la carte peut être en format rasteur ou vecteur. 
     Les superficies seront calculées à la prochaine étape.<br/>
