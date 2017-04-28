@@ -868,8 +868,11 @@ shinyServer(
     
     ##################################################################################################################################
     ############### Launch final process
-    launch <- eventReactive(input$submitResponse,{
-      "launched"
+    v <- reactiveValues(launch = FALSE,
+                        running = FALSE)
+    
+    observeEvent(input$submitResponse,{
+      v$launch <- "launched"
     })
     
     ##################################################################################################################################
@@ -877,7 +880,7 @@ shinyServer(
     all_features <- reactive({
       print('Check: all_features')
       
-      if(launch() == "launched"){
+      if(v$launch == "launched"){
         
         if(mapType() == "raster_type"){
           rp <- strat_sample()[,c(1,2,3,13)]
@@ -892,6 +895,8 @@ shinyServer(
           map <- lcmap()
           
           beginCluster()
+          
+          v$running <- TRUE
           
           ############### Generate 10x times the number of points from overall sample
           withProgress(
@@ -1083,6 +1088,7 @@ shinyServer(
             
             ######## End of the Vector Loop
           }
+        v$running <- FALSE
         all_features
         
         ######## End of the Launch Submit button
@@ -1142,6 +1148,7 @@ shinyServer(
     ## render the map
     output$plotxy  <-  renderLeaflet({
       print('Check: output$plotxy')
+      if(v$running == TRUE){dev.off()}
       
       validate(
         need(input$file, "Missing input: Please select the map file"),

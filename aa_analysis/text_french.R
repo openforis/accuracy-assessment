@@ -122,7 +122,6 @@ output$t2_b2_body  <- reactive({
 output$t2_b3_title <- reactive({"Afficher les données"})
 
 output$t2_b3_body  <- reactive({HTML(paste0(
-  
   "Sélectionner les colonnes à valider visuellement"
   ))})
 
@@ -155,8 +154,7 @@ output$t4_b2_title  <- reactive({"Graphique"})
 output$t4_b3_title  <- reactive({"Superficies estimées"})
 
 output$t4_b3_body  <- reactive({HTML(paste0(
-  "Estimations des superficies avec l'échantillonnage stratifié et une simulation d'échantillonnage aléatoire simple <br/>
-"
+  "Estimations des superficies avec l'échantillonnage stratifié et une simulation d'échantillonnage aléatoire simple <br/>"
 ))})
 
 ############################ Classes TAB - BOX 4

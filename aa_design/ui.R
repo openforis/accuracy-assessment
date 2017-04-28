@@ -368,6 +368,7 @@ shinyUI(
                     title= textOutput('t6_b1_title'), status = "success", solidHeader= TRUE,
                     htmlOutput('t6_b1_body'),
                     actionButton("submitResponse",textOutput('t6_b1_button')),
+                    
                     leafletOutput("plotxy") 
                   ),
                   
