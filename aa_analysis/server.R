@@ -655,8 +655,11 @@ shinyServer(
                        width = 0.25) +
         labs(x = "Class", y = "Area estimate") +
         ggtitle("Area estimates from stratified and simple random sampling designs") +
-        scale_fill_manual(name = "Sample design",values=c("#009E73","#0072B2"))+
+        scale_fill_manual(name = "Sample design",values=c("#333333","#999999"))+
         theme_bw()
+      
+      # BLUE AND GREEN c("#009E73","#0072B2")
+      # 2 GREYS        c("#333333","#999999")
       
       # ################ Some color examples to pick from
       # (random_palette <- sample(colors(),10))
