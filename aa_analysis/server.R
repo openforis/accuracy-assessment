@@ -597,8 +597,7 @@ shinyServer(
       
       validate(
         need(input$CEfilename, "Missing input: Please select the validation file in tab '1:Input'"),
-        need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
-      )
+        need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'"))
       
       validate(
         need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
@@ -606,12 +605,13 @@ shinyServer(
       dfa<-as.data.frame(accuracy_all())
       legend <- legend_i()
       
-      ################ Clean dfa dataset
+      ################ Clean dfa dataset strRS == stratified random sampling, simRS == simple random sampling
       dfa<-dfa[c(1:length(legend)),]
       dfa[dfa=="NaN"]<-0
 
       dfa$strRS_confidence_interval<-as.numeric(dfa$strRS_confidence_interval)
       dfa$strRS_area_estimate<-as.numeric(dfa$strRS_area_estimate)
+      
       dfa$simRS_confidence_interval_area<-as.numeric(dfa$simRS_confidence_interval_area)
       dfa$simRS_area_estimate<-as.numeric(dfa$simRS_area_estimate)
       
@@ -642,9 +642,7 @@ shinyServer(
       avg.plot <- ggplot(data = dfa.plot, 
                          aes(x = factor(class), 
                              y = areas,
-                             fill = factor(sampling_design)
-                             )
-                         )
+                             fill = factor(sampling_design)))
       
       ################ Display plots with parameters
       avg.plot + 
