@@ -28,6 +28,7 @@ packages(DT)
 packages(dismo)
 packages(stringr)
 packages(plyr)
+packages(reshape2)
 
 ## Packages for graphics and interactive maps
 packages(ggplot2)
