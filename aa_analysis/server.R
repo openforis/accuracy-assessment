@@ -42,7 +42,7 @@ shinyServer(
         #print("fr")
       }
       if(input$language == "Español"){
-        source("text_espanol.R",local = TRUE,encoding = "UTF-8")
+        source("text_spanish.R",local = TRUE,encoding = "UTF-8")
         #print("sp")
       }
     })
