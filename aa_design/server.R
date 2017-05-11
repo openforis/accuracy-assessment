@@ -757,8 +757,8 @@ shinyServer(
       maparea$map_edited_class <- as.character(maparea$map_edited_class)
       
       df <- maparea[maparea$map_edited_class %in% list_categories,]
-      sumofmapcategories <- sum(df$map_area)
-      
+      sumofmapcategories <- sum(as.numeric(df$map_area))
+      df$map_area <- as.numeric(df$map_area)
       ############### Add a column for Weight (wi) expected Users accuracy (eua)
       df$wi <- df$map_area/sumofmapcategories
       df$eua <- 0

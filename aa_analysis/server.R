@@ -466,7 +466,10 @@ shinyServer(
       areas <- areas_i()
       legend <- legend_i()
       
+      # read areas column as numbers
+      areas$map_area <- as.numeric(areas$map_area)
       
+      print('calculating areas')
       if(all(legend_i()  %in% areas_i()$map_code )){
         
         
