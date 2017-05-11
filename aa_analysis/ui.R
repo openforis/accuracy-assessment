@@ -19,6 +19,7 @@
 ####################################################################################
 ## Last update: 2016/04/27
 ## aa_analysis  / ui
+## confidence interval branch
 ####################################################################################
 options(stringsAsFactors=FALSE)
 options(shiny.launch.browser=T)
@@ -233,6 +234,10 @@ shinyUI(
                   # New box
                   box(title= textOutput('t4_b3_title'),status = "success",solidHeader= TRUE,
                       htmlOutput('t4_b3_body'),
+                      # Simple integer interval
+                      sliderInput("CIslider", "Confidence interval",
+                                  min=.90, max=.99, value=.95, step=.05),
+                      
                       tableOutput("area_all"),
                       h5("Map accuracy"),
                       tableOutput("accuracy_all"),
