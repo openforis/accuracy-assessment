@@ -482,6 +482,8 @@ shinyServer(
             )
           }}
         
+        matrix_w[is.na(matrix_w)]<-0
+        
         matrix_se<-matrix
         for(i in 1:length(legend)){
           for(j in 1:length(legend)){
@@ -497,6 +499,9 @@ shinyServer(
             )
           }
         }
+        
+        matrix_se[is.na(matrix_se)]<-0
+        
         confusion<-data.frame(matrix(nrow=length(legend),ncol=15))
         names(confusion)<-c("class","code","producers_accuracy","weighted_producers_accuracy",
                             "users_accuracy","map_pixel_count","strRS_area_estimate","strRS_standard_error",
