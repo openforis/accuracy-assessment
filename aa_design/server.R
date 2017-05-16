@@ -1379,6 +1379,9 @@ shinyServer(
       ################ Export the csv file with points
       write.csv(m,paste0(outdir(),"/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
       
+      ################ Export again for time series
+      write.csv(m,paste0(outdir(),"/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
+      
       nb_grp <- nb_grp()
       
       pts <- m
