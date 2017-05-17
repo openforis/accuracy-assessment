@@ -35,6 +35,8 @@ output$t6_b2_button1       <- reactive({'Choose country name if you want additio
 output$t6_b2_button1_field <- reactive({'Please select a country from the list below'})  
 output$t6_b2_button2       <- reactive({'Number of operators'})
 output$t6_b2_button2_field <- reactive({'Select the number of operators to work on the project'})
+output$t6_b2_button3       <- reactive({'Size of the interpretation box (in m)'})
+output$t6_b2_button3_field <- reactive({'Choose the size of the box to be interpreted in meters'})
 
 ############################ BASENAME FIELDS
 output$basename_area_field     <- reactive({"Basename of area file to export"})

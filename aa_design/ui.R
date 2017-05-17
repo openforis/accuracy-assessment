@@ -399,8 +399,18 @@ shinyUI(
                       )
                     ),
                     
+                    selectizeInput(
+                      'box_size',
+                      textOutput('t6_b2_button3'),
+                      choices = c(30,50,70,90,100,140),
+                      options = list(
+                        placeholder = '',
+                        onInitialize = I('function() { this.setValue(30); }')
+                      )
+                    ),
+                    
                     textInput("basename_CE", 
-                              label = h3(),
+                              label = textOutput('basename_export_field'),
                               value = paste("CE_",Sys.Date(),sep="")),
                     
                     downloadButton('download_CEP', 

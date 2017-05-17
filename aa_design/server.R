@@ -17,7 +17,7 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2017/04/25
+## Last update: 2017/05/17
 ## aa_design / server
 ####################################################################################
 
@@ -1196,6 +1196,11 @@ shinyServer(
       input$nb_groups
       })
     
+    ## Interpretation size
+    box_size <- reactive({
+      input$box_size
+    })
+    
     ## Directory
     rootdir <- reactive({
       getwd()
@@ -1520,13 +1525,19 @@ shinyServer(
       writeLines(placemark_out,paste0(outdir(),"/cep_template/placemark.idm.xml"))
       
       ################# Modify properties_file
-      
+      box_size <- as.numeric(box_size())
+      dist_btw_pts <- floor(box_size / 3)
+      dist_to_bnd  <- floor((box_size - 2 * dist_btw_pts)/2)
+        
       properties    <- readLines("www/cep_template/template_files/template_project_definition.properties")
+      properties[6] <- paste0("distance_between_sample_points=",dist_btw_pts)
       properties[7] <- paste0("csv=${project_path}/pts_",gsub(" ","_",basename),".csv")
+      properties[11]<- paste0("distance_to_plot_boundaries=",dist_to_bnd)
       properties[12]<- paste0("survey_name=aa_",gsub(" ","_",basename)) 
-      
+
       writeLines(properties,paste0(outdir(),"/cep_template/project_definition.properties"))
       
+
       ################ The final sampling design
       m
       
