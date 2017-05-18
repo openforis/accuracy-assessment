@@ -1229,7 +1229,7 @@ shinyServer(
         coord <- sp_df@coords
         map_code <- sp_df@data[,1]
         nsamples <- nrow(coord)
-        ID <- matrix(sample(1:nsamples , nsamples , replace=F),nrow = nsamples , ncol =1, dimnames= list(NULL,c("ID")))
+        ID <- matrix(sample(nsamples),nrow = nsamples , ncol =1, dimnames= list(NULL,c("ID")))
         YCOORD <- coord[,2]
         XCOORD <- coord[,1]
         GEOMETRY <- rep("points",nsamples)
@@ -1387,7 +1387,7 @@ shinyServer(
       ################ Export again for time series
       write.csv(m,paste0(outdir(),"/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
       
-      nb_grp <- nb_grp()
+      nb_grp <- as.numeric(nb_grp())
       
       pts <- m
       
@@ -1396,7 +1396,9 @@ shinyServer(
         {
         ## Add a column to the data.frame, with index from 1 to the number of groups. repeat to the end of dataset
         pts$group <- rep_len(1:nb_grp,length.out=nrow(pts))
-        pts <- pts[sample(pts$id,nrow(pts),replace = F),]
+        pts <- pts[sample(nrow(pts)),]
+        
+        print(table(pts$group,useNA = "always"))
         
         ## Loop through each group
         for(i in 1:nb_grp){

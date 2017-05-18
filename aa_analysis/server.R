@@ -623,6 +623,9 @@ shinyServer(
       ##################################################################################################
       dfa<-dfa[c(1:length(legend)),]
       dfa[dfa=="NaN"]<-0
+      
+      dfa$map_pixel_count <-as.numeric(dfa$map_pixel_count)
+      dfa$map_pixel_ci    <- 0
 
       dfa$strRS_confidence_interval<-as.numeric(dfa$strRS_confidence_interval)
       dfa$strRS_area_estimate<-as.numeric(dfa$strRS_area_estimate)
@@ -633,12 +636,12 @@ shinyServer(
       ################################################################################################## 
       ################ Reorganize dataset to produce a "sampling design" type column
       ##################################################################################################
-      melt_area <- melt(dfa[,c('class','strRS_area_estimate','simRS_area_estimate')], 
+      melt_area <- melt(dfa[,c('class','map_pixel_count','strRS_area_estimate','simRS_area_estimate')], 
                         id='class', 
                         variable.name = 'sampling_design', 
                         value.name = 'areas')
       
-      melt_ci <- melt(dfa[,c('class','strRS_confidence_interval','simRS_confidence_interval_area')], 
+      melt_ci <- melt(dfa[,c('class','map_pixel_ci','strRS_confidence_interval','simRS_confidence_interval_area')], 
                       id='class', 
                       variable.name = 'sampling_design_CI', 
                       value.name = 'confidence_intervals')
@@ -648,8 +651,9 @@ shinyServer(
       ##################################################################################################  
       ################ Set combined levels (design_type X area_vs_CI)
       ##################################################################################################
-      levels(dfa.plot$sampling_design) <- c(levels(dfa.plot$sampling_design), c("Stratified random", 'Simple random')) 
+      levels(dfa.plot$sampling_design) <- c(levels(dfa.plot$sampling_design), c("Map pixel count","Stratified random", 'Simple random')) 
       
+      dfa.plot$sampling_design[dfa.plot$sampling_design %in%'map_pixel_count']     <- 'Map pixel count'
       dfa.plot$sampling_design[dfa.plot$sampling_design %in%'strRS_area_estimate'] <- 'Stratified random'
       dfa.plot$sampling_design[dfa.plot$sampling_design %in%'simRS_area_estimate'] <- 'Simple random'
       
@@ -677,8 +681,8 @@ shinyServer(
         geom_errorbar(limits_strat, position = position_dodge(0.9),
                        width = 0.25) +
         labs(x = "Class", y = "Area estimate") +
-        ggtitle("Area estimates from stratified and simple random sampling designs") +
-        scale_fill_manual(name = "Sample design",values=c("#333333","#999999"))+
+        ggtitle("Area estimates from map, stratified and simple random sampling designs") +
+        scale_fill_manual(name = "Sample design",values=c("#BBBBBB","#333333","#999999"))+
         theme_bw()
       
       # BLUE AND GREEN c("#009E73","#0072B2")
