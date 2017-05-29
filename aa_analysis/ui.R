@@ -234,7 +234,7 @@ shinyUI(
                   # New box
                   box(title= textOutput('t4_b3_title'),status = "success",solidHeader= TRUE,
                       htmlOutput('t4_b3_body'),
-                      # Simple integer interval
+                      # 3 options calculating confidence intervals
                       sliderInput("CIslider", "Confidence interval",
                                   min=.90, max=.99, value=.95, step=.05),
                       
