@@ -33,11 +33,13 @@ output$t6_b2_button1       <- reactive({"Choisir un nom de pays si vous voulez d
 output$t6_b2_button1_field <- reactive({"Choisir un nom dans la liste ci-dessous"})  
 output$t6_b2_button2       <- reactive({"Nombre d'operateurs"})
 output$t6_b2_button2_field <- reactive({"Sélectionner le nombre d'opérateurs qui vont travailler sur le projet"})
+output$t6_b2_button3       <- reactive({"Taille de la parcelle d'interprétation (en m)"})
+output$t6_b2_button3_field <- reactive({"Sélectionner la taille de la parcelle d'interprétation"})
 
 ############################ BASENAME FIELDS
-output$basename_area_field     <- reactive({"Nom du fichier superficie à exporter"})
-output$basename_sampling_field <- reactive({"Nom du fichier à exporter"})
-output$basename_export_field   <- reactive({"Nom des fichiers à exporter"})
+output$basename_area_field     <- reactive({"Nom de base du fichier superficie à exporter"})
+output$basename_sampling_field <- reactive({"Nom de base du fichier à exporter"})
+output$basename_export_field   <- reactive({"Nom de base des fichiers à exporter"})
 
 ############################ SERVER FIELDS
 output$field_map_area_filename <- reactive({'Nom du fichier de superficies'})

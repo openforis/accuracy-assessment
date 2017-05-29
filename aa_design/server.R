@@ -17,7 +17,7 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2017/04/25
+## Last update: 2017/05/17
 ## aa_design / server
 ####################################################################################
 
@@ -42,7 +42,7 @@ shinyServer(
       #print("fr")
       }
       if(input$language == "Español"){
-      source("text_espanol.R",local = TRUE,encoding = "UTF-8")
+      source("text_spanish.R",local = TRUE,encoding = "UTF-8")
       #print("sp")
       }
     })
@@ -1196,6 +1196,11 @@ shinyServer(
       input$nb_groups
       })
     
+    ## Interpretation size
+    box_size <- reactive({
+      input$box_size
+    })
+    
     ## Directory
     rootdir <- reactive({
       getwd()
@@ -1224,7 +1229,7 @@ shinyServer(
         coord <- sp_df@coords
         map_code <- sp_df@data[,1]
         nsamples <- nrow(coord)
-        ID <- matrix(sample(1:nsamples , nsamples , replace=F),nrow = nsamples , ncol =1, dimnames= list(NULL,c("ID")))
+        ID <- matrix(sample(nsamples),nrow = nsamples , ncol =1, dimnames= list(NULL,c("ID")))
         YCOORD <- coord[,2]
         XCOORD <- coord[,1]
         GEOMETRY <- rep("points",nsamples)
@@ -1379,7 +1384,10 @@ shinyServer(
       ################ Export the csv file with points
       write.csv(m,paste0(outdir(),"/cep_template/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
       
-      nb_grp <- nb_grp()
+      ################ Export again for time series
+      write.csv(m,paste0(outdir(),"/pts_",gsub(" ","_",input$basename_CE),".csv"),row.names=F)
+      
+      nb_grp <- as.numeric(nb_grp())
       
       pts <- m
       
@@ -1388,7 +1396,9 @@ shinyServer(
         {
         ## Add a column to the data.frame, with index from 1 to the number of groups. repeat to the end of dataset
         pts$group <- rep_len(1:nb_grp,length.out=nrow(pts))
-        pts <- pts[sample(pts$id,nrow(pts),replace = F),]
+        pts <- pts[sample(nrow(pts)),]
+        
+        print(table(pts$group,useNA = "always"))
         
         ## Loop through each group
         for(i in 1:nb_grp){
@@ -1517,13 +1527,19 @@ shinyServer(
       writeLines(placemark_out,paste0(outdir(),"/cep_template/placemark.idm.xml"))
       
       ################# Modify properties_file
-      
+      box_size <- as.numeric(box_size())
+      dist_btw_pts <- floor(box_size / 3)
+      dist_to_bnd  <- floor((box_size - 2 * dist_btw_pts)/2)
+        
       properties    <- readLines("www/cep_template/template_files/template_project_definition.properties")
+      properties[6] <- paste0("distance_between_sample_points=",dist_btw_pts)
       properties[7] <- paste0("csv=${project_path}/pts_",gsub(" ","_",basename),".csv")
+      properties[11]<- paste0("distance_to_plot_boundaries=",dist_to_bnd)
       properties[12]<- paste0("survey_name=aa_",gsub(" ","_",basename)) 
-      
+
       writeLines(properties,paste0(outdir(),"/cep_template/project_definition.properties"))
       
+
       ################ The final sampling design
       m
       
