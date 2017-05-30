@@ -167,17 +167,48 @@ shinyServer(
     output$dynUI_download_test <- renderPrint({
       req(input$download_test_button)
       print(getwd())
-      
       dir.create(file.path("~","aa_data_test"))
-      #getURL("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
-      #list.files()
-      withProgress(
-        message= paste0('Downloading data in ',dirname("~/aa_data_test/")), 
-        value = 0, 
-        {
-        system("wget -O ~/aa_data_test/aa_test_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+      
+      if (osSystem == "Linux") {
+        #getURL("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+        #download.file("http://github.com/openforis/data_test/blob/master/aa_test_congo.tif?raw=true")
+        download.file("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif",destfile = "~/aa_data_test/", method = 'curl')
+       myfile <- "https://raw.github.com/openforis/data_test/master/aa_test_congo.tif"
+       getURL("https://www.dropbox.com/s/s0zg9v1g2wg1mwa/AOI_Tchad_IOM0_0.tif?dl=1")
+       download.file("https://www.dropbox.com/s/s0zg9v1g2wg1mwa/AOI_Tchad_IOM0_0.tif?dl=1",destfile = getwd())
+       
+       raster("https://raw.github.com/openforis/data_test/master/aa_test_congo.tif")
+       read <- raster(myfile)
+       library(devtools)
+       source_gist("4466237")
+       
+       Data <- source_GitHubData(url = myfile)
+       
+        #list.files()
+        withProgress(
+          message= paste0('Downloading data in ',dirname("~/aa_data_test/")), 
+          value = 0, 
+          {
+            system("wget -O ~/aa_data_test/aa_test_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+          }
+        )
+      }else 
+        if (osSystem == "Windows") {
+          volumes <- system("wmic logicaldisk get Caption", intern = T)
+          volumes <- sub(" *\\r$", "", volumes)
+          keep <- !tolower(volumes) %in% c("caption", "")
+          volumes <- volumes[keep]
+          volNames <- system("wmic logicaldisk get VolumeName", 
+                             intern = T)
+          volNames <- sub(" *\\r$", "", volNames)
+          volNames <- volNames[keep]
+          volNames <- paste0(volNames, ifelse(volNames == "", "", 
+                                              " "))
+          volNames <- paste0(volNames, "(", volumes, ")")
+          names(volumes) <- volNames
         }
-      )
+      
+      
       list.files("~/aa_data_test/",pattern="aa_test_congo.tif")
       })
 
@@ -263,6 +294,10 @@ shinyServer(
     
     ## Load the values of the table in a reactive variable (rasterAreaCSV)
     rasterAreaCSV <- reactive({
+      validate(
+        need(input$IsManualAreaCSV != "", "Missing input: Please select the map area file" 
+        )
+      )
       req(mapType()== "raster_type",input$IsManualAreaCSV)
       inputfile <- input$IsManualAreaCSV
       
@@ -285,9 +320,21 @@ shinyServer(
       )
     })
     
+    # Make sure the user selects a number as the map code
+    numeric_checK_selectUI_value_raster <- reactive({
+      req(mapType()== "raster_type", input$IsManualAreaRaster, input$value_attribute_raster)
+      areacsv <- as.data.frame(rasterAreaCSV())
+      areacsv <- areacsv[input$value_attribute_raster]
+      is.numeric(areacsv[,1])
+    })
+   
     # The user can select which column has the area information from the CSV
     output$selectUI_area_raster <- renderUI({
       req(mapType()== "raster_type", input$IsManualAreaRaster)
+      validate(
+        need(numeric_checK_selectUI_value_raster() == TRUE, "Please select a column with the map codes (numbers only)" 
+        )
+      ) 
       areacsv <- rasterAreaCSV()
       categories <- names(areacsv)
       print(categories)
@@ -299,9 +346,12 @@ shinyServer(
       )
     })
     
+
     # Select the columns of the chosen CSV to display in a table
     output$select_vars_raster <- renderUI({
+      
       req(mapType()== "raster_type", input$IsManualAreaRaster)
+
       selectInput('show_vars1', 
                   'Columns to show:', 
                   choices= names(rasterAreaCSV()),
@@ -402,6 +452,7 @@ shinyServer(
                      choices = list_calc
         )
       )
+
     })
     
     
@@ -481,6 +532,10 @@ shinyServer(
         
         ############### Read the areas from the input CSV file
         if(req(input$IsManualAreaRaster) == T){
+          validate(
+            need(input$IsManualAreaCSV != "", "Missing input: Please select the map area file in the previous tab" 
+            )
+          )
           print("Reading the input CSV file")
           withProgress(
             message= 'Reading area column.....',
