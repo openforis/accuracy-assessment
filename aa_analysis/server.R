@@ -205,13 +205,13 @@ shinyServer(
     ## select the column with the classes in the area file
     output$classCol <- renderUI({
       req(input$areafilename)
-      if(is.element('map_code',names(areas_read()))==FALSE){
+      # if(is.element('map_code',names(areas_read()))==FALSE){
         selectInput('selectClassCol', 
                     textOutput("field_choose_col_ref_area"), 
                     choices= names(areas_read()),
                     multiple = FALSE,
                     selected = c("map_code","map_class"))
-      }
+      # }
     })
     
     ####################################################################################

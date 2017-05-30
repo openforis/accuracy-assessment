@@ -172,19 +172,8 @@ shinyServer(
       if (osSystem == "Linux") {
         #getURL("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
         #download.file("http://github.com/openforis/data_test/blob/master/aa_test_congo.tif?raw=true")
-        download.file("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif",destfile = "~/aa_data_test/", method = 'curl')
-       myfile <- "https://raw.github.com/openforis/data_test/master/aa_test_congo.tif"
-       getURL("https://www.dropbox.com/s/s0zg9v1g2wg1mwa/AOI_Tchad_IOM0_0.tif?dl=1")
-       download.file("https://www.dropbox.com/s/s0zg9v1g2wg1mwa/AOI_Tchad_IOM0_0.tif?dl=1",destfile = getwd())
-       
-       raster("https://raw.github.com/openforis/data_test/master/aa_test_congo.tif")
-       read <- raster(myfile)
-       library(devtools)
-       source_gist("4466237")
-       
-       Data <- source_GitHubData(url = myfile)
-       
         #list.files()
+        
         withProgress(
           message= paste0('Downloading data in ',dirname("~/aa_data_test/")), 
           value = 0, 
@@ -194,18 +183,7 @@ shinyServer(
         )
       }else 
         if (osSystem == "Windows") {
-          volumes <- system("wmic logicaldisk get Caption", intern = T)
-          volumes <- sub(" *\\r$", "", volumes)
-          keep <- !tolower(volumes) %in% c("caption", "")
-          volumes <- volumes[keep]
-          volNames <- system("wmic logicaldisk get VolumeName", 
-                             intern = T)
-          volNames <- sub(" *\\r$", "", volNames)
-          volNames <- volNames[keep]
-          volNames <- paste0(volNames, ifelse(volNames == "", "", 
-                                              " "))
-          volNames <- paste0(volNames, "(", volumes, ")")
-          names(volumes) <- volNames
+          # TBA
         }
       
       
