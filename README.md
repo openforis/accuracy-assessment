@@ -1,6 +1,6 @@
-#### Stamp date : **2016-12-07**
+#### Stamp date : **2016-11-01**
 
-## Accuracy assessment design and analysis tool: SEPAL version
+## Accuracy assessment design and analysis tool
 
 The application functions with R, Rstudio and the Shiny package.
 
@@ -11,11 +11,51 @@ In a second step, the validation results are used by the aa_analysis to produce 
 
 ## Configuration
 
-Runs as a processing MODULE in sepal.io
+The following programs are need for the application to run:
+
+### R from www.r-project.org
+
+
+### Rstudio from www.rstudio.org
+Several packages are needed for the application to run, they will be downloaded if missing from your libraries (may take long the first time)
+ 
+
+
+### If running in Windows, Rtools from https://cran.r-project.org/bin/windows/Rtools/
+
+> Locate the folder where Rtools is installed (usually 'C:\Rtools')
+
+> Add C:\Rtools\bin path to the system path
+
+> Go to Control Panel
+
+> Go to Advanced System Settings
+
+> Open Advanced tab
+
+> Click Environmental Variables button
+
+> Select Path variable and click Edit button
+
+> Add ';C:\Rtools\bin' at the end of the line 
+
+
 
 ## Tests
 
-Launch the application by clicking the aa_design or aa_analysis button
+Launch the application with the following commands in R:
+
+For the first time you have to install the Shiny package
+
+> install.packages("shiny")
+
+Then you call the library and launch the application directly
+
+> library(shiny)
+
+> runGitHub("openforis/accuracy-assessment",subdir="aa_design")
+
+> runGitHub("openforis/accuracy-assessment",subdir="aa_analysis")
 
 
 ## Contributors
