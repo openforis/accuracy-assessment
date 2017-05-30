@@ -106,7 +106,7 @@ output$t1_b3_body  <- reactive({
   HTML(paste(
     "You have to go through all the steps in the left panel, in this order:", 
     tags$ol(
-      tags$li("Select the map data which will be assessed. The required input is either vector (.shp supported) or raster (.tif supported)"), 
+      tags$li("Select the map data which will be assessed. The required input is either vector (.shp and .sqlite supported) or raster (.tif, .img, .pix, .rst, .jpeg2000, .grd and .hdf supported)"), 
       tags$li("Compute the areas of each strata"), 
       tags$li("Select the expected accuracies of the strata"),
       tags$li("Compute the sampling size"),

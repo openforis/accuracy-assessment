@@ -93,7 +93,7 @@ output$t1_b3_body  <- reactive({
   HTML(paste(
     "Il faut suivre les étapes suivantes, dans l'ordre", 
     tags$ol(
-      tags$li("Sélectionner la carte d'entrée, en format vecteur (.shp) ou rasteur (.tif)."), 
+      tags$li("Sélectionner la carte d'entrée, en format vecteur (.shp et .sqlite ) ou rasteur (.tif, .img, .pix, .rst, .jpeg2000, .grd et .hdf)."), 
       tags$li("Calculer les superficies de chaque strate"), 
       tags$li("Sélectionner les paramètres pour chaque strate"),
       tags$li("Calculer la taille et la distribution des échantillons"),

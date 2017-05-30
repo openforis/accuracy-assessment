@@ -95,7 +95,7 @@ output$t1_b3_body  <- reactive({
   HTML(paste(
     "Debe seguir los siguientes pasos en el panel de la izquierda, en este orden", 
     tags$ol(
-      tags$li("Seleccionar el mapa de entrada, en formato vector (.shp) o raster (.tif)."), 
+      tags$li("Seleccionar el mapa de entrada, en formato vector (.shp y .sqlite) o raster (.tif, .img, .pix, .rst, .jpeg2000, .grd y .hdf)."), 
       tags$li("Calcular el área de cada estrato"), 
       tags$li("Seleccionar los parámetros para cada estrato"),
       tags$li("Calcular el tamaño y la distribución del muestreo"),
