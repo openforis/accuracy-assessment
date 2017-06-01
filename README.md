@@ -43,11 +43,15 @@ For the first time you have to install the Shiny package
 
 > install.packages("shiny")
 
-Then you call the library and launch the application directly
+You can clone the application and run it directly from your machine (one download)
+
+It runs as any Shiny rstudio application
+
+Or you can call the library and launch the application directly from GITHUB
 
 Only one application can run at a time
 
-To stop the application just close the tab where the application running
+To stop the application just close the tab where the application is running
 
 ###  Design
 
