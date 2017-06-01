@@ -35,7 +35,7 @@ source("load_packages.R",echo = TRUE)
 ####### Start User Interface
 
 shinyUI(
-
+  
   
   dashboardPage(
     skin='green',
@@ -108,7 +108,7 @@ shinyUI(
                   .nav-tabs-custom .nav-tabs li.active {
                   border-top-color: #00994d;
                   }"),
-
+                  
                   ## CSS format for errors, making the message in purple
                   tags$head(
                     tags$style(HTML("
@@ -173,12 +173,25 @@ shinyUI(
                   
                   ####################################################################################
                   # New box
-                  box(title= textOutput('t2_b2_title'), status = "success", solidHeader= TRUE,
-                      actionButton("download_test_button",textOutput('download_testdata_button')),
-                      uiOutput("dynUI_download_test")
+                  #conditionalPanel(condition = "Sys.info()['sysname'] == 'Linux'",
+                                   box(title= textOutput('t2_b2_title'), 
+                                       status = "success", 
+                                       solidHeader= TRUE,
+                                       actionButton("download_test_button",textOutput('download_testdata_button')),
+                                       uiOutput("dynUI_download_test")
+                  #                 )
                   ),
                   
-
+                  # ####################################################################################
+                  # # New box
+                  # conditionalPanel("(mapType() == \"raster_type\")==F",
+                  #                  box(title= textOutput('t2_b6_title'), status = "success", solidHeader= TRUE,
+                  #                      actionButton("load_manual_legend_button",textOutput('load_manual_legend_button_text')),
+                  #                      uiOutput("load_manual_legend")
+                  #                  )
+                  # ),
+                  
+                  
                   ####################################################################################
                   # New box
                   box(title= textOutput('t2_b3_title'), status = "success", solidHeader= TRUE,
@@ -286,8 +299,8 @@ shinyUI(
                         tags$li(htmlOutput("the_ex_ua_lo"))
                       )
                   ),
-                      
-                      
+                  
+                  
                   ####################################################################################
                   # New box
                   box(h4(textOutput('t4_b2_title')),

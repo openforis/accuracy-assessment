@@ -151,7 +151,8 @@ shinyServer(
       df <- parseFilePaths(volumes, input$file)
       file_path <- as.character(df[,"datapath"])
       dirn <- dirname(file_path)
-      subDir <- 'aa_design_output'
+      base <- substr(basename(file_path),0,nchar(basename(file_path))-4)
+      subDir <- paste0('sae_design_',base)
       dir.create(file.path(dirn, subDir))
       paste0(dirn,'/',subDir)
     })  
@@ -166,28 +167,26 @@ shinyServer(
     ## Allow to download test data
     output$dynUI_download_test <- renderPrint({
       req(input$download_test_button)
-      print(getwd())
-      dir.create(file.path("~","aa_data_test"))
+      
+      dir.create(file.path("~","sae_data_test"))
       
       if (osSystem == "Linux") {
-        #getURL("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
-        #download.file("http://github.com/openforis/data_test/blob/master/aa_test_congo.tif?raw=true")
-        #list.files()
-        
         withProgress(
-          message= paste0('Downloading data in ',dirname("~/aa_data_test/")), 
+          message= paste0('Downloading data in ',dirname("~/sae_data_test/")), 
           value = 0, 
           {
-            system("wget -O ~/aa_data_test/aa_test_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+            system("wget -O ~/sae_data_test/test_map_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
           }
         )
       }else 
         if (osSystem == "Windows") {
+          # download.file("http://github.com/openforis/data_test/blob/master/aa_test_congo.tif?raw=true",
+          #               "~/sae_data_test/test_map_congo.tif",
+          #               "wininet")  ## THAT DOES NOT DOWNLOAD THE RASTER PROPERLY. BUT ALMOST 
           # TBA
         }
       
-      
-      list.files("~/aa_data_test/",pattern="aa_test_congo.tif")
+      list.files("~/sae_data_test/",pattern="test_map_congo.tif")
       })
 
     
@@ -1090,18 +1089,18 @@ shinyServer(
             
             ################## Export sampling design as points
             i=1
-            polys <- shp[shp@data[,class_attr] == legend[i],]
-            pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
+            polys   <- shp[shp@data[,class_attr] == legend[i],]
+            pts     <- spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
             att_vec <- rep(legend[i],nrow(pts@coords))
-            df_pts<-data.frame(cbind(pts@coords,att_vec))
+            df_pts  <- data.frame(cbind(pts@coords,att_vec))
             
             for(i in 2:length(legend)){
               tryCatch({
-                polys <- shp[shp@data[,class_attr] == legend[i],]
-                pts<-spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
+                polys   <- shp[shp@data[,class_attr] == legend[i],]
+                pts     <- spsample(polys,as.numeric(rp[rp$map_code == legend[i],]$final),type="stratified")
                 att_vec <- rep(legend[i],nrow(pts@coords))
-                tmp_pts<-data.frame(cbind(pts@coords,att_vec))
-                df_pts<-rbind(df_pts,tmp_pts)
+                tmp_pts <- data.frame(cbind(pts@coords,att_vec))
+                df_pts  <- rbind(df_pts,tmp_pts)
               }, error=function(e){cat("No points to sample in this class \n")}
               )
               
@@ -1496,10 +1495,24 @@ shinyServer(
                    "actively_saved","actively_saved_on_year","actively_saved_on_month","actively_saved_on_day",
                    "plot_file","ref_code","confidence","map_code")
       
+      ## Merge the edited class information inside here
+      code_class <- maparea_final()
+      
+      df1 <- merge(df, code_class[,c(1,3)],by.x="ref_code",by.y="map_code")
+      names(df1)[ncol(df1)] <- "ref_class"
+      
+      df1 <- merge(df1,code_class[,c(1,3)],by.x="map_code",by.y="map_code")
+      names(df1)[ncol(df1)] <- "map_class"
+      
       table(df$ref_code,df$map_code)
       
+      df1 <- df1[,c("id","location_srs","location_x","location_y","operator",
+                    "elevation","slope","aspect","adm1_name","country","geometry","area",
+                    "actively_saved","actively_saved_on_year","actively_saved_on_month","actively_saved_on_day",
+                    "plot_file","ref_code","confidence","map_code","ref_class","map_class")]
+      
       ## Export as a Mockup dataset to use in the analysis
-      write.csv(df,paste(outdir(),"/collectedData_mockup_",gsub(" ","_",input$basename_CE),"_",Sys.Date(),".csv",sep=""),row.names=F)
+      write.csv(df1,paste(outdir(),"/collectedData_mockup_",gsub(" ","_",input$basename_CE),"_",Sys.Date(),".csv",sep=""),row.names=F)
       
       ######################################################################################################
       ################# Generate the CEP file
@@ -1568,7 +1581,7 @@ shinyServer(
       properties[6] <- paste0("distance_between_sample_points=",dist_btw_pts)
       properties[7] <- paste0("csv=${project_path}/pts_",gsub(" ","_",basename),".csv")
       properties[11]<- paste0("distance_to_plot_boundaries=",dist_to_bnd)
-      properties[12]<- paste0("survey_name=aa_",gsub(" ","_",basename)) 
+      properties[12]<- paste0("survey_name=sae_",gsub(" ","_",basename)) 
 
       writeLines(properties,paste0(outdir(),"/cep_template/project_definition.properties"))
       

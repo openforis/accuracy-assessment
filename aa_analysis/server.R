@@ -176,7 +176,7 @@ shinyServer(
                   textOutput("field_choose_col_ref"),
                   choices= names(df_i()),
                   multiple = FALSE,
-                  selected = c("ref_class","ref_code"))
+                  selected = c("ref_code"))
     })
     
     
@@ -187,7 +187,7 @@ shinyServer(
                   textOutput("field_choose_col_map"), 
                   choices= names(df_i()),
                   multiple = FALSE,
-                  selected = c("map_code","map_class"))
+                  selected = c("map_code"))
     })
     
     ## select the column with the area column in area file
@@ -238,8 +238,8 @@ shinyServer(
     areas_i <- reactive({
       req(input$areafilename)
       areas <- areas_read()
-      if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_code"}
-      if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas)  == input$selectAreaCol]  <- "map_area"}
+      #if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_code"}
+      #if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas)  == input$selectAreaCol]  <- "map_area"}
       areas
     })
     
@@ -262,11 +262,13 @@ shinyServer(
       
       req(input$CEfilename)
       df_i <- df_i()
-      if(!input$map_data == 'map_code')colnames(df_i)[names(df_i) == 'map_code'] <- 'map_code1'
-      if(!input$reference_data == 'ref_code')colnames(df_i)[names(df_i) == 'ref_code'] <- 'ref_code1'
       
-      colnames(df_i)[names(df_i) == input$map_data] <- "map_code"
-      colnames(df_i)[names(df_i) == input$reference_data] <- "ref_code"
+      #if(!input$map_data == 'map_code')colnames(df_i)[names(df_i) == 'map_code']       <- 'map_code1'
+      #if(!input$reference_data == 'ref_code')colnames(df_i)[names(df_i) == 'ref_code'] <- 'ref_code1'
+      
+      #colnames(df_i)[names(df_i) == input$map_data]       <- "map_code"
+      #colnames(df_i)[names(df_i) == input$reference_data] <- "ref_code"
+      
       if(!is.null(input$refAreaCol))colnames(df_i)[names(df_i) == input$refAreaCol] <- "area"
       
       ### If the file doesn't contain an area column, set the area to 1
@@ -288,8 +290,7 @@ shinyServer(
                   choices= names(df_i_map()),
                   multiple = FALSE,
                   selected = c("location_x",'XCOORD','xcoord'))
-      
-    })
+      })
     
     
     ################################################    
@@ -301,10 +302,9 @@ shinyServer(
                   choices= names(df_i_map()),
                   multiple = FALSE,
                   selected = c("location_y",'YCOORD','ycoord'))
-      
-    })
+      })
     
-    ####
+    
     ############################################    
     ####    Display samples
     output$map_check <- renderLeaflet({
@@ -318,17 +318,19 @@ shinyServer(
         proj4string=CRS("+proj=longlat +datum=WGS84"),
         match.ID=F)
       
-      factpal <- colorFactor("Spectral", dfa$map_code)
+      names(dfa)[names(dfa) == input$map_data] <- "show_code" 
+        
+      factpal <- colorFactor("Spectral", dfa$show_code)
       
       m <- leaflet() %>%
         addTiles() %>% 
         # fitBounds(~min(long), ~min(lat), ~max(long), ~max(lat)) %>% 
         
         # Add default OpenStreetMap map tiles
-        addCircleMarkers(data = dfa, color= ~factpal(map_code),
+        addCircleMarkers(data = dfa, color= ~factpal(show_code),
                          fillOpacity = 1,
                          radius = 1,
-                         popup = ~paste(sprintf("Map code: %s", map_code))
+                         popup = ~paste(sprintf("Map info: %s", show_code))
         )
       m
     })
@@ -414,7 +416,7 @@ shinyServer(
       
       print("Legend")
       
-      if(!is.null(input$map_data)){legend_i <- levels(as.factor(df$map_code))}
+      if(!is.null(input$map_data)){legend_i <- levels(as.factor(df[,input$map_data]))}
       legend_i 
     })
     
@@ -428,8 +430,9 @@ shinyServer(
       
       areas <- areas_i()
       legend <- legend_i()
-      ref_code <- "ref_code"
-      map_code <- "map_code"
+      
+      #ref_code <- input$reference_data #"ref_code"
+      #map_code <- input$map_data       #"map_code"
       
       
       print("test matrix")
@@ -438,7 +441,7 @@ shinyServer(
       #tmp <- as.matrix(table(df[,map_code,],df[,ref_code]))
       
       ######## Confusion matrix as sum of areas of elements
-      tmp <- tapply(df$area,df[,c(map_code,ref_code)],sum)
+      tmp <- tapply(df$area,df[,c(input$map_data,input$reference_data)],sum)
       tmp[is.na(tmp)]<- 0
       
       matrix<-matrix(0,nrow=length(legend),ncol=length(legend))
@@ -471,14 +474,14 @@ shinyServer(
       areas$map_area <- as.numeric(areas$map_area)
       
       print('calculating areas')
-      if(all(legend_i()  %in% areas_i()$map_code )){
+      if(all(legend_i()  %in% areas[,input$selectClassCol] )){
         
         
         matrix_w<-matrix
         for(i in 1:length(legend)){
           for(j in 1:length(legend)){
             tryCatch({
-              matrix_w[i,j] <- matrix[i,j]/sum(matrix[i,])*areas[areas$map_code==legend[i],]$map_area/sum(areas$map_area)
+              matrix_w[i,j] <- matrix[i,j]/sum(matrix[i,])*areas[areas[,input$selectClassCol]==legend[i],]$map_area/sum(areas$map_area)
             }, error=function(e){cat("Not relevant\n")}
             )
           }}
@@ -489,8 +492,8 @@ shinyServer(
         for(i in 1:length(legend)){
           for(j in 1:length(legend)){
             tryCatch({
-              matrix_se[i,j] <- areas[areas$map_code==legend[i],]$map_area/sum(areas$map_area)*
-                areas[areas$map_code==legend[i],]$map_area/sum(areas$map_area)*
+              matrix_se[i,j] <- areas[areas[,input$selectClassCol]==legend[i],]$map_area/sum(areas$map_area)*
+                areas[areas[,input$selectClassCol]==legend[i],]$map_area/sum(areas$map_area)*
                 matrix[i,j]/
                 sum(matrix[i,])*
                 (1-matrix[i,j]/sum(matrix[i,]))/
@@ -518,20 +521,20 @@ shinyServer(
         civalue <- citable$z[citable$ci %in% as.numeric(input$CIslider)]
         ### Integration of all elements into one dataframe
         for(i in 1:length(legend)){
-          confusion[i,]$class<-areas[areas$map_code==legend[i],]$map_code
-          confusion[i,]$code <-areas[areas$map_code==legend[i],]$map_code
-          confusion[i,]$strRS_area_estimate <-sum(matrix_w[,i])*sum(areas$map_area)
-          confusion[i,]$producers_accuracy   <-matrix[i,i]/sum(matrix[,i])
-          confusion[i,]$users_accuracy   <-matrix[i,i]/sum(matrix[i,])
-          confusion[i,]$weighted_producers_accuracy  <-matrix_w[i,i]/sum(matrix_w[,i])
-          confusion[i,]$map_pixel_count <-areas[areas$map_code==legend[i],]$map_area
-          confusion[i,]$strRS_standard_error   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
-          confusion[i,]$strRS_confidence_interval   <-confusion[i,]$strRS_standard_error* civalue
-          confusion[i,]$number_samples <- table(df$ref_code)[i]
-          confusion[i,]$simRS_weight <- confusion$number_samples[i]/nrow(df)
-          confusion[i,]$simRS_area_estimate <- confusion$simRS_weight[i] * sum(areas$map_area)
-          confusion[i,]$simRS_standard_error <- sqrt(((1-confusion$simRS_weight[i]) * confusion$simRS_weight[i])/nrow(df))
-          confusion[i,]$simRS_confidence_interval <- confusion$simRS_standard_error[i] * civalue
+          confusion[i,]$class                          <- areas[areas[,input$selectClassCol]==legend[i],input$selectClassCol]
+          confusion[i,]$code                           <- areas[areas[,input$selectClassCol]==legend[i],input$selectClassCol]
+          confusion[i,]$strRS_area_estimate            <- sum(matrix_w[,i])*sum(areas$map_area)
+          confusion[i,]$producers_accuracy             <- matrix[i,i]/sum(matrix[,i])
+          confusion[i,]$users_accuracy                 <- matrix[i,i]/sum(matrix[i,])
+          confusion[i,]$weighted_producers_accuracy    <- matrix_w[i,i]/sum(matrix_w[,i])
+          confusion[i,]$map_pixel_count                <- areas[areas[,input$selectClassCol]==legend[i],]$map_area
+          confusion[i,]$strRS_standard_error           <- sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
+          confusion[i,]$strRS_confidence_interval      <- confusion[i,]$strRS_standard_error* civalue
+          confusion[i,]$number_samples                 <- table(df[,input$reference_data])[i]
+          confusion[i,]$simRS_weight                   <- confusion$number_samples[i]/nrow(df)
+          confusion[i,]$simRS_area_estimate            <- confusion$simRS_weight[i] * sum(areas$map_area)
+          confusion[i,]$simRS_standard_error           <- sqrt(((1-confusion$simRS_weight[i]) * confusion$simRS_weight[i])/nrow(df))
+          confusion[i,]$simRS_confidence_interval      <- confusion$simRS_standard_error[i] * civalue
           confusion[i,]$simRS_confidence_interval_area <- confusion$simRS_confidence_interval[i] * sum(areas$map_area)
         }
         
@@ -544,21 +547,23 @@ shinyServer(
     ################ Output : Summary of areas 
     #################################################################################################
     output$area_all <- renderTable({
+      areas <- areas_i()
       validate(
         need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
         need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
       )
       
       validate(
-        need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
+        need(all(legend_i()  %in% areas[,input$selectClassCol] ),"Mismatch between class names in area and validation file"))
       
-      item      <-data.frame(accuracy_all())
-      item      <-item[,c("code","number_samples","strRS_area_estimate","strRS_confidence_interval","simRS_area_estimate","simRS_confidence_interval_area")]
-      item$number_samples  <-floor(as.numeric(item$number_samples))
-      item$strRS_area_estimate   <-floor(as.numeric(item$strRS_area_estimate))
-      item$strRS_confidence_interval <-floor(as.numeric(item$strRS_confidence_interval))
-      item$simRS_area_estimate <-floor(as.numeric(item$simRS_area_estimate))
-      item$simRS_confidence_interval_area   <-floor(as.numeric(item$simRS_confidence_interval_area))
+      item                                <- data.frame(accuracy_all())
+      item                                <- item[,c("code","number_samples","strRS_area_estimate","strRS_confidence_interval","simRS_area_estimate","simRS_confidence_interval_area")]
+      item$number_samples                 <- floor(as.numeric(item$number_samples))
+      item$strRS_area_estimate            <- floor(as.numeric(item$strRS_area_estimate))
+      item$strRS_confidence_interval      <- floor(as.numeric(item$strRS_confidence_interval))
+      item$simRS_area_estimate            <- floor(as.numeric(item$simRS_area_estimate))
+      item$simRS_confidence_interval_area <- floor(as.numeric(item$simRS_confidence_interval_area))
+      
       names(item) <- c("Class",
                        "Number of samples",
                        "Stratified random area estimate",
@@ -572,20 +577,22 @@ shinyServer(
     ################ Output : Summary of accuracies
     #################################################################################################
     output$accuracy_all <- renderTable({
+      areas <- areas_i()
+      
       validate(
         need(input$CEfilename,   "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
         need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
       )
       
       validate(
-        need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
+        need(all(legend_i()  %in% areas[,input$selectClassCol] ),"Mismatch between class names in area and validation file"))
       
-      item      <-data.frame(accuracy_all())
-      item      <-item[,c("code","weighted_producers_accuracy","users_accuracy")]
+      item                              <-data.frame(accuracy_all())
+      item                              <-item[,c("code","weighted_producers_accuracy","users_accuracy")]
       item$weighted_producers_accuracy  <-floor(as.numeric(item$weighted_producers_accuracy)*100)
-      item$users_accuracy   <-floor(as.numeric(item$users_accuracy)*100)
+      item$users_accuracy               <-floor(as.numeric(item$users_accuracy)*100)
       
-      names(item) <-c("Class","Producer's accuracy","User's accuracy")
+      names(item) <- c("Class","Producer's accuracy","User's accuracy")
       item
     },include.rownames=FALSE,digits=0)
     
@@ -602,7 +609,8 @@ shinyServer(
       if(input$filter_presence==T){    
         df <- df_f()
       }else{df <- df_i_map()}
-      areas <- areas_i()
+      
+      areas  <- areas_i()
       legend <- legend_i()
       
       item<-as.matrix(matrix_all())
@@ -615,13 +623,13 @@ shinyServer(
     ################ Output histograms area estimations
     ##################################################################################################
     output$histogram_all <- renderPlot({
-      
+      areas <- areas_i()
       validate(
         need(input$CEfilename, "Missing input: Please select the validation file in tab '1:Input'"),
         need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'"))
       
       validate(
-        need(all(legend_i()  %in% areas_i()$map_code ),"Mismatch between class names in area and validation file"))
+        need(all(legend_i()  %in% areas[,input$selectClassCol] ),"Mismatch between class names in area and validation file"))
 
       dfa<-as.data.frame(accuracy_all())
       legend <- legend_i()
