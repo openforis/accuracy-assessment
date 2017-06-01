@@ -1,5 +1,6 @@
 ####################################################################################
 #######          Shiny app for accuracy assessment design       ####################
+#######                     SEPAL Branch                        ####################
 #######    contributors:  Remi d'Annunzio, Yelena Finegold,     ####################
 #######            Antonia Ortmann, Erik Lindquist              ####################
 #######              FAO Open Foris SEPAL project               ####################

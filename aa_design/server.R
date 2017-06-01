@@ -167,17 +167,26 @@ shinyServer(
     output$dynUI_download_test <- renderPrint({
       req(input$download_test_button)
       print(getwd())
-      
       dir.create(file.path("~","aa_data_test"))
-      #getURL("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
-      #list.files()
-      withProgress(
-        message= paste0('Downloading data in ',dirname("~/aa_data_test/")), 
-        value = 0, 
-        {
-        system("wget -O ~/aa_data_test/aa_test_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+      
+      if (osSystem == "Linux") {
+        #getURL("https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+        #download.file("http://github.com/openforis/data_test/blob/master/aa_test_congo.tif?raw=true")
+        #list.files()
+        
+        withProgress(
+          message= paste0('Downloading data in ',dirname("~/aa_data_test/")), 
+          value = 0, 
+          {
+            system("wget -O ~/aa_data_test/aa_test_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif")
+          }
+        )
+      }else 
+        if (osSystem == "Windows") {
+          # TBA
         }
-      )
+      
+      
       list.files("~/aa_data_test/",pattern="aa_test_congo.tif")
       })
 
@@ -263,6 +272,10 @@ shinyServer(
     
     ## Load the values of the table in a reactive variable (rasterAreaCSV)
     rasterAreaCSV <- reactive({
+      validate(
+        need(input$IsManualAreaCSV != "", "Missing input: Please select the map area file" 
+        )
+      )
       req(mapType()== "raster_type",input$IsManualAreaCSV)
       inputfile <- input$IsManualAreaCSV
       
@@ -285,9 +298,21 @@ shinyServer(
       )
     })
     
+    # Make sure the user selects a number as the map code
+    numeric_checK_selectUI_value_raster <- reactive({
+      req(mapType()== "raster_type", input$IsManualAreaRaster, input$value_attribute_raster)
+      areacsv <- as.data.frame(rasterAreaCSV())
+      areacsv <- areacsv[input$value_attribute_raster]
+      is.numeric(areacsv[,1])
+    })
+   
     # The user can select which column has the area information from the CSV
     output$selectUI_area_raster <- renderUI({
       req(mapType()== "raster_type", input$IsManualAreaRaster)
+      validate(
+        need(numeric_checK_selectUI_value_raster() == TRUE, "Please select a column with the map codes (numbers only)" 
+        )
+      ) 
       areacsv <- rasterAreaCSV()
       categories <- names(areacsv)
       print(categories)
@@ -299,9 +324,12 @@ shinyServer(
       )
     })
     
+
     # Select the columns of the chosen CSV to display in a table
     output$select_vars_raster <- renderUI({
+      
       req(mapType()== "raster_type", input$IsManualAreaRaster)
+
       selectInput('show_vars1', 
                   'Columns to show:', 
                   choices= names(rasterAreaCSV()),
@@ -402,6 +430,7 @@ shinyServer(
                      choices = list_calc
         )
       )
+
     })
     
     
@@ -481,6 +510,10 @@ shinyServer(
         
         ############### Read the areas from the input CSV file
         if(req(input$IsManualAreaRaster) == T){
+          validate(
+            need(input$IsManualAreaCSV != "", "Missing input: Please select the map area file in the previous tab" 
+            )
+          )
           print("Reading the input CSV file")
           withProgress(
             message= 'Reading area column.....',

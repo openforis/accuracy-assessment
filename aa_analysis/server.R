@@ -17,8 +17,9 @@
 ####################################################################################
 
 ####################################################################################
-## Last update: 2017/04/27
+## Last update: 2017/05/11
 ## aa_analysis  / server
+## confidence interval branch
 ####################################################################################
 
 
@@ -192,25 +193,25 @@ shinyServer(
     ## select the column with the area column in area file
     output$areaCol <- renderUI({
       req(input$areafilename)
-      if(is.element('map_area',names(areas_read()))==FALSE){
+      # if(is.element('map_area',names(areas_read()))==FALSE){
         selectInput('selectAreaCol', 
                     textOutput("field_choose_col_map_area"),
                     choices= names(areas_read()),
                     multiple = FALSE,
                     selected = c("area",'map_area','areas',"Area",'AREA'))
-      }
+      # }
     })
     
     ## select the column with the classes in the area file
     output$classCol <- renderUI({
       req(input$areafilename)
-      if(is.element('map_code',names(areas_read()))==FALSE){
+      # if(is.element('map_code',names(areas_read()))==FALSE){
         selectInput('selectClassCol', 
                     textOutput("field_choose_col_ref_area"), 
                     choices= names(areas_read()),
                     multiple = FALSE,
                     selected = c("map_code","map_class"))
-      }
+      # }
     })
     
     ####################################################################################
@@ -508,6 +509,13 @@ shinyServer(
                             "strRS_confidence_interval","number_samples","simRS_weight","simRS_area_estimate",
                             "simRS_standard_error","simRS_confidence_interval","simRS_confidence_interval_area")
       
+        
+        ## the zscores for the confidence intervals
+        ci <- c(0.9, 0.95, 0.99)
+        z <- c(1.645, 1.96, 2.576)
+        citable <- data.frame(ci,z)
+        print(paste0('using confidence interval: ', input$CIslider))
+        civalue <- citable$z[citable$ci %in% as.numeric(input$CIslider)]
         ### Integration of all elements into one dataframe
         for(i in 1:length(legend)){
           confusion[i,]$class<-areas[areas$map_code==legend[i],]$map_code
@@ -518,12 +526,12 @@ shinyServer(
           confusion[i,]$weighted_producers_accuracy  <-matrix_w[i,i]/sum(matrix_w[,i])
           confusion[i,]$map_pixel_count <-areas[areas$map_code==legend[i],]$map_area
           confusion[i,]$strRS_standard_error   <-sqrt(sum(matrix_se[,i]))*sum(areas$map_area)
-          confusion[i,]$strRS_confidence_interval   <-confusion[i,]$strRS_standard_error*1.96
+          confusion[i,]$strRS_confidence_interval   <-confusion[i,]$strRS_standard_error* civalue
           confusion[i,]$number_samples <- table(df$ref_code)[i]
           confusion[i,]$simRS_weight <- confusion$number_samples[i]/nrow(df)
           confusion[i,]$simRS_area_estimate <- confusion$simRS_weight[i] * sum(areas$map_area)
           confusion[i,]$simRS_standard_error <- sqrt(((1-confusion$simRS_weight[i]) * confusion$simRS_weight[i])/nrow(df))
-          confusion[i,]$simRS_confidence_interval <- confusion$simRS_standard_error[i] * 1.96
+          confusion[i,]$simRS_confidence_interval <- confusion$simRS_standard_error[i] * civalue
           confusion[i,]$simRS_confidence_interval_area <- confusion$simRS_confidence_interval[i] * sum(areas$map_area)
         }
         
