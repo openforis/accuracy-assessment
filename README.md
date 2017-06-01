@@ -1,17 +1,28 @@
-#### Stamp date : **2016-11-01**
+#### Stamp date : **2017-06-01**
 
-## Accuracy assessment design and analysis tool
+## Stratified sampling tool for area estimation
 
 The application functions with R, Rstudio and the Shiny package.
 
-In a first step, the aa_design takes a geospatial map (raster or vector format) as input and outputs a file to perform validation on.
+You can clone it and make it run under most platforms (tested under Mac, Linux and Windows)
 
-In a second step, the validation results are used by the aa_analysis to produce confusion matrix, compute accuracies, correct biases for area estimates and compute confidence intervals
+However, we encourage users to use it under the https://sepal.io platform, where all utilities and functions will be systematically updated and maintained
 
 
-## Configuration
+## Use in SEPAL platform
+SEPAL stands for : System for Earth observations, data access, Processing & Analysis for Land monitoring.
 
-The following programs are need for the application to run:
+If you want access, you have to request here https://goo.gl/forms/9cz2BGCch32H331y1
+
+You will then receive an email with a link to activate your access. 
+
+Remember to check in your SPAMS, it might be there.
+
+Enter the platform @ https://sepal.io and you will find the tools under PROCESS
+
+
+## Configuration for desktop version
+The following programs are need for the application to run
 
 ### R from www.r-project.org
 
@@ -24,7 +35,7 @@ Several packages are needed for the application to run, they will be downloaded 
 
 > Install Rtools to the C drive ('C:\Rtools')
 
-## Tests
+## Start application
 
 Launch the application with the following commands in R:
 
@@ -38,7 +49,7 @@ Only one application can run at a time
 
 To stop the application just close the tab where the application running
 
-###  Accuracy assessment design
+###  Design
 
 > library(shiny)
 
@@ -46,7 +57,7 @@ To stop the application just close the tab where the application running
 
 > runGitHub("openforis/accuracy-assessment",subdir="aa_design")
 
-###  Accuracy assessment analysis
+###  Analysis
 
 > library(shiny)
 
