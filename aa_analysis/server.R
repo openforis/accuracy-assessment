@@ -239,7 +239,7 @@ shinyServer(
       req(input$areafilename)
       areas <- areas_read()
       #if(!is.null(input$selectClassCol)){colnames(areas)[names(areas) == input$selectClassCol] <- "map_code"}
-      #if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas)  == input$selectAreaCol]  <- "map_area"}
+      if(!is.null(input$selectAreaCol)){colnames(areas)[names(areas)  == input$selectAreaCol]  <- "map_area"}
       areas
     })
     
@@ -420,10 +420,29 @@ shinyServer(
       legend_i 
     })
     
+    ################################################################################################
+    ############### Legend for the reference
+    ################################################################################################
+    legend_ref  <- reactive({
+      
+      if(input$filter_presence==T){    
+        df <- df_f()
+      }else{df <- df_i_map()}
+      
+      print("Legend")
+      
+      if(!is.null(input$reference_data)){legend <- levels(as.factor(df[,input$reference_data]))}
+      legend 
+    })
+    
     #################################################################################################    
     ################ Matrix for all classes
     #################################################################################################
     matrix_all <- reactive({
+      
+      validate(
+        need(all(legend_ref() %in% legend_i()),"Mismatch between reference and map names in validation file"))
+      
       if(input$filter_presence==T){    
         df <- df_f()
       }else{df <- df_i_map()}
@@ -436,6 +455,7 @@ shinyServer(
       
       
       print("test matrix")
+      
       
       ######## Confusion matrix as count of elements
       #tmp <- as.matrix(table(df[,map_code,],df[,ref_code]))
@@ -467,6 +487,7 @@ shinyServer(
       if(input$filter_presence==T){    
         df <- df_f()
       }else{df <- df_i_map()}
+      
       areas <- areas_i()
       legend <- legend_i()
       
@@ -519,6 +540,7 @@ shinyServer(
         citable <- data.frame(ci,z)
         print(paste0('using confidence interval: ', input$CIslider))
         civalue <- citable$z[citable$ci %in% as.numeric(input$CIslider)]
+        
         ### Integration of all elements into one dataframe
         for(i in 1:length(legend)){
           confusion[i,]$class                          <- areas[areas[,input$selectClassCol]==legend[i],input$selectClassCol]
@@ -585,12 +607,14 @@ shinyServer(
       )
       
       validate(
-        need(all(legend_i()  %in% areas[,input$selectClassCol] ),"Mismatch between class names in area and validation file"))
+       need(all(legend_ref() %in% legend_i()),"Mismatch between class names in area and validation file"))
       
-      item                              <-data.frame(accuracy_all())
-      item                              <-item[,c("code","weighted_producers_accuracy","users_accuracy")]
-      item$weighted_producers_accuracy  <-floor(as.numeric(item$weighted_producers_accuracy)*100)
-      item$users_accuracy               <-floor(as.numeric(item$users_accuracy)*100)
+      
+      
+      item                              <- data.frame(accuracy_all())
+      item                              <- item[,c("code","weighted_producers_accuracy","users_accuracy")]
+      item$weighted_producers_accuracy  <- floor(as.numeric(item$weighted_producers_accuracy)*100)
+      item$users_accuracy               <- floor(as.numeric(item$users_accuracy)*100)
       
       names(item) <- c("Class","Producer's accuracy","User's accuracy")
       item
@@ -601,6 +625,8 @@ shinyServer(
     ################ Output item  :  confusion matrix
     ##################################################################################################
     output$matrix_all <- renderTable({
+      areas<- areas_i()
+      
       validate(
         need(input$CEfilename, "Missing input: Please select the file containing the reference and map data in tab '1:Input'"),
         need(input$areafilename, "Missing input: Please select the area file in tab '1:Input'")
@@ -631,6 +657,7 @@ shinyServer(
       validate(
         need(all(legend_i()  %in% areas[,input$selectClassCol] ),"Mismatch between class names in area and validation file"))
 
+      
       dfa<-as.data.frame(accuracy_all())
       legend <- legend_i()
       
@@ -640,8 +667,8 @@ shinyServer(
       dfa<-dfa[c(1:length(legend)),]
       dfa[dfa=="NaN"]<-0
       
-      dfa$map_pixel_count <-as.numeric(dfa$map_pixel_count)
-      dfa$map_pixel_ci    <- 0
+      dfa$map_pixel_count <- as.numeric(dfa$map_pixel_count)
+      dfa$map_pixel_ci    <- NA
 
       dfa$strRS_confidence_interval<-as.numeric(dfa$strRS_confidence_interval)
       dfa$strRS_area_estimate<-as.numeric(dfa$strRS_area_estimate)
@@ -694,8 +721,9 @@ shinyServer(
         geom_bar(stat="identity",
                           position = position_dodge(0.9)
                           ) +
-        geom_errorbar(limits_strat, position = position_dodge(0.9),
-                       width = 0.25) +
+        geom_errorbar(limits_strat, 
+                      position = position_dodge(0.9),
+                      width = 0.25) +
         labs(x = "Class", y = "Area estimate") +
         ggtitle("Area estimates from map, stratified and simple random sampling designs") +
         scale_fill_manual(name = "Sample design",values=c("#BBBBBB","#333333","#999999"))+
