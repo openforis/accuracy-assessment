@@ -4,7 +4,7 @@
 
 The application functions with R, Rstudio and the Shiny package.
 
-You can clone it and make it run under most platforms (tested under Mac, Linux and Windows)
+You can clone it and run it under most platforms (tested under Mac, Linux and Windows)
 
 However, we encourage users to use it under the https://sepal.io platform, where all utilities and functions will be systematically updated and maintained
 
