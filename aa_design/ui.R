@@ -427,16 +427,14 @@ shinyUI(
                               label = textOutput('basename_export_field'),
                               value = paste("CE_",Sys.Date(),sep="")),
                     
-                    downloadButton('download_CEP', 
-                                   label=textOutput('download_cep_button')),
+                    uiOutput("ui_download_CEP"),
+                    
                     br(),
                     br(),
-                    downloadButton('download_CE', 
-                                   label=textOutput('download_csv_button')),
+                    uiOutput("ui_download_CE"),
                     br(),
                     br(),
-                    downloadButton('download_SHP', 
-                                   label=textOutput('download_shp_button'))
+                    uiOutput("ui_download_SHP")
                     
                     ####################################################################################
                     # End of the box

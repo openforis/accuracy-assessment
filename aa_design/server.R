@@ -373,6 +373,8 @@ shinyServer(
       )
     })
     
+    
+    
     # # The user must select MMU of the map in vector format
     # output$selectUI_mmu_vector <- renderUI({
     #   req(mapType()== "vector_type")
@@ -901,11 +903,12 @@ shinyServer(
     
     ##################################################################################################################################
     ############### Launch final process
-    v <- reactiveValues(launch = FALSE)
+    v <- reactiveValues(launch = FALSE,
+                        once = FALSE)
     
     observeEvent(input$submitResponse,{
       v$launch <- "launched"
-    })
+      })
     
     ##################################################################################################################################
     ############### Generate validation features: points sampling
@@ -1200,7 +1203,7 @@ shinyServer(
                            radius = 5,
                            popup = ~paste(sprintf("Map value: %s", map_code))
           )
-        
+        v$once <- "done"
         m
       #}
       # else{
@@ -1218,6 +1221,7 @@ shinyServer(
       #     m
       #   }
       # }
+      
     })
     
     ##################################################################################################################################
@@ -1593,6 +1597,14 @@ shinyServer(
     })
     
     ##################################################################################################################################
+    ############### Enable to download the CE file (csv)    
+    output$ui_download_CE <- renderUI({
+      req(v$once == "done")
+      downloadButton('download_CE', 
+                     label=textOutput('download_csv_button'))
+    })
+    
+    ##################################################################################################################################
     ############### Enable to download the CE file (csv)
     output$download_CE <- downloadHandler(
       filename = function(){
@@ -1603,6 +1615,15 @@ shinyServer(
     )
     
     ##################################################################################################################################
+    ############### Enable to download the CE file (cep)    
+    output$ui_download_CEP <- renderUI({
+      req(v$once == "done")
+
+      downloadButton('download_CEP', 
+                     label=textOutput('download_cep_button'))
+      })
+    
+    ##################################################################################################################################
     ############### Enable to download the CE file (cep)
     output$download_CEP <- downloadHandler(
       filename = function(){
@@ -1610,17 +1631,33 @@ shinyServer(
       content = function(file) {
         to_export <- CEfile()
         
-        setwd(paste0(outdir(),"/cep_template/"))
+        ############### If user presses DOWNLOAD twice, ensure DOWNLOAD is possible again
+        if(file.exists(paste0(outdir(),"/cep_template/"))){
+        setwd(paste0(outdir(),"/cep_template/"))}
+        else 
+          if(file.exists(paste0(outdir(),"/cep_template_x/"))){
+            setwd(paste0(outdir(),"/cep_template_x/"))
+          }
+        ############### Zip content of CEP_template file
         zip(zipfile=paste0(outdir(),"/",input$basename_CE,".cep"),
             file=Sys.glob(paste0("*")),
             zip=my_zip_tools)
         setwd(rootdir())
         
         file.copy(paste0(outdir(),"/",input$basename_CE,".cep"), file)
-        unlink(paste0(outdir(),"/cep_template/"), recursive = TRUE, force = TRUE)
-        
+        #unlink(paste0(outdir(),"/cep_template/"), recursive = TRUE, force = TRUE)
+        file.rename(paste0(outdir(),"/cep_template/"),paste0(outdir(),"/cep_template_x/"))
       }
     )
+    
+    ##################################################################################################################################
+    ############### Enable to download the CE file (cep)    
+    output$ui_download_SHP <- renderUI({
+      req(v$once == "done")
+
+      downloadButton('download_SHP', 
+                     label=textOutput('download_shp_button'))
+    })
     
     ##################################################################################################################################
     ############### Enable to download the Shapefile file (shp)
