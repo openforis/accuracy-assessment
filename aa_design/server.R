@@ -34,19 +34,19 @@ shinyServer(
     ####################################################################################
     output$chosen_language <- renderPrint({
       if(input$language == "English"){
-      source("text_english.R",local = TRUE,encoding = "UTF-8")
-      #print("en")
+        source("text_english.R",local = TRUE,encoding = "UTF-8")
+        #print("en")
       }
       if(input$language == "Français"){
-      source("text_french.R",local = TRUE,encoding = "UTF-8")
-      #print("fr")
+        source("text_french.R",local = TRUE,encoding = "UTF-8")
+        #print("fr")
       }
       if(input$language == "Español"){
-      source("text_spanish.R",local = TRUE,encoding = "UTF-8")
-      #print("sp")
+        source("text_spanish.R",local = TRUE,encoding = "UTF-8")
+        #print("sp")
       }
     })
-
+    
     ##################################################################################################################################    
     ############### Stop session when browser is exited
     
@@ -187,8 +187,8 @@ shinyServer(
         }
       
       list.files("~/sae_data_test/",pattern="test_map_congo.tif")
-      })
-
+    })
+    
     
     ##################################################################################################################################    
     ## Create checkboxes to enable adding custom area
@@ -304,7 +304,7 @@ shinyServer(
       areacsv <- areacsv[input$value_attribute_raster]
       is.numeric(areacsv[,1])
     })
-   
+    
     # The user can select which column has the area information from the CSV
     output$selectUI_area_raster <- renderUI({
       req(mapType()== "raster_type", input$IsManualAreaRaster)
@@ -323,12 +323,12 @@ shinyServer(
       )
     })
     
-
+    
     # Select the columns of the chosen CSV to display in a table
     output$select_vars_raster <- renderUI({
       
       req(mapType()== "raster_type", input$IsManualAreaRaster)
-
+      
       selectInput('show_vars1', 
                   'Columns to show:', 
                   choices= names(rasterAreaCSV()),
@@ -417,7 +417,7 @@ shinyServer(
       
       validate(
         need(input$file, "Missing input: Please select the map file" 
-             )
+        )
       )
       req(mapType()== "raster_type", input$IsManualAreaRaster != T)
       
@@ -425,13 +425,13 @@ shinyServer(
                         "R" = "r")
       
       if (osSystem == "Windows") { list_calc <- list("R" = "r")}
-
+      
       isolate(
         radioButtons("rasterarea",label="",#"What type of area calculation will you use?",
                      choices = list_calc
         )
       )
-
+      
     })
     
     
@@ -904,11 +904,11 @@ shinyServer(
     ##################################################################################################################################
     ############### Launch final process
     v <- reactiveValues(launch = FALSE,
-                        once = FALSE)
+                        done = FALSE)
     
     observeEvent(input$submitResponse,{
       v$launch <- "launched"
-      })
+    })
     
     ##################################################################################################################################
     ############### Generate validation features: points sampling
@@ -1144,22 +1144,22 @@ shinyServer(
       
       ## If input map is a raster
       #if(mapType()== "raster_type"){
-        withProgress(
-          message= paste('Processing the points'), 
-          value = 0, 
-          {
-            setProgress(value=.1)
-            points <- all_features()
-            map <- lcmap()
-            
-            sp_df<-SpatialPointsDataFrame(
-              coords=points[,c(1,2)],
-              data=data.frame(points[,c(3)]),
-              proj4string=CRS(proj4string(map))
-            )
-            
-            sp_df <- spTransform(sp_df,CRS("+proj=longlat +datum=WGS84"))
-          })
+      withProgress(
+        message= paste('Processing the points'), 
+        value = 0, 
+        {
+          setProgress(value=.1)
+          points <- all_features()
+          map <- lcmap()
+          
+          sp_df<-SpatialPointsDataFrame(
+            coords=points[,c(1,2)],
+            data=data.frame(points[,c(3)]),
+            proj4string=CRS(proj4string(map))
+          )
+          
+          sp_df <- spTransform(sp_df,CRS("+proj=longlat +datum=WGS84"))
+        })
       #}
       
       # ## If input map is a vector
@@ -1193,18 +1193,18 @@ shinyServer(
       
       
       #if(mapType()== "raster_type"){
-        dfa<-spdf()
-        names(dfa)<- 'map_code'
-        factpal <- colorFactor("Spectral", dfa$map_code)
-        m <- leaflet() %>%
-          addTiles() %>%  # Add default OpenStreetMap map tiles
-          addCircleMarkers(data = dfa, color= ~factpal(map_code),
-                           fillOpacity = 0.4,
-                           radius = 5,
-                           popup = ~paste(sprintf("Map value: %s", map_code))
-          )
-        v$once <- "done"
-        m
+      dfa<-spdf()
+      names(dfa)<- 'map_code'
+      factpal <- colorFactor("Spectral", dfa$map_code)
+      m <- leaflet() %>%
+        addTiles() %>%  # Add default OpenStreetMap map tiles
+        addCircleMarkers(data = dfa, color= ~factpal(map_code),
+                         fillOpacity = 0.4,
+                         radius = 5,
+                         popup = ~paste(sprintf("Map value: %s", map_code))
+        )
+      v$done <- "done"
+      m
       #}
       # else{
       #   if(mapType()== "vector_type"){
@@ -1230,7 +1230,7 @@ shinyServer(
     ## Number of groups
     nb_grp <- reactive({
       input$nb_groups
-      })
+    })
     
     ## Interpretation size
     box_size <- reactive({
@@ -1247,6 +1247,7 @@ shinyServer(
     ############### Create the Collect Earth file
     CEfile <- reactive({
       print("Check: CEfile")
+      v$done == "running"
       req(mapType)
       
       ################ Copy the CEP template into the output directory
@@ -1255,22 +1256,22 @@ shinyServer(
       ################ Create a local getDataFiles folder to receive files form getData
       if(!file.exists(paste0(outdir(),"/getDataFiles"))){
         dir.create(file.path(paste0(outdir(), '/getDataFiles')))
-        }
+      }
       
       #if(mapType()== "raster_type"){
-        ################ If the type is raster the sp_df is POINTS, use directly
-        print("Check: CEfile raster_type")
-        print(rootdir())
-        sp_df<-spdf()
-        coord <- sp_df@coords
-        map_code <- sp_df@data[,1]
-        nsamples <- nrow(coord)
-        ID <- matrix(sample(nsamples),nrow = nsamples , ncol =1, dimnames= list(NULL,c("ID")))
-        YCOORD <- coord[,2]
-        XCOORD <- coord[,1]
-        GEOMETRY <- rep("points",nsamples)
-        AREA   <- rep(1,nsamples)
-        
+      ################ If the type is raster the sp_df is POINTS, use directly
+      print("Check: CEfile raster_type")
+      print(rootdir())
+      sp_df<-spdf()
+      coord <- sp_df@coords
+      map_code <- sp_df@data[,1]
+      nsamples <- nrow(coord)
+      ID <- matrix(sample(nsamples),nrow = nsamples , ncol =1, dimnames= list(NULL,c("ID")))
+      YCOORD <- coord[,2]
+      XCOORD <- coord[,1]
+      GEOMETRY <- rep("points",nsamples)
+      AREA   <- rep(1,nsamples)
+      
       #}
       # if(mapType()== "vector_type"){
       #   
@@ -1407,7 +1408,7 @@ shinyServer(
       
       ################ Bind all vectors together in one matrix
       m <- as.data.frame(cbind(ID, YCOORD, XCOORD, ELEVATION, SLOPE, ASPECT, ADM1_NAME, COUNTRY, GEOMETRY,AREA))
-
+      
       
       ################ Add the map code
       m$map_code <- as.character(map_code)
@@ -1429,7 +1430,7 @@ shinyServer(
       
       if(nb_grp > 1)
         ################ Create sub-groups
-        {
+      {
         ## Add a column to the data.frame, with index from 1 to the number of groups. repeat to the end of dataset
         pts$group <- rep_len(1:nb_grp,length.out=nrow(pts))
         pts <- pts[sample(nrow(pts)),]
@@ -1580,17 +1581,18 @@ shinyServer(
       box_size <- as.numeric(box_size())
       dist_btw_pts <- floor(box_size / 3)
       dist_to_bnd  <- floor((box_size - 2 * dist_btw_pts)/2)
-        
+      
       properties    <- readLines("www/cep_template/template_files/template_project_definition.properties")
       properties[6] <- paste0("distance_between_sample_points=",dist_btw_pts)
       properties[7] <- paste0("csv=${project_path}/pts_",gsub(" ","_",basename),".csv")
       properties[11]<- paste0("distance_to_plot_boundaries=",dist_to_bnd)
       properties[12]<- paste0("survey_name=sae_",gsub(" ","_",basename)) 
-
+      
       writeLines(properties,paste0(outdir(),"/cep_template/project_definition.properties"))
       
-
+      
       ################ The final sampling design
+      v$done == "done"
       m
       
       
@@ -1599,7 +1601,7 @@ shinyServer(
     ##################################################################################################################################
     ############### Enable to download the CE file (csv)    
     output$ui_download_CE <- renderUI({
-      req(v$once == "done")
+      req(v$done == "done")
       downloadButton('download_CE', 
                      label=textOutput('download_csv_button'))
     })
@@ -1617,11 +1619,11 @@ shinyServer(
     ##################################################################################################################################
     ############### Enable to download the CE file (cep)    
     output$ui_download_CEP <- renderUI({
-      req(v$once == "done")
-
+      req(v$done == "done")
+      
       downloadButton('download_CEP', 
                      label=textOutput('download_cep_button'))
-      })
+    })
     
     ##################################################################################################################################
     ############### Enable to download the CE file (cep)
@@ -1633,7 +1635,7 @@ shinyServer(
         
         ############### If user presses DOWNLOAD twice, ensure DOWNLOAD is possible again
         if(file.exists(paste0(outdir(),"/cep_template/"))){
-        setwd(paste0(outdir(),"/cep_template/"))}
+          setwd(paste0(outdir(),"/cep_template/"))}
         else 
           if(file.exists(paste0(outdir(),"/cep_template_x/"))){
             setwd(paste0(outdir(),"/cep_template_x/"))
@@ -1653,8 +1655,8 @@ shinyServer(
     ##################################################################################################################################
     ############### Enable to download the CE file (cep)    
     output$ui_download_SHP <- renderUI({
-      req(v$once == "done")
-
+      req(v$done == "done")
+      
       downloadButton('download_SHP', 
                      label=textOutput('download_shp_button'))
     })
@@ -1675,7 +1677,7 @@ shinyServer(
             files=Sys.glob(file.path(outdir(),paste0("shpfile_",input$basename_CE,"*"))),
             extras="-j",
             zip=my_zip_tools
-            )
+        )
         
         file.copy(paste0(outdir(),"/", input$basename_CE,".zip"), file)
         file.remove(paste0(outdir(),"/", input$basename_CE,".zip"))
