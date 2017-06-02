@@ -1,4 +1,4 @@
-#### Stamp date : **2017-06-01**
+#### Stamp date : **2017-06-02**
 
 ## Stratified sampling tool for area estimation
 
@@ -24,10 +24,14 @@ Enter the platform @ https://sepal.io and you will find the tools under PROCESS
 ## Configuration for desktop version
 The following programs are need for the application to run
 
+
 ### R from www.r-project.org
 
 
 ### Rstudio from www.rstudio.org
+For the first time you run the application, you have to install the Shiny package
+> install.packages("shiny")
+
 Several packages are needed for the application to run, they will be downloaded if missing from your libraries (may take long the first time)
  
 
@@ -35,19 +39,13 @@ Several packages are needed for the application to run, they will be downloaded 
 
 > Install Rtools to the C drive ('C:\Rtools')
 
-## Start application
-
-Launch the application with the following commands in R:
-
-For the first time you have to install the Shiny package
-
-> install.packages("shiny")
-
+## Start application (desktop version on desktop)
 You can clone the application and run it directly from your machine (one download)
 
 It runs as any Shiny rstudio application
 
-Or you can call the library and launch the application directly from GITHUB
+## Start application (github version on desktop)
+If you don't want to clone the application, you can run directly from the GITHUB
 
 Only one application can run at a time
 
