@@ -1206,28 +1206,33 @@ shinyServer(function(input, output, session) {
           # all_features <- disaggregate(out_list)
           
           ################## Export sampling design as points
-          i = 1
-          polys   <- shp[shp@data[, class_attr] == legend[i], ]
-          pts     <-
-            spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
-                       "stratified")
-          att_vec <- rep(legend[i], nrow(pts@coords))
-          df_pts  <- data.frame(cbind(pts@coords, att_vec))
-          
-          for (i in 2:length(legend)) {
-            tryCatch({
-              polys   <- shp[shp@data[, class_attr] == legend[i], ]
-              pts     <-
-                spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
-                           "stratified")
-              att_vec <- rep(legend[i], nrow(pts@coords))
-              tmp_pts <- data.frame(cbind(pts@coords, att_vec))
-              df_pts  <- rbind(df_pts, tmp_pts)
-            }, error = function(e) {
-              cat("No points to sample in this class \n")
-            })
-            
-          }
+          withProgress(message = 'Generating sampling points ',
+                       value = 0,
+                       {
+                         setProgress(value = .1)
+                         i = 1
+                         polys   <- shp[shp@data[, class_attr] == legend[i], ]
+                         pts     <-
+                           spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
+                                      "stratified")
+                         att_vec <- rep(legend[i], nrow(pts@coords))
+                         df_pts  <- data.frame(cbind(pts@coords, att_vec))
+                         
+                         for (i in 2:length(legend)) {
+                           tryCatch({
+                             polys   <- shp[shp@data[, class_attr] == legend[i], ]
+                             pts     <-
+                               spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
+                                          "stratified")
+                             att_vec <- rep(legend[i], nrow(pts@coords))
+                             tmp_pts <- data.frame(cbind(pts@coords, att_vec))
+                             df_pts  <- rbind(df_pts, tmp_pts)
+                           }, error = function(e) {
+                             cat("No points to sample in this class \n")
+                           })
+                           
+                         }
+                       })
           
           df_pts[, 1] <- as.numeric(df_pts[, 1])
           df_pts[, 2] <- as.numeric(df_pts[, 2])
@@ -1909,13 +1914,8 @@ shinyServer(function(input, output, session) {
       to_export <- CEfile()
       
       ############### If user presses DOWNLOAD twice, ensure DOWNLOAD is possible again
-      if (file.exists(paste0(outdir(), "/cep_template/"))) {
-        setwd(paste0(outdir(), "/cep_template/"))
-      }
-      else
-        if (file.exists(paste0(outdir(), "/cep_template_x/"))) {
-          setwd(paste0(outdir(), "/cep_template_x/"))
-        }
+      setwd(paste0(outdir(), "/cep_template/"))
+      
       ############### Zip content of CEP_template file
       zip(
         zipfile = paste0(outdir(), "/", input$basename_CE, ".cep"),
