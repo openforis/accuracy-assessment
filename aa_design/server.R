@@ -1914,7 +1914,18 @@ shinyServer(function(input, output, session) {
       to_export <- CEfile()
       
       ############### If user presses DOWNLOAD twice, ensure DOWNLOAD is possible again
-      setwd(paste0(outdir(), "/cep_template/"))
+      tryCatch({
+        setwd(paste0(outdir(), "/cep_template/"))
+      }, error = function(e) {
+        setwd(paste0(outdir(), "/cep_template_x/"))
+        cat("Redownloading the same folders \n")
+      })
+      
+      tryCatch({
+        unlink(paste0(outdir(), "/", input$basename_CE, ".cep"))
+      }, error = function(e) {
+        cat("No preexisting CEP file \n")
+      })
       
       ############### Zip content of CEP_template file
       zip(
@@ -1928,6 +1939,7 @@ shinyServer(function(input, output, session) {
       #unlink(paste0(outdir(),"/cep_template/"), recursive = TRUE, force = TRUE)
       file.rename(paste0(outdir(), "/cep_template/"),
                   paste0(outdir(), "/cep_template_x/"))
+      unlink(paste0(outdir(),"/cep_template/"), recursive = TRUE, force = TRUE)
     }
   )
   
