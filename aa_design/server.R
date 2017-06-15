@@ -1256,7 +1256,7 @@ shinyServer(function(input, output, session) {
         "Select the classes to include with high and low confidence in tab 3 'Classes to include'"
       )
     )
-    
+     
     ## If input map is a raster
     #if(mapType()== "raster_type"){
     withProgress(message = paste('Processing the points'),
