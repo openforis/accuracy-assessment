@@ -948,10 +948,8 @@ shinyServer(function(input, output, session) {
   # })
   
   ##################################################################################################################################
-  ############### Display the results of sampling within the UI
-  output$sampling_table <- renderTable({
-    print('Check: output$sampling_table')
-    
+  ############### Determine whether final sampling is automatic or manual
+  final_sampling <- reactive({
     if (input$IsManualSampling == T) {
       # validate(
       #   need(input$ManualSamplingFile, "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'")
@@ -961,17 +959,22 @@ shinyServer(function(input, output, session) {
         read.csv(paste(outdir(), "/", "manual_sampling.csv", sep = ""),
                  header = T)
       #df<-read.csv(paste(outdir(),"/",input$ManualSamplingFile$name,sep=""),header = T)
-      
-      
-      
-    } else{
+      } else{
       df <- strat_sample()
       df <- df[, c(1, 2, 3, 8, 9, 12, 13)]
     }
+    
+    })
+  
+  ##################################################################################################################################
+  ############### Display the results of sampling within the UI
+  output$sampling_table <- renderTable({
+    print('Check: output$sampling_table')
+    df <- final_sampling()
     df <- df[, c(3, 5, 6, 7)]
     names(df) <- c('Map Class', 'Proportional', 'Adjusted', 'Final')
     df
-  },
+   },
   include.rownames = FALSE, digits = 0)
   
   ##################################################################################################################################
@@ -1013,21 +1016,11 @@ shinyServer(function(input, output, session) {
         print("Check: all_features raster type")
         
         if (input$IsManualSampling == T) {
-          validate(
-            need(
-              input$ManualSamplingFile,
-              "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'"
-            )
-          )
-          rp <-
-            read.csv(paste0(outdir(), "/", input$ManualSamplingFile$name),
-                     header = T)
+          rp <- final_sampling()
         }
         map <- lcmap()
         
         beginCluster()
-        
-        
         
         ############### Generate 10x times the number of points from overall sample
         withProgress(message = 'Generating random points ',
@@ -1116,19 +1109,10 @@ shinyServer(function(input, output, session) {
         if (mapType() == "vector_type") {
           print("Check: all_features vector type")
           
-          
-          
           if (input$IsManualSampling == T) {
-            validate(
-              need(
-                input$ManualSamplingFile,
-                "Missing input: Select a file with the manual sampling points before continuing or unselect 'Do you want to modify the sampling size?'"
-              )
-            )
-            rp <-
-              read.csv(paste0(outdir(), "/", input$ManualSamplingFile$name),
-                       header = T)
+            rp <- final_sampling()
           }
+          
           else{
             rp <- strat_sample()
           }
