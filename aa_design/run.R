@@ -1,2 +1,3 @@
 require(shiny)
-runApp('aa_design/',launch.browser = T)
+dir <- getwd()
+runApp(paste0(dir,'/aa_design/'),launch.browser = T)
