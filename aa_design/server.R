@@ -1570,7 +1570,7 @@ shinyServer(function(input, output, session) {
     
     ################ Add the map code
     m$map_code <- as.character(map_code)
-    
+    m[is.na(m)]<-0
     names(m) <-
       c(
         "id",
