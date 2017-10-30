@@ -111,6 +111,7 @@ shinyServer(function(input, output, session) {
       'rst',
       'jpeg2000',
       'grd',
+      'vrt',
       'hdf',
       'shp',
       'sqlite'
@@ -128,7 +129,7 @@ shinyServer(function(input, output, session) {
     
     req(input$file)
     raster_type <-
-      c('tif', 'img', 'pix', 'rst', 'jpeg2000', 'grd', 'hdf')
+      c('tif', 'img', 'pix', 'rst', 'jpeg2000', 'grd', 'hdf','vrt')
     vector_type <- c('shp', 'sqlite')
     
     df <- parseFilePaths(volumes, input$file)
