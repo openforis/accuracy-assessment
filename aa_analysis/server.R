@@ -340,8 +340,11 @@ shinyServer(function(input, output, session) {
       )
     )
     df_i_map <- df_i_map()
+    df_i_map[, input$selectX] <- as.numeric(df_i_map[, input$selectX])
+    df_i_map[, input$selectY] <- as.numeric(df_i_map[, input$selectY])
+    
     dfa <- SpatialPointsDataFrame(
-      coords = as.matrix(df_i_map[, c(input$selectX, input$selectY)]),
+      coords = df_i_map[, c(input$selectX, input$selectY)],
       data = df_i_map,
       proj4string = CRS("+proj=longlat +datum=WGS84"),
       match.ID = F
@@ -534,6 +537,8 @@ shinyServer(function(input, output, session) {
   #################################################################################################
   accuracy_all <- reactive({
     matrix <- matrix_all()
+    matrix[is.na(matrix)] <- 0
+    
     if (input$filter_presence == T) {
       df <- df_f()
     } else{
@@ -634,7 +639,7 @@ shinyServer(function(input, output, session) {
         confusion[i, ]$strRS_confidence_interval      <-
           confusion[i, ]$strRS_standard_error * civalue
         confusion[i, ]$number_samples                 <-
-          table(df[, input$reference_data])[i]
+          sum(matrix[,i])
         confusion[i, ]$simRS_weight                   <-
           confusion$number_samples[i] / nrow(df)
         confusion[i, ]$simRS_area_estimate            <-
