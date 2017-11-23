@@ -148,7 +148,7 @@ shinyUI(
                              a(href="http://reddcr.go.cr/sites/default/files/centro-de-documentacion/olofsson_et_al._2014_-_good_practices_for_estimating_area_and_assessing_accuracy_of_land_change.pdf"," Olofsson et al. (2014): Good practices for estimating area and assessing accuracy of land change",target="_blank"),
                              br(),
                              br(),
-                             img(src="thumbnails/AA_cover.PNG", height = 250, width = 200),
+                             img(src="thumbnails/AA_cover.jpg", height = 250, width = 200),
                              a(href="http://www.fao.org/3/a-i5601e.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank")
                     )
                   )
