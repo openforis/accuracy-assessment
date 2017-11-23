@@ -1534,8 +1534,8 @@ shinyServer(function(input, output, session) {
                                  path = paste0(outdir(), "/getDataFiles"),
                                  country = country)
                      })
-        slope  <- terrain(elevation, opt = "slope")
-        aspect <- terrain(elevation, opt = "aspect")
+        slope  <- tan(terrain(elevation, opt = "slope", unit='radians'))
+        aspect <- terrain(elevation, opt = "aspect", unit='radians')
         
         ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
         SLOPE     <- extract(slope,     cbind(XCOORD, YCOORD))
