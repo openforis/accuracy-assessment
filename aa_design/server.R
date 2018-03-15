@@ -191,8 +191,9 @@ shinyServer(function(input, output, session) {
                    value = 0,
                    {
                      system(
-                       "wget -O ~/sae_data_test/test_map_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif"
-                     )
+                       #"wget -O ~/sae_data_test/test_map_congo.tif https://github.com/openforis/data_test/raw/master/aa_test_congo.tif"
+                       "wget -O ~/sae_data_test/dd_map_0414_gt30_option1.tif https://github.com/openforis/data_test/raw/master/dd_map_0414_gt30_option1.tif"
+                       )
                    })
     } else
       if (osSystem == "Windows") {
