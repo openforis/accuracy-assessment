@@ -854,7 +854,7 @@ shinyServer(function(input, output, session) {
       )
     
     dfa.plot <- cbind(melt_area, melt_ci)
-    dfa.plot <- dfa.plot[, !duplicated(colnames(dfa.plot), fromLast = TRUE)] 
+    dfa.plot <- dfa.plot[, !duplicated(colnames(dfa.plot))] 
     
     ##################################################################################################
     ################ Set combined levels (design_type X area_vs_CI)
