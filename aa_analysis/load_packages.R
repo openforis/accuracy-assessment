@@ -33,4 +33,4 @@ packages(reshape2)
 ## Packages for graphics and interactive maps
 packages(ggplot2)
 packages(leaflet)
-packages(RColorBrewer)
+# packages(RColorBrewer)
