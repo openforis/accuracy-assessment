@@ -2,7 +2,7 @@
 ####################################################################################################
 ## Prepare data for time series clipping
 ## Contact remi.dannunzio@fao.org
-## 2016/06/20 
+## 2018/08/24
 ####################################################################################################
 ####################################################################################################
 options(stringsAsFactors=FALSE)
@@ -15,21 +15,15 @@ library(plyr)
 library(foreign)
 
 
-#######################################################################
-##############################     SETUP YOUR DATA 
-#######################################################################
 
-## Set your working directory
-setwd("INSERT-A-WORKING-DIRECTORY-HERE")
+pts <- read.csv(paste0(sae_dir,point_file))
 
-## Read the datafile and setup the correct names for the variables
-pts <- read.csv("points_file.csv")
+## Check that names match
 names(pts)
-
-map_code <- "map_code"
-point_id <- "ID"
-xcoord   <- "XCOORD"
-ycoord   <- "YCOORD"
+map_code <- "map_class"
+point_id <- "id"
+xcoord   <- "XCoordinate"
+ycoord   <- "YCoordinate"
 
 
 ##############################     Perform some checks
@@ -75,7 +69,7 @@ proj4string(spdf)<-CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs8
 head(spdf)
 
 #################### Export as shapefile or KML
-writeOGR(obj=spdf,dsn="pts_2km_boxes.kml",layer="pts_2km_boxes",driver="KML",overwrite_layer = T)
+writeOGR(obj=spdf,dsn=paste0(sae_dir,"pts_2km_boxes.kml"),layer="pts_2km_boxes",driver="KML",overwrite_layer = T)
 #writeOGR(obj=spdf,dsn="pts_2km_boxes.shp",layer="pts_2km_boxes",driver="ESRI Shapefile",overwrite_layer = T)
 
 
@@ -119,8 +113,8 @@ nrow(sqr_df_selected@data)
 #######################################################################
 ### PART III: Export as KML
 #######################################################################
-base_sqr <- paste("download_area_grid_lsat",sep="")
-writeOGR(obj=sqr_df_selected,dsn=paste(base_sqr,".kml",sep=""),layer=base_sqr,driver = "KML",overwrite_layer = T)
+base_sqr <- "download_area_grid_lsat"
+writeOGR(obj=sqr_df_selected,dsn=paste0(sae_dir,base_sqr,".kml"),layer=base_sqr,driver = "KML",overwrite_layer = T)
 
 
 #######################################################################
@@ -163,34 +157,6 @@ nrow(sqr_df_selected@data)
 #######################################################################
 ### PART V: Export as KML
 #######################################################################
-base_sqr <- paste("download_area_grid_stnl",sep="")
-writeOGR(obj=sqr_df_selected,dsn=paste(base_sqr,".kml",sep=""),layer=base_sqr,driver = "KML",overwrite_layer = T)
-
-
-#######################################################################
-### PART VI: Distribute points by group
-#######################################################################
-
-## Set number of groups
-nb_grp <- 6
-
-## Add a column to the data.frame, with index from 1 to the number of groups. repeat to the end of dataset
-pts$group <- rep_len(1:nb_grp,length.out=nrow(pts))
-
-## Check number of class per group
-table(pts$group,pts$ADM1_CODE)
-
-## Loop through each group
-for(i in 1:nb_grp){
-  ## create sub dataset fro group i
-  pts_grp <- pts[pts$group == i,]
-  
-  ## Sort by ID
-  pts_grp <- arrange(pts_grp,tID)
-  
-  ## Export as csv file
-  write.csv(pts_grp,paste("generator_CEP/pts_grp_",i,".csv",sep=""),row.names=F)
-} ## end of Loop
-
-
+base_sqr <- "download_area_grid_stnl"
+writeOGR(obj=sqr_df_selected,dsn=paste0(sae_dir,base_sqr,".kml"),layer=base_sqr,driver = "KML",overwrite_layer = T)
 

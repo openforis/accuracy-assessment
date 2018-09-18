@@ -1,8 +1,8 @@
 ####################################################################################################
 ####################################################################################################
-## Clip time series to desired boxes: Landsat time series, Sentinel, NDVI trend 
+## Clip time series to desired boxes: Landsat time series, Sentinel, RapidEye, Spot, NDVI+NDWI trend 
 ## Contact remi.dannunzio@fao.org
-## 2017/11/12 
+## 2017/09/11 
 ####################################################################################################
 ####################################################################################################
 
@@ -25,52 +25,54 @@ library(rgeos)
 ##########################################################################################################################################################################
 
 ############################################################
-#################### SET WORKING ENVIRONMENT
-rootdir <- "/PATH/TO/YOUR_FILEDIRECTORY_HERE"
-setwd(rootdir)
 
 ############################################################
 #################### SET PARAMETERS
 
 ## Setup the number of snippets to generate
-how_many <- 10 
+how_many <- 10
 
 #### Name of the directory where your Landsat data is
-lsat_dir <- paste0(rootdir,"time_series_image_dir/landsat/") ### -> CHANGE AS NEEDED
+lsat_dir <- paste0(data_dir,"time_series_image_dir/landsat/")
 
 #### Name of the directory where your Sentinel data is
-stnl_dir <- paste0(rootdir,"time_series_image_dir/sentinel/") ### -> CHANGE AS NEEDED
+stnl_dir <- paste0(data_dir,"time_series_image_dir/sentinel/")
+
 
 #### Name of the directory where your data will be stored in output
-dest_dir <- paste0(rootdir,"clip_time_series_test/") ### -> CHANGE AS NEEDED
+dest_dir <- paste0(data_dir,"time_series_image_dir/clip_time_series/")
 
+#### NAME MUST IN FORMAT paste0(lsat_basename,"YYYY_bbx.tif")
+lsat_basename <- "median_roi_clip_lsat_"
+stnl_basename <- "median_roi_clip_s2_"
 
-## The export image will be in a 4 (height) x 6 (width) grid box
-dim_v_grid <- 4 
-dim_h_grid <- 7 
+## The export image will be in a 3 (height) x 6 (width) grid box
+dim_v_grid <- 3
+dim_h_grid <- 7
 
 ## setup year start and end for landsat 
-yr_str_lsat <- 1995 ### -> CHANGE AS NEEDED
-yr_end_lsat <- 2015 ### -> CHANGE AS NEEDED
+yr_str_lsat <- 2001
+yr_end_lsat <- 2015
 
 ## setup year start and end for sentinel
 yr_str_stnl <- 2016
 yr_end_stnl <- 2017
 
 ## setup the visualisation parameters for the interpretation box size. in meters
-interpretation_box_size <- 15
+interpretation_box_size <- 30
 
 ## setup the visualisation parameters for the level of zoom. in meters
-outside_box_size        <- 750
+outside_box_size        <- 1500
 
 ## position in landsat archive name of the "bounding box". Example: "median_hul_clip_lsat_1995_" == 27
-bb_pos_lsat <- 27
+bb_pos_lsat <- nchar(lsat_basename)+6
 
 ## position in sentinel archive name of the "bounding box". Example: "median_hul_clip_s2_1995_" == 25
-bb_pos_stnl <- 25
+bb_pos_stnl <- nchar(stnl_basename)+6
 
-## Read the datafile 
-pts <- read.csv("CHANGE-TO-POINT-FILE.CSV") ### -> CHANGE AS NEEDED
+## Read the datafile and setup the correct names for the variables
+pts <- read.csv(paste0(sae_dir,point_file))  #####  CHANGE TO MY VALUE HERE
+
 head(pts)
 names(pts)
 
@@ -91,7 +93,7 @@ ycoord   <- "YCoordinate"
 ##########################################################################################################################################################################
 ################## SCRIPT AUTOMATICALLY RUNS FROM HERE
 ##########################################################################################################################################################################
-dir.create(dest_dir)
+dir.create(dest_dir,showWarnings = F)
 #proj_utm <- proj4string(raster(paste0(rpdy_dir,list.files(rpdy_dir,pattern=glob2rx("*.tif"))[1])))
 dev.off()
 
@@ -103,12 +105,9 @@ pt_df_geo <- SpatialPointsDataFrame(
 )
 
 
-################# Create spatial point file in UTM
-# pt_df_utm <- spTransform(pt_df_geo,proj_utm)
-
 
 ################ Create the index of the Landsat tiles
-list_lsat <- list.files(lsat_dir,pattern=paste0("lsat_",yr_str_lsat))
+list_lsat <- list.files(lsat_dir,pattern=paste0(yr_str_lsat))
 lp <- list()
 
 for(file in list_lsat){
@@ -133,12 +132,12 @@ lsat_idx <-SpatialPolygonsDataFrame(
 head(lsat_idx)
 names(lsat_idx@data) <- "bb"
 lsat_idx@data$bb <- substr(lsat_idx@data$bb,bb_pos_lsat,(nchar(lsat_idx@data$bb)-4))
-lsat_idx@data
-plot(lsat_idx)
+head(lsat_idx@data)
+#plot(lsat_idx)
 
 ################ Create the index of the Sentinel tiles
-list_s2 <- list.files(stnl_dir,pattern=paste0("s2_",yr_str_stnl))
-lp<-list()
+list_s2 <- list.files(stnl_dir,pattern=paste0("s2_"))
+lp <- list()
 
 for(file in list_s2){
   raster <- raster(paste(stnl_dir,file,sep=""))
@@ -152,7 +151,7 @@ for(file in list_s2){
   lp <- append(lp,list(poly))
 }
 
-## Transform the list into a SPDF  SEGUNDO ERROR
+## Transform the list into a SPDF
 stnl_idx <-SpatialPolygonsDataFrame(
   SpatialPolygons(lp,1:length(lp)), 
   data.frame(list_s2), 
@@ -161,11 +160,13 @@ stnl_idx <-SpatialPolygonsDataFrame(
 
 names(stnl_idx@data) <- "bb"
 stnl_idx@data$bb <- substr(stnl_idx@data$bb,bb_pos_stnl,(nchar(stnl_idx@data$bb)-4))
-stnl_idx@data
-plot(stnl_idx,add=T)
+head(stnl_idx@data)
+#plot(stnl_idx,add=T)
 
 ################# Project both into Lat-Lon EPSG:4326
-proj4string(pt_df_geo) <- proj4string(lsat_idx) <- proj4string(stnl_idx)  <- CRS("+init=epsg:4326")
+proj4string(pt_df_geo) <- CRS("+init=epsg:4326")
+proj4string(lsat_idx)  <- CRS("+init=epsg:4326")
+proj4string(stnl_idx)  <- CRS("+init=epsg:4326")
 
 
 
@@ -178,7 +179,7 @@ pts<-cbind(pts,pts_stnl$bb)
 
 ################# Create the outside boundaries box (1km // twice 500m from center of box)
 lp<-list()
-ysize <- outside_box_size/111321
+ysize <- outside_box_size/111321/2
 
 ## Loop through all points
 for(i in 1:nrow(pts)){
@@ -201,13 +202,9 @@ outbox<-SpatialPolygonsDataFrame(
 
 proj4string(outbox) <- CRS("+init=epsg:4326")
 
-## Transform the list into a SPDF
-#outbox_utm <- spTransform(outbox,proj_utm)
-
-
 ################# Create the 0.5 ha box (70/2 = 35m shift from center)
 lp<-list()
-ysize <- interpretation_box_size/111321
+ysize <- interpretation_box_size/111321/2
 
 ## Loop through all points
 for(i in 1:nrow(pts)){
@@ -229,10 +226,7 @@ inbox<-SpatialPolygonsDataFrame(
 )
 
 proj4string(inbox) <- CRS("+init=epsg:4326")
-#inbox_utm <- spTransform(inbox,proj_utm)
-
 proj4string(inbox) <- proj4string(outbox) <- CRS("+init=epsg:4326")
-#proj4string(inbox_utm) <- proj4string(outbox_utm) <- proj_utm
 
 
 ################ Create the list of ID's to process
@@ -255,7 +249,7 @@ head(pts)
 
 ######################################################################################################
 ################# Loop through the IDs
-##    example.... the_id = "1046"
+##    example.... the_id = "18"
 head(pts)
 dev.off()
 
@@ -268,13 +262,15 @@ for(the_id in listodo[1:to_go]){
   ####################################################################
   ################# Open the image output file
   
-  out_name <- paste(dest_dir,"pt_",the_id,".png",sep="")
-  png(file=  out_name,
-      width= 400*dim_h_grid,
-      height=400*dim_v_grid)
+
   
   ## Check which point is being processed
   (the_pt <- pts[pts[,point_id]==the_id,])
+  
+  out_name <- paste(dest_dir,"pt_",the_id,"_class",the_pt$map_class,".png",sep="")
+  png(file=  out_name,
+      width= 400*dim_h_grid,
+      height=400*dim_v_grid)
   
   ####################################################################
   ##### Delimitations of the plot in geographic coordinates
@@ -287,21 +283,14 @@ for(the_id in listodo[1:to_go]){
     one_poly@bbox["y","min"]-1/111321,
     one_poly@bbox["y","max"]+1/111321)
   
-  ####################################################################
-  ##### Delimitations of the plot in UTM coordinates
-  #one_poly_utm <- outbox_utm[outbox_utm@data[,point_id]==the_id,]
-  #in_poly_utm  <-   inbox_utm[inbox_utm@data[,point_id]==the_id,]
-  #
-  # margins_utm <- extent(
-  #   one_poly_utm@bbox["x","min"]-100,
-  #   one_poly_utm@bbox["x","max"]+100,
-  #   one_poly_utm@bbox["y","min"]-100,
-  #   one_poly_utm@bbox["y","max"]+100)
-  # 
-  ####################################################################
+  
+  ###################################################################
   ################# Find the corresponding indexes
-  lsat_bbox <- the_pt[,"pts_lsat$bb"]
-  stnl_bbox <- the_pt[,"pts_stnl$bb"]
+  tryCatch({lsat_bbox <- the_pt[,"pts_lsat$bb"]},
+           error=function(e){print(paste0("no image available"))})
+  
+  tryCatch({stnl_bbox <- the_pt[,"pts_stnl$bb"]},
+           error=function(e){print(paste0("no image available"))})
   
   ################# Set the layout
   #dev.off()
@@ -324,7 +313,7 @@ for(the_id in listodo[1:to_go]){
     
     plot(margins,axes=F,xlab="",ylab="")
     tryCatch({
-      lsat <- brick(paste(lsat_dir,"median_hul_clip_lsat_",year,"_",lsat_bbox,".tif",sep=""))
+      lsat <- brick(paste(lsat_dir,lsat_basename,year,"_",lsat_bbox,".tif",sep=""))
       lsat_clip<-crop(lsat,one_poly)
       
       swir <- raster(lsat_clip,4)
@@ -343,12 +332,12 @@ for(the_id in listodo[1:to_go]){
       i <- i + 1
       
       #Plot natural colours composite (NIR-RED-GREEN == 4-3-2 in L7 nomenclature)
-      stack <- stack(swir,nir,red)
+      stack <- stack(nir,red,green)
       plotRGB(stack,stretch="hist",add=T)
       #plot(ndvi,add=T)
     },error=function(e){print(paste0("no image available in ",year," for ",lsat_bbox))})
     
-    lines(in_poly,col="red",lwd=2)
+    lines(in_poly,col="yellow",lwd=2)
     rect(
       xleft =   margins@xmin, 
       ybottom = margins@ymax - outside_box_size/10/111320, 
@@ -361,8 +350,6 @@ for(the_id in listodo[1:to_go]){
     
   }
   
-  
-  
   ####################################################################
   ################# Clip the sentinel tile 
   for(year in c(yr_str_stnl:yr_end_stnl)){
@@ -370,7 +357,7 @@ for(the_id in listodo[1:to_go]){
     print(year)
     the_pt
     tryCatch({
-      stnl <- brick(paste(stnl_dir,"median_hul_clip_s2_",year,"_",stnl_bbox,".tif",sep=""))
+      stnl <- brick(paste(stnl_dir,stnl_basename,year,"_",stnl_bbox,".tif",sep=""))
       stnl_clip<-crop(stnl,one_poly)
       
       blu <- raster(stnl_clip,1)
@@ -390,13 +377,13 @@ for(the_id in listodo[1:to_go]){
       
       stackNat <- stack(red,grn,blu)
       #stackVeg <- stack(nir,ndvi,grn)
-      #stackNIR <- stack(nir,red,grn)
+      stackNIR <- stack(nir,red,grn)
       
-      plotRGB(stackNat,stretch="hist",add=T)
+      plotRGB(stackNIR,stretch="hist",add=T)
       
       
-    },error=function(e){print(paste0("no image available in ",year," for ",stnl_bbox))})
-    lines(in_poly,col="red",lwd=2)
+    },error=function(e){print(paste0("no image available in ",year," for sentinel"))})
+    lines(in_poly,col="yellow",lwd=2)
     
     rect(
       xleft =   margins@xmin, 
