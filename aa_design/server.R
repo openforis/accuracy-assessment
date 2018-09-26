@@ -1201,7 +1201,7 @@ shinyServer(function(input, output, session) {
                          polys   <- shp[shp@data[, class_attr] == legend[i], ]
                          pts     <-
                            spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
-                                      "stratified")
+                                      "random")
                          att_vec <- rep(legend[i], nrow(pts@coords))
                          df_pts  <- data.frame(cbind(pts@coords, att_vec))
                          
@@ -1210,7 +1210,7 @@ shinyServer(function(input, output, session) {
                              polys   <- shp[shp@data[, class_attr] == legend[i], ]
                              pts     <-
                                spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
-                                          "stratified")
+                                          "random", iter=100)
                              att_vec <- rep(legend[i], nrow(pts@coords))
                              tmp_pts <- data.frame(cbind(pts@coords, att_vec))
                              df_pts  <- rbind(df_pts, tmp_pts)
