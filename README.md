@@ -22,7 +22,7 @@ Enter the platform @ https://sepal.io and you will find the tools under PROCESS
 
 
 ## Configuration for desktop version
-The following programs are need for the application to run
+The following programs are needed for the application to run
 
 
 ### R from www.r-project.org

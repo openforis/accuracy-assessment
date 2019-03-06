@@ -1515,10 +1515,10 @@ shinyServer(function(input, output, session) {
                        proj4string(ptdf) <- proj4string(adm)
                        adm1 <- over(ptdf, adm)
                        
-                       ADM1_NAME <- adm1[, 6]
+                       ADM1_NAME <- adm1[, 4]
                        ADM1_NAME <-
                          str_replace_all(ADM1_NAME, "[[:punct:]]", "")
-                       COUNTRY <- adm1[, 4]
+                       COUNTRY <- adm1[, 2]
                        
                      })
       }, error = function(e) {
@@ -1863,7 +1863,18 @@ shinyServer(function(input, output, session) {
   })
   
   ##################################################################################################################################
-  ############### Enable to download the CE file (csv)
+  ############### Convert to CEO format  
+  ceo_file <- reactive({
+    req(v$done == "done")
+    req(CEfile())
+    ce <- CEfile()
+    ceo <- ce[,c("XCoordinate","YCoordinate","id","map_class","elevation","slope","aspect","region","country")]
+    names(ceo) <- c("LONGITUDE","LATITUDE","PLOTID","map_class","elevation","slope","aspect","region","country")
+    ceo
+  })
+  
+  ##################################################################################################################################
+  ############### Button to download the CE file (csv)
   output$ui_download_CE <- renderUI({
     req(v$done == "done")
     downloadButton('download_CE',
@@ -1883,7 +1894,28 @@ shinyServer(function(input, output, session) {
   )
   
   ##################################################################################################################################
-  ############### Enable to download the CE file (cep)
+  ############### Button to download the CEO file (csv)
+  output$ui_download_CEO <- renderUI({
+    req(v$done == "done")
+    req(ceo_file())
+    downloadButton('download_CEO',
+                   label = textOutput('download_ceo_button'))
+  })
+  
+  ##################################################################################################################################
+  ############### Enable to download the CEO file (csv)
+  output$download_CEO <- downloadHandler(
+    filename = function() {
+      paste(input$basename_CE, "_ceo.csv", sep = "")
+    },
+    content  = function(xxx) {
+      to_export <- ceo_file()
+      write.csv(to_export,xxx, row.names = FALSE)
+    }
+  )
+  
+  ##################################################################################################################################
+  ############### Button to download the CE file (cep)
   output$ui_download_CEP <- renderUI({
     req(v$done == "done")
     

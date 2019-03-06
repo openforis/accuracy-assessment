@@ -427,12 +427,11 @@ shinyUI(
                               label = textOutput('basename_export_field'),
                               value = paste("CE_",Sys.Date(),sep="")),
                     
-                    uiOutput("ui_download_CEP"),
-                    
+                    uiOutput("ui_download_CEO"),
                     br(),
+                    uiOutput("ui_download_CEP"),
                     br(),
                     uiOutput("ui_download_CE"),
-                    br(),
                     br(),
                     uiOutput("ui_download_SHP")
                     
