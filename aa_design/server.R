@@ -27,6 +27,29 @@
 ####### Start Server
 
 shinyServer(function(input, output, session) {
+
+  observeEvent(input$jsEvent, {
+      output$ceo_url_with_clipboard <- renderUI({
+        if (input$jsEvent$status == 200) {
+          tagList(
+            textInput("ceo_url", "CEO url:", input$jsEvent$responseText),
+            rclipButton("clipbtn", "Copy CEO url to clipboard", input$ceo_url, icon("clipboard"))
+          )
+        } else {
+          input$jsEvent$responseText
+        }
+      })
+  })
+
+  observeEvent(input$create_ceo_project, {
+    write.csv(ceo_file(), paste(input$basename_CE, "_ceo.csv", sep = ""), row.names = FALSE)
+    fileName <- paste0(input$basename_CE, "_ceo.csv")
+    cat(file=stderr(), input$basename_CE,  input$box_size, input$cat_hi, "\n")
+    csv <- readChar(fileName, file.info(fileName)$size)
+    message = list(classes = input$cat_hi, title = input$basename_CE, plotSize = input$box_size, csv = csv)
+    session$sendCustomMessage(type = 'create_ceo_project', message = message)
+  })
+
   ####################################################################################
   ##################### Choose language option             ###########################
   ####################################################################################
@@ -1923,7 +1946,7 @@ shinyServer(function(input, output, session) {
     },
     content  = function(xxx) {
       to_export <- ceo_file()
-      write.csv(to_export,xxx, row.names = FALSE)
+      write.csv(ceo_file(), paste(input$basename_CE, "_ceo.csv", sep = ""), row.names = FALSE)
     }
   )
   
