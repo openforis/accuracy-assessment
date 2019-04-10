@@ -29,11 +29,10 @@ Shiny.addCustomMessageHandler('create_ceo_project',
         };
         if (status === 200) {
             const id = responseText.split('/').slice(-1)[0];
-            const token = '';
             res = {
                 ...res,
                 id,
-                token
+                title
             };
         }
         Shiny.onInputChange('jsEvent', res);
