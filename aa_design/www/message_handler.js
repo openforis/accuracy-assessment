@@ -8,8 +8,8 @@ Shiny.addCustomMessageHandler('create_ceo_project',
             const values = row.split(',');
             const [ , y, x] = values;
             return {
-                lat: y.replace('"', ''),
-                lon: x.replace('"', '')
+                lat: y.replace(/"/g, ''),
+                lon: x.replace(/"/g, '')
             };
         });
         const json = {
@@ -22,10 +22,20 @@ Shiny.addCustomMessageHandler('create_ceo_project',
         xmlHttp.open('POST', '/api/ceo-gateway/create-project', false); // false for synchronous request
         xmlHttp.setRequestHeader('Content-Type', 'application/json');
         xmlHttp.send(JSON.stringify(json));
-        const res = {
+        const {status, responseText} = xmlHttp;
+        let res = {
           status: xmlHttp.status,
           responseText: xmlHttp.responseText
         };
+        if (status === 200) {
+            const id = responseText.split('/').slice(-1)[0];
+            const token = '';
+            res = {
+                ...res,
+                id,
+                token
+            };
+        }
         Shiny.onInputChange('jsEvent', res);
     }
 );

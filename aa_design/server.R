@@ -44,10 +44,10 @@ shinyServer(function(input, output, session) {
   observeEvent(input$create_ceo_project, {
     write.csv(ceo_file(), paste(input$basename_CE, "_ceo.csv", sep = ""), row.names = FALSE)
     fileName <- paste0(input$basename_CE, "_ceo.csv")
-    cat(file=stderr(), input$basename_CE,  input$box_size, input$cat_hi, "\n")
     csv <- readChar(fileName, file.info(fileName)$size)
+    #cat(file=stderr(), input$basename_CE,  input$box_size, input$cat_hi, "\n", csv)
     message = list(classes = input$cat_hi, title = input$basename_CE, plotSize = input$box_size, csv = csv)
-    session$sendCustomMessage(type = 'create_ceo_project', message = message)
+    session$sendCustomMessage(type = "create_ceo_project", message = message)
   })
 
   ####################################################################################
@@ -2035,7 +2035,12 @@ shinyServer(function(input, output, session) {
       file.remove(paste0(outdir(), "/", input$basename_CE, ".zip"))
     }
   )
-  
+
+  output$ui_export_CEO <- renderUI({
+    req(v$done == "done")
+    actionButton("create_ceo_project", "Create CEO project", icon = icon("file-export"))
+  })
+
   ##################################################################################################################################
   ############### Turn off progress bar
   

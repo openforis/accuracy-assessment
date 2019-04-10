@@ -438,9 +438,9 @@ shinyUI(
                     br(),
                     uiOutput("ui_download_CE"),
                     br(),
-                    uiOutput("ui_download_SHP")
+                    uiOutput("ui_download_SHP"),
                     br(),
-                    actionButton("create_ceo_project", "Create CEO project"),
+                    uiOutput("ui_export_CEO"),
                     uiOutput("ceo_url_with_clipboard")
                     
                     ####################################################################################
