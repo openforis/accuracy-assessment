@@ -31,12 +31,14 @@ shinyServer(function(input, output, session) {
   observeEvent(input$jsEvent, {
       output$ceo_url_with_clipboard <- renderUI({
         if (input$jsEvent$status == 200) {
-          ceo_files_path = file.path("~", "ceo_files")
+          ceo_files_path = file.path(outdir(), input$jsEvent$id)
           dir.create(ceo_files_path)
           ceo_file_name = paste0(input$jsEvent$title, "_ceo.csv")
-          new_ceo_file_name = paste0(input$jsEvent$id, "_ceo.csv")
-          cat(new_ceo_file_name, ceo_file_name, file.path(ceo_files_path, new_ceo_file_name))
-          file.copy(ceo_file_name, file.path(ceo_files_path, new_ceo_file_name))
+          area_rest_file_name = "area_rast.csv"
+          ceo_file = file.path(outdir(), ceo_file_name)
+          area_rast_file = file.path(outdir(), area_rest_file_name)
+          file.copy(ceo_file, file.path(ceo_files_path, ceo_file_name))
+          file.copy(area_rast_file, file.path(ceo_files_path, area_rest_file_name))
           tagList(
             textInput("ceo_url", "CEO url:", input$jsEvent$responseText),
             rclipButton("clipbtn", "Copy CEO url to clipboard", input$ceo_url, icon("clipboard"))
@@ -49,10 +51,11 @@ shinyServer(function(input, output, session) {
 
   observeEvent(input$create_ceo_project, {
     ceo_file_name = paste0(input$basename_CE, "_ceo.csv")
-    write.csv(ceo_file(), ceo_file_name, row.names = FALSE)
-    csv <- readChar(ceo_file_name, file.info(ceo_file_name)$size)
+    ceo_file = file.path(outdir(), ceo_file_name)
+    write.csv(ceo_file(), ceo_file, row.names = FALSE)
+    csv <- readChar(ceo_file, file.info(ceo_file)$size)
     message = list(classes = input$cat_hi, title = input$basename_CE, plotSize = input$box_size, csv = csv)
-    #cat(file=stderr(), input$basename_CE,  input$box_size, input$cat_hi, "\n", csv)
+    #cat(file=stderr(), input$cat_hi, input$basename_CE,  input$box_size, "\n", csv)
     session$sendCustomMessage(type = 'create_ceo_project', message = message)
   })
 
