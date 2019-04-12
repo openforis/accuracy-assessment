@@ -69,7 +69,7 @@ shinyUI(
 
       useShinyjs(),  # Include shinyjs
       rclipboardSetup(),
-      tags$head(tags$script(src="message-handler.js")),
+      tags$head(tags$script(src="message_handler.js")),
 
       tabItems(
         ####################################################################################
