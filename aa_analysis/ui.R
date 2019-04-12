@@ -53,7 +53,10 @@ shinyUI(
     #######       Body structure of the Dashboard: tabItems   ##########################
     dashboardBody(
       tabItems(
-        
+
+        useShinyjs(),  # Include shinyjs
+        tags$head(tags$script(src="message_handler.js")),
+
         ####################################################################################
         # New Tab
         tabItem(tabName = "Intro",
@@ -151,7 +154,13 @@ shinyUI(
                   # New box
                   box(title= textOutput('t2_b1_title'), status = "success", solidHeader= TRUE,
                           htmlOutput('t2_b1_body'),
-                          
+
+                      textInput("ceo_url", "CEO url:"),
+                      actionButton("clipbtn", "Paste CEO url from clipboard", icon = icon("clipboard")),
+                      actionButton("import_ceo_project", "Import CEO project", icon = icon("file-import")),
+                      br(),
+                      br(),
+
                       shinyFilesButton('CEfilename', 
                                        'Reference data', 
                                        'Browse', 

@@ -28,6 +28,15 @@
 ####### Start Server
 
 shinyServer(function(input, output, session) {
+
+  observeEvent(input$jsEvent0, {
+    updateTextInput(session, "ceo_url", value = input$jsEvent0)
+  })
+
+  observeEvent(input$clipbtn, {
+    session$sendCustomMessage(type = 'get_from_clipboard', message = message)
+  })
+
   ####################################################################################
   ##################### Choose language option             ###########################
   ####################################################################################
