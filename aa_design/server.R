@@ -31,7 +31,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$jsEvent, {
       output$ceo_url_with_clipboard <- renderUI({
         if (input$jsEvent$status == 200) {
-          ceo_files_path = file.path(outdir(), 'ceo_files')
+          ceo_files_path = file.path("~", "ceo_files")
           dir.create(ceo_files_path)
           ceo_project_path = file.path(ceo_files_path, input$jsEvent$id)
           dir.create(ceo_project_path)
@@ -58,7 +58,7 @@ shinyServer(function(input, output, session) {
     csv <- readChar(ceo_file, file.info(ceo_file)$size)
     message = list(classes = input$cat_hi, title = input$basename_CE, plotSize = input$box_size, csv = csv)
     #cat(file=stderr(), input$cat_hi, input$basename_CE,  input$box_size, "\n", csv)
-    session$sendCustomMessage(type = 'create_ceo_project', message = message)
+    session$sendCustomMessage(type = "create_ceo_project", message = message)
   })
 
   ####################################################################################
