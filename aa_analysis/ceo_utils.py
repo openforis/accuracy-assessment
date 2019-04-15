@@ -30,8 +30,8 @@ def merge(id):
     with open(export_ceo_file, 'r') as f:
       csv_reader = csv.reader(f, delimiter=',')
       headers = next(csv_reader) 
-      for row in csv_reader:
-        plots[row[0]] = classes.get(row[3], '')
+      for i, row in enumerate(csv_reader):
+        plots[i] = classes.get(row[3], '')
     #print(plots)
 
     with open(ceo_file,'r') as csvinput:
@@ -45,9 +45,8 @@ def merge(id):
         row.append('collected')
         all.append(row)
 
-        for row in reader:
-          plotId = row[2]
-          value = plots.get(plotId, '')
+        for i, row in enumerate(reader):
+          value = plots.get(i, '')
           row.append(value)
           all.append(row)
 
