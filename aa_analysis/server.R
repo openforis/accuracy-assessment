@@ -36,6 +36,24 @@ shinyServer(function(input, output, session) {
   observeEvent(input$clipbtn, {
     session$sendCustomMessage(type = 'get_from_clipboard', message = message)
   })
+  
+  observeEvent(input$import_ceo_project, {
+    message = list(ceoUrl = input$ceo_url)
+    session$sendCustomMessage(type = 'import_ceo_project', message = message)
+  })
+
+  observeEvent(input$jsEvent1, {
+    #cat(file=stderr(), input$jsEvent1$status, input$jsEvent1$responseText)
+    if (input$jsEvent1$status == 200) {
+      ceo_files_path = file.path("~", "ceo_files")
+      dir.create(ceo_files_path)
+      ceo_project_path = file.path(ceo_files_path, input$jsEvent1$id)
+      dir.create(ceo_project_path)
+      export_file_name = "export_ceo.csv"
+      export_file = file.path(ceo_project_path, export_file_name)
+      cat(input$jsEvent1$responseText, file=export_file)
+    }
+  })
 
   ####################################################################################
   ##################### Choose language option             ###########################
