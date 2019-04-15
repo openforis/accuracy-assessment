@@ -14,7 +14,6 @@ Shiny.addCustomMessageHandler('import_ceo_project',
       const id = ceoUrl.split('/').slice(-1)[0];
       if (!isNaN(id)) {
         const xmlHttp = new XMLHttpRequest();
-        alert(`/api/ceo-gateway/get-collected-data/${id}`);
         xmlHttp.open('GET', `/api/ceo-gateway/get-collected-data/${id}`, false);
         xmlHttp.send();
         const {status, responseText} = xmlHttp;

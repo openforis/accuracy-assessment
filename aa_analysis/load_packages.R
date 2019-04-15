@@ -37,3 +37,4 @@ packages(leaflet)
 
 ##
 packages(shinyjs)
+packages(reticulate)

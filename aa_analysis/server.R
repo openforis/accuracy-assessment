@@ -43,15 +43,19 @@ shinyServer(function(input, output, session) {
   })
 
   observeEvent(input$jsEvent1, {
-    #cat(file=stderr(), input$jsEvent1$status, input$jsEvent1$responseText)
+    #cat(file=stderr(), input$jsEvent1$id, input$jsEvent1$status, input$jsEvent1$responseText)
     if (input$jsEvent1$status == 200) {
+      id = input$jsEvent1$id
       ceo_files_path = file.path("~", "ceo_files")
       dir.create(ceo_files_path)
-      ceo_project_path = file.path(ceo_files_path, input$jsEvent1$id)
+      ceo_project_path = file.path(ceo_files_path, id)
       dir.create(ceo_project_path)
       export_file_name = "export_ceo.csv"
       export_file = file.path(ceo_project_path, export_file_name)
       cat(input$jsEvent1$responseText, file=export_file)
+      ceo_utils <- import("ceo_utils")
+      ret = ceo_utils$merge(id)
+      #cat(file=stderr(), ret)
     }
   })
 
