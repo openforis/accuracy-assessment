@@ -3,7 +3,7 @@ Shiny.addCustomMessageHandler('create_ceo_project',
         const { classes, title, plotSize, csv } = message;
         const rows = csv.split('\n');
         rows.shift(); // remove first element
-        if (rows[rows.length - 1] === "") rows.pop(); // remove last element if empty
+        if (rows[rows.length - 1] === '') rows.pop(); // remove last element if empty
         const plots = rows.map((row) => {
             const values = row.split(',');
             const [ , y, x] = values;
@@ -22,19 +22,14 @@ Shiny.addCustomMessageHandler('create_ceo_project',
         xmlHttp.open('POST', '/api/ceo-gateway/create-project', false); // false for synchronous request
         xmlHttp.setRequestHeader('Content-Type', 'application/json');
         xmlHttp.send(JSON.stringify(json));
+        console.log(json);
         const {status, responseText} = xmlHttp;
-        let res = {
-          status: xmlHttp.status,
-          responseText: xmlHttp.responseText
+        let res = JSON.parse(responseText); // projectId, ceoCollectionUrl, errorMessage
+        res = {
+          ...res,
+          status,
+          title
         };
-        if (status === 200) {
-            const id = responseText.split('/').slice(-1)[0];
-            res = {
-                ...res,
-                id,
-                title
-            };
-        }
         Shiny.onInputChange('jsEvent', res);
     }
 );

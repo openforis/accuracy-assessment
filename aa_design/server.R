@@ -29,26 +29,26 @@
 shinyServer(function(input, output, session) {
 
   observeEvent(input$jsEvent, {
-      output$ceo_url_with_clipboard <- renderUI({
-        if (input$jsEvent$status == 200) {
-          ceo_files_path = file.path("~", "ceo_files")
-          dir.create(ceo_files_path)
-          ceo_project_path = file.path(ceo_files_path, input$jsEvent$id)
-          dir.create(ceo_project_path)
-          ceo_file_name = paste0(input$jsEvent$title, "_ceo.csv")
-          area_rest_file_name = "area_rast.csv"
-          ceo_file = file.path(outdir(), ceo_file_name)
-          area_rast_file = file.path(outdir(), area_rest_file_name)
-          file.copy(ceo_file, file.path(ceo_project_path, ceo_file_name))
-          file.copy(area_rast_file, file.path(ceo_project_path, area_rest_file_name))
-          tagList(
-            textInput("ceo_url", "CEO url:", input$jsEvent$responseText),
-            rclipButton("clipbtn", "Copy CEO url to clipboard", input$ceo_url, icon("clipboard"))
-          )
-        } else {
-          input$jsEvent$responseText
-        }
-      })
+    output$ceo_url_with_clipboard <- renderUI({
+      if (input$jsEvent$status == 200) {
+        ceo_files_path = file.path("~", "ceo_files")
+        dir.create(ceo_files_path)
+        ceo_project_path = file.path(ceo_files_path, input$jsEvent$projectId)
+        dir.create(ceo_project_path)
+        ceo_file_name = paste0(input$jsEvent$title, "_ceo.csv")
+        area_rest_file_name = "area_rast.csv"
+        ceo_file = file.path(outdir(), ceo_file_name)
+        area_rast_file = file.path(outdir(), area_rest_file_name)
+        file.copy(ceo_file, file.path(ceo_project_path, ceo_file_name))
+        file.copy(area_rast_file, file.path(ceo_project_path, area_rest_file_name))
+        tagList(
+          textInput("ceo_url", "CEO url:", input$jsEvent$ceoCollectionUrl),
+          rclipButton("clipbtn", "Copy CEO url to clipboard", input$ceo_url, icon("clipboard"))
+        )
+      } else {
+        input$jsEvent$errorMessage
+      }
+    })
   })
 
   observeEvent(input$create_ceo_project, {
