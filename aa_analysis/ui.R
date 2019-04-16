@@ -55,7 +55,7 @@ shinyUI(
       tabItems(
 
         useShinyjs(),  # Include shinyjs
-        tags$head(tags$script(src="message_handler.js")),
+        tags$head(tags$script(src="analysis_message_handler.js")),
 
         ####################################################################################
         # New Tab
