@@ -50,7 +50,7 @@ shinyServer(function(input, output, session) {
       dir.create(ceo_files_path)
       ceo_project_path = file.path(ceo_files_path, id)
       dir.create(ceo_project_path)
-      export_file_name = "export_ceo.csv"
+      export_file_name = "ceo_export.csv"
       export_file = file.path(ceo_project_path, export_file_name)
       cat(input$jsEvent1$responseText, file=export_file)
       ceo_utils <- import("ceo_utils")

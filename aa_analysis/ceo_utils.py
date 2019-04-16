@@ -13,7 +13,7 @@ def merge(id):
   ceo_project_path = os.path.join(home_path, 'ceo_files', str(id))
   ceo_file = getCeoFile(ceo_project_path, str(id))
   area_rast_file = os.path.join(ceo_project_path, 'area_rast.csv')
-  export_ceo_file = os.path.join(ceo_project_path, 'export_ceo.csv')
+  export_ceo_file = os.path.join(ceo_project_path, 'ceo_export.csv')
   collected_data_file = os.path.join(ceo_project_path, 'collectedData.csv')
 
   if (os.path.isfile(ceo_file) and os.path.isfile(area_rast_file) and os.path.isfile(export_ceo_file)):
