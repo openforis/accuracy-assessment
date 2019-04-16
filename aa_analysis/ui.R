@@ -52,10 +52,11 @@ shinyUI(
     ####################################################################################
     #######       Body structure of the Dashboard: tabItems   ##########################
     dashboardBody(
-      tabItems(
 
-        useShinyjs(),  # Include shinyjs
-        tags$head(tags$script(src="analysis_message_handler.js")),
+      useShinyjs(),  # Include shinyjs
+      tags$head(tags$script(src="analysis_message_handler.js")),
+
+      tabItems(
 
         ####################################################################################
         # New Tab
