@@ -6,10 +6,10 @@ Shiny.addCustomMessageHandler('create_ceo_project',
         if (rows[rows.length - 1] === '') rows.pop(); // remove last element if empty
         const plots = rows.map((row) => {
             const values = row.split(',');
-            const [ , y, x] = values;
+            const [x, y] = values;
             return {
-                lat: y.replace(/"/g, ''),
-                lon: x.replace(/"/g, '')
+                lon: x.replace(/"/g, ''),
+                lat: y.replace(/"/g, '')
             };
         });
         const json = {
