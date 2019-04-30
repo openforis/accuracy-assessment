@@ -20,6 +20,8 @@ packages(shinyFiles)
 packages(snow)
 packages(htmltools)
 packages(devtools)
+
+packages(gdalUtils)
 #packages(RCurl)
 
 ## Packages for data table handling

@@ -501,18 +501,31 @@ shinyServer(function(input, output, session) {
                            sep = ""
                          )
                        )
-                       system(
-                         paste(
-                           "oft-stat -i ",
-                           dataname,
-                           " -o ",
-                           outdir(),
-                           "/stats.txt -um ",
-                           dataname,
-                           " -nostd",
-                           sep = ""
-                         )
-                       )
+                       # system(
+                       #   paste(
+                       #     "oft-stat -i ",
+                       #     dataname,
+                       #     " -o ",
+                       #     outdir(),
+                       #     "/stats.txt -um ",
+                       #     dataname,
+                       #     " -nostd",
+                       #     sep = ""
+                       #   )
+                       # )
+                       
+                       pixel_count <- function(x){
+                         info    <- gdalinfo(x,hist=T)
+                         buckets <- unlist(str_split(info[grep("bucket",info)+1]," "))
+                         buckets <- as.numeric(buckets[!(buckets == "")])
+                         hist    <- data.frame(cbind(0:(length(buckets)-1),buckets))
+                         hist    <- hist[hist[,2]>0,]
+                       }
+                       
+                       hist <- pixel_count(dataname)
+                       hist$edit <- hist$V1
+                       write.table(hist,paste0(outdir(),"/stats.txt"),row.names = F,col.names = F)
+                       
                        
                      })
         
