@@ -1916,7 +1916,7 @@ shinyServer(function(input, output, session) {
     req(CEfile())
     ce <- CEfile()
     ceo <- ce[,c("XCoordinate","YCoordinate","id","map_class","elevation","slope","aspect","region","country")]
-    names(ceo) <- c("LONGITUDE","LATITUDE","PLOTID","map_class","elevation","slope","aspect","region","country")
+    names(ceo) <- c("LONGITUDE","LATITUDE","PLOTID","map_code","elevation","slope","aspect","region","country")
     ceo
   })
   

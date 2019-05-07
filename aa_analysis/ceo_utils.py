@@ -45,7 +45,7 @@ def merge(id):
 
         all = []
         row = next(reader)
-        row.append('collected')
+        row.append('ref_code')
         all.append(row)
 
         for i, row in enumerate(reader):
