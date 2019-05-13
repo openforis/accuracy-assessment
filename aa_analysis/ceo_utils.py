@@ -32,9 +32,8 @@ def merge(id):
       csv_reader = csv.reader(f, delimiter=',')
       headers = next(csv_reader)
       for i, row in enumerate(csv_reader):
-        index = (int(row[3]) - 1) if row[3] is not '' else -1
-        value = positional_classes[index] if (index is not -1) else ''
-        plots[i] = value
+        value = row[4]
+        plots[i] = classes.get(value, '')
     #print(plots)
 
     with open(ceo_file,'r') as csvinput:
