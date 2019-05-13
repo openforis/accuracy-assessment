@@ -31,6 +31,7 @@ shinyServer(function(input, output, session) {
   observeEvent(input$jsEvent, {
     output$ceo_url_with_clipboard <- renderUI({
       if (input$jsEvent$status == 200) {
+        disable("create_ceo_project")
         ceo_files_path = file.path("~", "ceo_files")
         dir.create(ceo_files_path)
         ceo_project_path = file.path(ceo_files_path, input$jsEvent$projectId)
