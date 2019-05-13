@@ -29,6 +29,8 @@
 
 shinyServer(function(input, output, session) {
 
+  var <- reactiveValues()
+
   observeEvent(input$jsEvent0, {
     updateTextInput(session, "ceo_url", value = input$jsEvent0)
   })
@@ -56,9 +58,16 @@ shinyServer(function(input, output, session) {
       ceo_utils <- import("ceo_utils")
       ret = ceo_utils$merge(id)
       #cat(file=stderr(), ret)
+      var$CEfilename <- file.path(ceo_project_path, "collectedData.csv")
     }
   })
 
+  observeEvent(input$CEfilename, {
+    df = parseFilePaths(volumes, input$CEfilename)
+    file_path = as.character(df[, "datapath"])
+    var$CEfilename <- file_path
+  })
+  
   ####################################################################################
   ##################### Choose language option             ###########################
   ####################################################################################
@@ -145,12 +154,11 @@ shinyServer(function(input, output, session) {
   output$pointfilepath = renderPrint({
     validate(
       need(
-        input$CEfilename,
+        var$CEfilename,
         "Missing input: Please select the file containing the reference and map data"
       )
     )
-    df = parseFilePaths(volumes, input$CEfilename)
-    file_path = as.character(df[, "datapath"])
+    file_path = var$CEfilename
     nofile = as.character("No file selected")
     if (is.null(file_path)) {
       cat(nofile)
@@ -200,11 +208,10 @@ shinyServer(function(input, output, session) {
   
   ## Collect earth output file
   df_i  <- reactive({
-    req(input$CEfilename)
+    req(var$CEfilename)
     print("read data of validation")
     ############### Read the name chosen from dropdown menu
-    df = parseFilePaths(volumes, input$CEfilename)
-    file_path = as.character(df[, "datapath"])
+    file_path = var$CEfilename
     df_i <- read.csv(file_path)
     
   })
@@ -212,7 +219,7 @@ shinyServer(function(input, output, session) {
   
   ## select column with reference data in validation file
   output$column_ref <- renderUI({
-    req(input$CEfilename)
+    req(var$CEfilename)
     selectInput(
       'reference_data',
       textOutput("field_choose_col_ref"),
@@ -225,7 +232,7 @@ shinyServer(function(input, output, session) {
   
   ## select column with map data in validation file
   output$column_map <- renderUI({
-    req(input$CEfilename)
+    req(var$CEfilename)
     selectInput(
       'map_data',
       textOutput("field_choose_col_map"),
@@ -313,7 +320,7 @@ shinyServer(function(input, output, session) {
   
   ## standardize the column names for the validation file
   df_i_map <- reactive({
-    req(input$CEfilename)
+    req(var$CEfilename)
     df_i <- df_i()
     
     #if(!input$map_data == 'map_code')colnames(df_i)[names(df_i) == 'map_code']       <- 'map_code1'
@@ -366,7 +373,7 @@ shinyServer(function(input, output, session) {
   output$map_check <- renderLeaflet({
     validate(
       need(
-        input$CEfilename,
+        var$CEfilename,
         "Missing input: Please select the file containing the reference and map data in tab '1:Input'"
       )
     )
@@ -410,7 +417,7 @@ shinyServer(function(input, output, session) {
   output$column_to_filter <- renderUI({
     validate(
       need(
-        input$CEfilename,
+        var$CEfilename,
         "Missing input: Please select the file containing the reference and map data in tab '1:Input'"
       )
     )
@@ -697,7 +704,7 @@ shinyServer(function(input, output, session) {
     areas <- areas_i()
     validate(
       need(
-        input$CEfilename,
+        var$CEfilename,
         "Missing input: Please select the file containing the reference and map data in tab '1:Input'"
       ),
       need(
@@ -752,7 +759,7 @@ shinyServer(function(input, output, session) {
     
     validate(
       need(
-        input$CEfilename,
+        var$CEfilename,
         "Missing input: Please select the file containing the reference and map data in tab '1:Input'"
       ),
       need(
@@ -791,7 +798,7 @@ shinyServer(function(input, output, session) {
     
     validate(
       need(
-        input$CEfilename,
+        var$CEfilename,
         "Missing input: Please select the file containing the reference and map data in tab '1:Input'"
       ),
       need(
@@ -822,7 +829,7 @@ shinyServer(function(input, output, session) {
     areas <- areas_i()
     validate(
       need(
-        input$CEfilename,
+        var$CEfilename,
         "Missing input: Please select the validation file in tab '1:Input'"
       ),
       need(
