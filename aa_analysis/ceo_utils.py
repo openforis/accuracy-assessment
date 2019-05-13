@@ -28,7 +28,6 @@ def merge(id):
 
     plots = collections.OrderedDict()
     with open(export_ceo_file, 'r') as f:
-      positional_classes = list(classes.values())
       csv_reader = csv.reader(f, delimiter=',')
       headers = next(csv_reader)
       for i, row in enumerate(csv_reader):
