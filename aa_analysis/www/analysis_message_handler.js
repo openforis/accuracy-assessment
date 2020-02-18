@@ -11,7 +11,9 @@ Shiny.addCustomMessageHandler('get_from_clipboard',
 Shiny.addCustomMessageHandler('import_ceo_project',
     function(message) {
       const { ceoUrl } = message;
-      const id = ceoUrl.split('/').slice(-1)[0];
+      const key = 'projectId';
+      const match = ceoUrl.match('[?&]' + key + '=([^&#]+)');
+      const id = match ? match[1] : null;
       if (!isNaN(id)) {
         const xmlHttp = new XMLHttpRequest();
         xmlHttp.open('GET', `/api/ceo-gateway/get-collected-data/${id}`, false);
