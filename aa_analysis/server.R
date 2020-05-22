@@ -586,10 +586,58 @@ shinyServer(function(input, output, session) {
           })
         }
       }
-      
+      tryCatch({
+        
+      }, error = function(e) {
+        cat("Not relevant\n")
+        print(legend[i])
+      })
       matrix_se[is.na(matrix_se)] <- 0
       
-      confusion <- data.frame(matrix(nrow = length(legend), ncol = 15))
+      #calc pij
+      matrix_pij <- matrix
+      for (i in 1:length(legend)) {
+        for (j in 1:length(legend)) {
+          tryCatch({
+            strWeight <- areas$map_area[i]/sum(areas$map_area)
+            print(strWeight * matrix[i,j] / sum(matrix[i,]))
+            matrix_pij[i,j] <- strWeight * matrix[i,j] / sum(matrix[i,])
+          }, error = function(e) {
+            cat("Not relevant\n")
+            print(legend[i])
+          })
+        }
+      }
+      
+      matrix_pij[is.na(matrix_pij)] <- 0
+
+      ## unbiased estimator
+      ## P j=1 = P1+ - (p12+p13) +(p21+p31)
+      matrix_are <- matrix_pij
+      for (i in 1:nrow(matrix_pij)) {
+        tryCatch({
+          matrix_are[i] <- sum(matrix_pij[i, ]) - sum(matrix_pij[i,-i]) + sum(matrix_pij[-i,i])
+          }, error = function(e) {
+          cat("Not relevant\n")
+        })
+        
+      }
+      
+      matrix_are[is.na(matrix_are)] <- 0
+      
+      
+      print('damnit')
+      print(matrix_pij)
+      print('/////////////////////////')
+      print(matrix_are[1,1])
+      print(matrix_are[1])
+      print('////////////////////////')
+      print(sum(areas$map_area))
+      print(areas$map_area)
+      print('///////////////////////')
+      write.csv(matrix_are[1,],"C:\\Users\\johnj\\Desktop\\matrix_are.csv", row.names = FALSE)
+      write.csv(matrix_w,"C:\\Users\\johnj\\Desktop\\matrix_w.csv", row.names = FALSE)
+      confusion <- data.frame(matrix(nrow = length(legend), ncol = 16))#15
       names(confusion) <-
         c(
           "class",
@@ -606,8 +654,9 @@ shinyServer(function(input, output, session) {
           "simRS_area_estimate",
           "simRS_standard_error",
           "simRS_confidence_interval",
-          "simRS_confidence_interval_area"
-        )
+          "simRS_confidence_interval_area",
+          "strRS_unbiased_area_estimate"
+        )#
       
       
       ## the zscores for the confidence intervals
@@ -651,11 +700,17 @@ shinyServer(function(input, output, session) {
           confusion$simRS_standard_error[i] * civalue
         confusion[i, ]$simRS_confidence_interval_area <-
           confusion$simRS_confidence_interval[i] * sum(areas$map_area)
+        #jd edits
+        confusion[i, ]$strRS_unbiased_area_estimate   <-
+          matrix_are[i] * sum(areas$map_area)
+        #confusion[i, ]$strRS_confidence_interval      <-
+        #  confusion[i, ]$strRS_standard_error * civalue
       }
       
       ### Compute overall accuracy
       # confusion[length(legend)+1,]<-c("Total","",sum(diag(matrix))/sum(matrix[]),sum(diag(matrix_w))/sum(matrix_w[]),"",sum(areas$map_area),sum(areas$map_area),"","")
       confusion
+      print(confusion)
     }
   })
   
