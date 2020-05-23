@@ -625,17 +625,23 @@ shinyServer(function(input, output, session) {
       
       matrix_are[is.na(matrix_are)] <- 0
       
-      matrix_srtE <- matrix_pij
+      matrix_srtDE <- matrix_pij
       for (i in 1:nrow(matrix_pij)){
-        matrix_srtE[i] <- sum(matrix_pij[,i])
+        tryCatch({
+          matrix_srtDE[i] <- sum(matrix_pij[,i])
+        }, error = function(e){
+          cat("Not relevant\n")
+        })
       }
+      
+      matrix_srtDE[is.na(matrix_srtDE)] <- 0
       
       print('damnit')
       print(matrix_pij)
-      print(matrix_srtE)
+      print(matrix_srtDE)
       print('/////////////////////////')
-      print(matrix_are[1,])
-      print(matrix_are[2])
+      #print(matrix_are[1,])
+      #print(matrix_are[2])
       print(matrix_are)
       print('////////////////////////')
       print(sum(areas$map_area))
@@ -643,7 +649,7 @@ shinyServer(function(input, output, session) {
       print('///////////////////////')
       write.csv(matrix_are[1,],"C:\\Users\\johnj\\Desktop\\matrix_are.csv", row.names = FALSE)
       write.csv(matrix_w,"C:\\Users\\johnj\\Desktop\\matrix_w.csv", row.names = FALSE)
-      confusion <- data.frame(matrix(nrow = length(legend), ncol = 16))#15
+      confusion <- data.frame(matrix(nrow = length(legend), ncol = 17))#15
       names(confusion) <-
         c(
           "class",
@@ -661,7 +667,8 @@ shinyServer(function(input, output, session) {
           "simRS_standard_error",
           "simRS_confidence_interval",
           "simRS_confidence_interval_area",
-          "strRS_unbiased_area_estimate"
+          "strRS_unbiased_area_estimate",
+          "strRS_direct_estimate"
         )#
       
       
@@ -709,8 +716,8 @@ shinyServer(function(input, output, session) {
         #jd edits
         confusion[i, ]$strRS_unbiased_area_estimate   <-
           matrix_are[i] * sum(areas$map_area)
-        #confusion[i, ]$strRS_confidence_interval      <-
-        #  confusion[i, ]$strRS_standard_error * civalue
+        confusion[i, ]$strRS_direct_estimate          <-
+          matrix_srtDE[i] * sum(areas$map_area)
       }
       
       ### Compute overall accuracy
@@ -888,6 +895,7 @@ shinyServer(function(input, output, session) {
     dfa$simRS_area_estimate <- as.numeric(dfa$simRS_area_estimate)
     
     dfa$strRS_unbiased_area_estimate <- as.numeric(dfa$strRS_unbiased_area_estimate)
+    dfa$strRS_direct_estimate <- as.numeric(dfa$strRS_direct_estimate)
     
     ##################################################################################################
     ################ Reorganize dataset to produce a "sampling design" type column
@@ -898,7 +906,8 @@ shinyServer(function(input, output, session) {
                 'map_pixel_count',
                 'strRS_area_estimate',
                 'simRS_area_estimate',
-                'strRS_unbiased_area_estimate')],
+                'strRS_unbiased_area_estimate',
+                'strRS_direct_estimate')],
         id = 'class',
         variable.name = 'sampling_design',
         value.name = 'areas'
@@ -911,6 +920,7 @@ shinyServer(function(input, output, session) {
           'map_pixel_ci',
           'strRS_confidence_interval',
           'simRS_confidence_interval_area',
+          'strRS_confidence_interval',
           'strRS_confidence_interval'
         )],
         id = 'class',
@@ -927,7 +937,7 @@ shinyServer(function(input, output, session) {
     levels(dfa.plot$sampling_design) <-
       c(
         levels(dfa.plot$sampling_design),
-        c("Map pixel count", "Stratified random", 'Simple random','Unbaised stratified random')
+        c("Map pixel count", "Stratified random", 'Simple random','Unbaised stratified random','Direct estimate stratified random')
       )
     
     dfa.plot$sampling_design[dfa.plot$sampling_design %in% 'map_pixel_count']     <-
@@ -938,6 +948,8 @@ shinyServer(function(input, output, session) {
       'Simple random'
     dfa.plot$sampling_design[dfa.plot$sampling_design %in% 'strRS_unbiased_area_estimate'] <-
       'Unbaised stratified random'
+    dfa.plot$sampling_design[dfa.plot$sampling_design %in% 'strRS_direct_estimate'] <-
+      'Direct estimate stratified random'
     
     ##################################################################################################
     ################ Limits for the areas + confidence_intervals
@@ -971,7 +983,7 @@ shinyServer(function(input, output, session) {
       labs(x = "Class", y = "Area estimate") +
       ggtitle("Area estimates from map, stratified and simple random sampling designs") +
       scale_fill_manual(name = "Sample design",
-                        values = c("#BBBBBB", "#333333", "#999999","#194994")) +
+                        values = c("#BBBBBB", "#333333", "#999999","#194994",'#999666')) +
       theme_bw()
     
     # BLUE AND GREEN c("#009E73","#0072B2")
