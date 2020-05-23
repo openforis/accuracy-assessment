@@ -625,6 +625,8 @@ shinyServer(function(input, output, session) {
       
       matrix_are[is.na(matrix_are)] <- 0
       
+      #direct estimator 
+      #pj=1 = p11 + p21 + p31
       matrix_srtDE <- matrix_pij
       for (i in 1:nrow(matrix_pij)){
         tryCatch({
@@ -636,20 +638,7 @@ shinyServer(function(input, output, session) {
       
       matrix_srtDE[is.na(matrix_srtDE)] <- 0
       
-      print('damnit')
-      print(matrix_pij)
-      print(matrix_srtDE)
-      print('/////////////////////////')
-      #print(matrix_are[1,])
-      #print(matrix_are[2])
-      print(matrix_are)
-      print('////////////////////////')
-      print(sum(areas$map_area))
-      print(areas$map_area)
-      print('///////////////////////')
-      write.csv(matrix_are[1,],"C:\\Users\\johnj\\Desktop\\matrix_are.csv", row.names = FALSE)
-      write.csv(matrix_w,"C:\\Users\\johnj\\Desktop\\matrix_w.csv", row.names = FALSE)
-      confusion <- data.frame(matrix(nrow = length(legend), ncol = 17))#15
+      confusion <- data.frame(matrix(nrow = length(legend), ncol = 17))
       names(confusion) <-
         c(
           "class",
@@ -713,7 +702,6 @@ shinyServer(function(input, output, session) {
           confusion$simRS_standard_error[i] * civalue
         confusion[i, ]$simRS_confidence_interval_area <-
           confusion$simRS_confidence_interval[i] * sum(areas$map_area)
-        #jd edits
         confusion[i, ]$strRS_unbiased_area_estimate   <-
           matrix_are[i] * sum(areas$map_area)
         confusion[i, ]$strRS_direct_estimate          <-
@@ -983,7 +971,7 @@ shinyServer(function(input, output, session) {
       labs(x = "Class", y = "Area estimate") +
       ggtitle("Area estimates from map, stratified and simple random sampling designs") +
       scale_fill_manual(name = "Sample design",
-                        values = c("#BBBBBB", "#333333", "#999999","#194994",'#999666')) +
+                        values = c("#BBBBBB", "#333333", "#999999","#666666",'#CCCCCC')) +
       theme_bw()
     
     # BLUE AND GREEN c("#009E73","#0072B2")
