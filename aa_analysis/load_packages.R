@@ -34,3 +34,7 @@ packages(reshape2)
 packages(ggplot2)
 packages(leaflet)
 # packages(RColorBrewer)
+
+##
+packages(shinyjs)
+packages(reticulate)

@@ -66,6 +66,11 @@ shinyUI(
     ####################################################################################
     #######       Body structure of the Dashboard: tabItems   ##########################
     dashboardBody(
+
+      useShinyjs(),  # Include shinyjs
+      rclipboardSetup(),
+      tags$head(tags$script(src="design_message_handler.js")),
+
       tabItems(
         ####################################################################################
         # New Tab
@@ -433,7 +438,10 @@ shinyUI(
                     br(),
                     uiOutput("ui_download_CE"),
                     br(),
-                    uiOutput("ui_download_SHP")
+                    uiOutput("ui_download_SHP"),
+                    br(),
+                    uiOutput("ui_export_CEO"),
+                    uiOutput("ceo_url_with_clipboard")
                     
                     ####################################################################################
                     # End of the box

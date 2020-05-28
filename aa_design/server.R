@@ -27,6 +27,41 @@
 ####### Start Server
 
 shinyServer(function(input, output, session) {
+
+  observeEvent(input$jsEvent, {
+    output$ceo_url_with_clipboard <- renderUI({
+      if (input$jsEvent$status == 200) {
+        disable("create_ceo_project")
+        ceo_files_path = file.path("~", "ceo_files")
+        dir.create(ceo_files_path)
+        ceo_project_path = file.path(ceo_files_path, input$jsEvent$projectId)
+        dir.create(ceo_project_path)
+        ceo_file_name = paste0(input$jsEvent$title, "_ceo.csv")
+        area_rest_file_name = "area_rast.csv"
+        ceo_file = file.path(outdir(), ceo_file_name)
+        area_rast_file = file.path(outdir(), area_rest_file_name)
+        file.copy(ceo_file, file.path(ceo_project_path, ceo_file_name))
+        file.copy(area_rast_file, file.path(ceo_project_path, area_rest_file_name))
+        tagList(
+          textInput("ceo_url", "CEO url:", input$jsEvent$ceoCollectionUrl),
+          rclipButton("clipbtn", "Copy CEO url to clipboard", input$ceo_url, icon("clipboard"))
+        )
+      } else {
+        input$jsEvent$errorMessage
+      }
+    })
+  })
+
+  observeEvent(input$create_ceo_project, {
+    ceo_file_name = paste0(input$basename_CE, "_ceo.csv")
+    ceo_file = file.path(outdir(), ceo_file_name)
+    write.csv(ceo_file(), ceo_file, row.names = FALSE)
+    csv <- readChar(ceo_file, file.info(ceo_file)$size)
+    message = list(classes = input$cat_hi, title = input$basename_CE, plotSize = input$box_size, csv = csv)
+    #cat(file=stderr(), input$cat_hi, input$basename_CE,  input$box_size, "\n", csv)
+    session$sendCustomMessage(type = "create_ceo_project", message = message)
+  })
+
   ####################################################################################
   ##################### Choose language option             ###########################
   ####################################################################################
@@ -1925,7 +1960,7 @@ shinyServer(function(input, output, session) {
     },
     content  = function(xxx) {
       to_export <- ceo_file()
-      write.csv(to_export,xxx, row.names = FALSE)
+      write.csv(ceo_file(), paste(input$basename_CE, "_ceo.csv", sep = ""), row.names = FALSE)
     }
   )
   
@@ -2014,7 +2049,12 @@ shinyServer(function(input, output, session) {
       file.remove(paste0(outdir(), "/", input$basename_CE, ".zip"))
     }
   )
-  
+
+  output$ui_export_CEO <- renderUI({
+    req(v$done == "done")
+    actionButton("create_ceo_project", "Create CEO project", icon = icon("file-export"))
+  })
+
   ##################################################################################################################################
   ############### Turn off progress bar
   

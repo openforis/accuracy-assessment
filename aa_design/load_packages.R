@@ -35,3 +35,7 @@ packages(plyr)
 packages(ggplot2)
 packages(leaflet)
 packages(RColorBrewer)
+
+##
+packages(shinyjs)
+packages(rclipboard)
