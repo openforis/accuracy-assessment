@@ -51,12 +51,12 @@ dim_v_grid <- 3
 dim_h_grid <- 7
 
 ## setup year start and end for landsat 
-yr_str_lsat <- 2001
+yr_str_lsat <- 2005
 yr_end_lsat <- 2015
 
 ## setup year start and end for sentinel
 yr_str_stnl <- 2016
-yr_end_stnl <- 2017
+yr_end_stnl <- 2020
 
 ## setup the visualisation parameters for the interpretation box size. in meters
 interpretation_box_size <- 30

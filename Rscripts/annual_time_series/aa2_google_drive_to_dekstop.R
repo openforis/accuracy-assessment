@@ -1,18 +1,17 @@
 ####################################################################################
 ####### Object: Google Drive to Local Drive    
 ####### Author:  remi.dannunzio@fao.org                               
-####### Update:  2017/10/22                                    
+####### UPDATE 2020-07-10                                  
 ###################################################################################
 
 ####### TIME SERIES DATA ARE GENERATED IN GOOGLE EARTH ENGINE
-##      https://code.earthengine.google.com/6349290af151862c244cac3bcdc44318
+##      https://code.earthengine.google.com/15a379715bd4e3d09af7b126522e7c72
 
 
 ###################################################################################
 #### Parameters
 ###################################################################################
 
-#### Root directory
 
 ####################################################################################################################
 ####### LOAD AUTHORIZATION KEY FOR "DRIVE" AND DOWNLOAD RESULTS
@@ -49,3 +48,4 @@ stnl <- data_input[grep(paste0("s2"),data_input)]
 
 lapply(lsat,function(x){file.rename(x,paste0(data_dir,"time_series_image_dir/landsat/",x))})
 lapply(stnl,function(x){file.rename(x,paste0(data_dir,"time_series_image_dir/sentinel/",x))})
+

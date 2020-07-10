@@ -68,20 +68,19 @@ proj4string(spdf)<-CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs8
 
 head(spdf)
 
-#################### Export as shapefile or KML
-writeOGR(obj=spdf,dsn=paste0(sae_dir,"pts_2km_boxes.kml"),layer="pts_2km_boxes",driver="KML",overwrite_layer = T)
-#writeOGR(obj=spdf,dsn="pts_2km_boxes.shp",layer="pts_2km_boxes",driver="ESRI Shapefile",overwrite_layer = T)
-
-
+#################### Export as shapefile
+writeOGR(obj=spdf,dsn=paste0(sae_dir,"pts_2km_boxes.shp"),layer="pts_2km_boxes",driver="ESRI Shapefile",overwrite_layer = T)
+summary(spdf)
+spdf@data
 #######################################################################
 ### PART II: Create rectangular grid for export in GEE-API LANDSAT
 #######################################################################
 
 ### What grid size do we need ? (in degrees)
-grid_size = 2           ## for Landsat  @ 30m spatial resolution
+grid_size <- 2           ## for Landsat  @ 30m spatial resolution
 
 ### Create a set of regular SpatialPoints on the extent of the created polygons  
-sqr <- SpatialPoints(makegrid(spdf,offset=c(0,0),cellsize = grid_size))
+sqr <- SpatialPoints(makegrid(spdf,offset=c(0.5,0.5),cellsize = grid_size))
 
 ### Convert points to a square grid
 grid <- points2grid(sqr)
@@ -114,7 +113,7 @@ nrow(sqr_df_selected@data)
 ### PART III: Export as KML
 #######################################################################
 base_sqr <- "download_area_grid_lsat"
-writeOGR(obj=sqr_df_selected,dsn=paste0(sae_dir,base_sqr,".kml"),layer=base_sqr,driver = "KML",overwrite_layer = T)
+writeOGR(obj=sqr_df_selected,dsn=paste0(sae_dir,base_sqr,".shp"),layer=base_sqr,driver = "ESRI Shapefile",overwrite_layer = T)
 
 
 #######################################################################
@@ -122,7 +121,7 @@ writeOGR(obj=sqr_df_selected,dsn=paste0(sae_dir,base_sqr,".kml"),layer=base_sqr,
 #######################################################################
 
 ### What grid size do we need ? (in degrees)
-grid_size = 10000/11200 ## for Sentinel @ 10m spatial resolution
+grid_size = 1 ## for Sentinel @ 10m spatial resolution
 
 ### Create a set of regular SpatialPoints on the extent of the created polygons  
 sqr <- SpatialPoints(makegrid(spdf,offset=c(0,0),cellsize = grid_size))
@@ -158,5 +157,5 @@ nrow(sqr_df_selected@data)
 ### PART V: Export as KML
 #######################################################################
 base_sqr <- "download_area_grid_stnl"
-writeOGR(obj=sqr_df_selected,dsn=paste0(sae_dir,base_sqr,".kml"),layer=base_sqr,driver = "KML",overwrite_layer = T)
+writeOGR(obj=sqr_df_selected,dsn=paste0(sae_dir,base_sqr,".shp"),layer=base_sqr,driver = "ESRI Shapefile",overwrite_layer = T)
 
