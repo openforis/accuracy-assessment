@@ -30,7 +30,7 @@ library(rgeos)
 #################### SET PARAMETERS
 
 ## Setup the number of snippets to generate
-how_many <- 10
+how_many <- 1
 
 #### Name of the directory where your Landsat data is
 lsat_dir <- paste0(data_dir,"time_series_image_dir/landsat/")
@@ -48,7 +48,7 @@ stnl_basename <- "median_roi_clip_s2_"
 
 ## The export image will be in a 3 (height) x 6 (width) grid box
 dim_v_grid <- 3
-dim_h_grid <- 7
+dim_h_grid <- 6
 
 ## setup year start and end for landsat 
 yr_str_lsat <- 2005
@@ -62,7 +62,7 @@ yr_end_stnl <- 2020
 interpretation_box_size <- 30
 
 ## setup the visualisation parameters for the level of zoom. in meters
-outside_box_size        <- 1500
+outside_box_size        <- 2000
 
 ## position in landsat archive name of the "bounding box". Example: "median_hul_clip_lsat_1995_" == 27
 bb_pos_lsat <- nchar(lsat_basename)+6
@@ -70,17 +70,17 @@ bb_pos_lsat <- nchar(lsat_basename)+6
 ## position in sentinel archive name of the "bounding box". Example: "median_hul_clip_s2_1995_" == 25
 bb_pos_stnl <- nchar(stnl_basename)+6
 
-## Read the datafile and setup the correct names for the variables
-pts <- read.csv(paste0(sae_dir,point_file))  #####  CHANGE TO MY VALUE HERE
-
-head(pts)
-names(pts)
-
-## setup the correct names for the variables
-map_code <- "map_class"
-point_id <- "id"
-xcoord   <- "XCoordinate"
-ycoord   <- "YCoordinate"
+# ## Read the datafile and setup the correct names for the variables
+# pts <- read.csv(paste0(sae_dir,point_file))  #####  CHANGE TO MY VALUE HERE
+# 
+# head(pts)
+# names(pts)
+# 
+# ## setup the correct names for the variables
+# map_code <- "map_class"
+# point_id <- "id"
+# xcoord   <- "XCoordinate"
+# ycoord   <- "YCoordinate"
 
 
 
@@ -214,7 +214,7 @@ for(i in 1:nrow(pts)){
   xmax <- pts[i,xcoord]+ysize*cos(pts[1,ycoord]*pi/180)
   
   p  <- Polygon(cbind(c(xmin,xmin,xmax,xmax,xmin),c(ymin,ymax,ymax,ymin,ymin)))
-  ps <- Polygons(list(p), pts[i,1])
+  ps <- Polygons(list(p), pts[i,point_id])
   lp <- append(lp,list(ps))
 }
 
@@ -332,16 +332,18 @@ for(the_id in listodo[1:to_go]){
       i <- i + 1
       
       #Plot natural colours composite (NIR-RED-GREEN == 4-3-2 in L7 nomenclature)
-      stack <- stack(nir,red,green)
-      plotRGB(stack,stretch="hist",add=T)
+      stackNIR <- stack(nir,red,green)
+      stackSWIR <- stack(swir,nir,red)
+      
+      plotRGB(stackSWIR,stretch="hist",add=T)
       #plot(ndvi,add=T)
     },error=function(e){print(paste0("no image available in ",year," for ",lsat_bbox))})
     
     lines(in_poly,col="yellow",lwd=2)
     rect(
       xleft =   margins@xmin, 
-      ybottom = margins@ymax - outside_box_size/10/111320, 
-      xright =  margins@xmin + outside_box_size/1.9/111320, 
+      ybottom = margins@ymax - outside_box_size/15/111320, 
+      xright =  margins@xmin + outside_box_size/2.1/111320, 
       ytop =    margins@ymax, 
       col = "white", 
       border = NA)
@@ -376,10 +378,10 @@ for(the_id in listodo[1:to_go]){
       i <- i + 1
       
       stackNat <- stack(red,grn,blu)
-      #stackVeg <- stack(nir,ndvi,grn)
+      stackVeg <- stack(nir,ndvi,grn)
       stackNIR <- stack(nir,red,grn)
       
-      plotRGB(stackNIR,stretch="hist",add=T)
+      plotRGB(stackNat,stretch="hist",add=T)
       
       
     },error=function(e){print(paste0("no image available in ",year," for sentinel"))})
@@ -387,8 +389,8 @@ for(the_id in listodo[1:to_go]){
     
     rect(
       xleft =   margins@xmin, 
-      ybottom = margins@ymax-100/111320, 
-      xright =  margins@xmin+500/111320, 
+      ybottom = margins@ymax - outside_box_size/15/111320, 
+      xright =  margins@xmin + outside_box_size/2.1/111320, 
       ytop =    margins@ymax, 
       col = "white", 
       border = NA)

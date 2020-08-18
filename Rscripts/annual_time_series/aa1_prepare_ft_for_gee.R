@@ -17,15 +17,16 @@ library(foreign)
 
 
 pts <- read.csv(paste0(sae_dir,point_file))
+pts$map_code <- 1
 
 ## Check that names match
 names(pts)
-map_code <- "map_class"
-point_id <- "id"
-xcoord   <- "XCoordinate"
-ycoord   <- "YCoordinate"
+map_code <- "map_code"
+point_id <- "PLOTID"
+xcoord   <- "LON"
+ycoord   <- "LAT"
 
-
+length(unique(pts$PLOTID))
 ##############################     Perform some checks
 names(pts)
 head(pts)
@@ -53,13 +54,16 @@ for(i in 1:nrow(pts)){
   xmax <- pts[i,xcoord]+ysize*cos(pts[1,ycoord]*pi/180)
   
   p  <- Polygon(cbind(c(xmin,xmin,xmax,xmax,xmin),c(ymin,ymax,ymax,ymin,ymin)))
-  ps <- Polygons(list(p), pts[i,1])
+  ps <- Polygons(list(p), pts[i,point_id])
   lp <- append(lp,list(ps))
 }
 
+length(lp)
+
 #################### Transform the list of polygons into a SPDF
+
 spdf<-SpatialPolygonsDataFrame(
-  SpatialPolygons(lp,1:nrow(pts)), 
+  polys = SpatialPolygons(lp,1:nrow(pts)), 
   pts[,c(map_code,point_id)],#,xcoord,ycoord)], 
   match.ID = F
 )
@@ -72,12 +76,19 @@ head(spdf)
 writeOGR(obj=spdf,dsn=paste0(sae_dir,"pts_2km_boxes.shp"),layer="pts_2km_boxes",driver="ESRI Shapefile",overwrite_layer = T)
 summary(spdf)
 spdf@data
+plot(spdf)
+
 #######################################################################
 ### PART II: Create rectangular grid for export in GEE-API LANDSAT
 #######################################################################
+e <- extent(spdf)
 
 ### What grid size do we need ? (in degrees)
 grid_size <- 2           ## for Landsat  @ 30m spatial resolution
+
+
+if(abs(e@xmin-e@xmax) >= grid_size | abs(e@ymin-e@ymax) >= grid_size){
+
 
 ### Create a set of regular SpatialPoints on the extent of the created polygons  
 sqr <- SpatialPoints(makegrid(spdf,offset=c(0.5,0.5),cellsize = grid_size))
@@ -92,6 +103,26 @@ sqr_df <- SpatialPolygonsDataFrame(
   Sr=SpP_grd,
   data=data.frame(rep(1,length(SpP_grd))),
   match.ID=F)
+}else{
+  
+    ymin <- e@ymin
+    ymax <- e@ymax
+    xmin <- e@xmin
+    xmax <- e@xmax
+    
+    p  <- Polygon(cbind(c(xmin,xmin,xmax,xmax,xmin),c(ymin,ymax,ymax,ymin,ymin)))
+    ps <- Polygons(list(p),"1")
+    lp <- list(ps)
+    
+    sqr_df <-SpatialPolygonsDataFrame(SpatialPolygons(lp), 
+                                      data.frame(matrix(nrow = 1,ncol = 1,data = c(1))),
+                                      match.ID = F
+    )
+    
+  }
+  
+
+
 
 ### Assign the right projection
 proj4string(sqr_df) <- proj4string(spdf)
