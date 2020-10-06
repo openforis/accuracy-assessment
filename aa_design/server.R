@@ -55,10 +55,11 @@ shinyServer(function(input, output, session) {
   observeEvent(input$create_ceo_project, {
     ceo_file_name = paste0(input$basename_CE, "_ceo.csv")
     ceo_file = file.path(outdir(), ceo_file_name)
+    classes <-append(input$cat_hi, input$cat_lo)
     write.csv(ceo_file(), ceo_file, row.names = FALSE)
     csv <- readChar(ceo_file, file.info(ceo_file)$size)
-    message = list(classes = input$cat_hi, title = input$basename_CE, plotSize = input$box_size, csv = csv)
-    #cat(file=stderr(), input$cat_hi, input$basename_CE,  input$box_size, "\n", csv)
+    message = list(classes = classes, title = input$basename_CE, plotSize = input$box_size, csv = csv)
+    #cat(file=stderr(), classes, input$basename_CE,  input$box_size, "\n", csv)
     session$sendCustomMessage(type = "create_ceo_project", message = message)
   })
 
