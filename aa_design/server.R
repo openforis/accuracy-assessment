@@ -1916,11 +1916,18 @@ shinyServer(function(input, output, session) {
   ceo_file <- reactive({
     req(v$done == "done")
     req(CEfile())
+    req(maparea_final())
+    
     ce <- CEfile()
-    ceo <- ce[,c("XCoordinate","YCoordinate","id"#,"map_class","elevation","slope","aspect","region","country"
+    ceo <- ce[,c("XCoordinate","YCoordinate","id","id","map_class"#,"elevation","slope","aspect","region","country"
                  )]
-    names(ceo) <- c("LONGITUDE","LATITUDE","PLOTID"#,"map_class","elevation","slope","aspect","region","country"
+    names(ceo) <- c("LON","LAT","PLOTID","SAMPLEID","map_class"#,"elevation","slope","aspect","region","country"
                     )
+    maparea <- maparea_final()
+
+    ceo <- merge(ceo,maparea, by.x = 'map_class', by.y = 'map_code')
+    ceo <- ceo[,c("LON","LAT","PLOTID","SAMPLEID","map_class","map_edited_class","map_area")]
+    
     ceo
   })
   
@@ -1961,7 +1968,7 @@ shinyServer(function(input, output, session) {
     },
     content  = function(xxx) {
       to_export <- ceo_file()
-      write.csv(ceo_file(), paste(input$basename_CE, "_ceo.csv", sep = ""), row.names = FALSE)
+      write.csv(to_export, xxx, row.names = FALSE)
     }
   )
   
