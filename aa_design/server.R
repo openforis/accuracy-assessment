@@ -55,11 +55,10 @@ shinyServer(function(input, output, session) {
   observeEvent(input$create_ceo_project, {
     ceo_file_name = paste0(input$basename_CE, "_ceo.csv")
     ceo_file = file.path(outdir(), ceo_file_name)
-    classes <-append(input$cat_hi, input$cat_lo)
     write.csv(ceo_file(), ceo_file, row.names = FALSE)
     csv <- readChar(ceo_file, file.info(ceo_file)$size)
-    message = list(classes = classes, title = input$basename_CE, plotSize = input$box_size, csv = csv)
-    #cat(file=stderr(), classes, input$basename_CE,  input$box_size, "\n", csv)
+    message = list(classes = input$cat_hi, title = input$basename_CE, plotSize = input$box_size, csv = csv)
+    #cat(file=stderr(), input$cat_hi, input$basename_CE,  input$box_size, "\n", csv)
     session$sendCustomMessage(type = "create_ceo_project", message = message)
   })
 
@@ -1916,11 +1915,18 @@ shinyServer(function(input, output, session) {
   ceo_file <- reactive({
     req(v$done == "done")
     req(CEfile())
+    req(maparea_final())
+    
     ce <- CEfile()
-    ceo <- ce[,c("XCoordinate","YCoordinate","id"#,"map_class","elevation","slope","aspect","region","country"
+    ceo <- ce[,c("XCoordinate","YCoordinate","id","id","map_class"#,"elevation","slope","aspect","region","country"
                  )]
-    names(ceo) <- c("LONGITUDE","LATITUDE","PLOTID"#,"map_class","elevation","slope","aspect","region","country"
+    names(ceo) <- c("LON","LAT","PLOTID","SAMPLEID","map_class"#,"elevation","slope","aspect","region","country"
                     )
+    maparea <- maparea_final()
+
+    ceo <- merge(ceo,maparea, by.x = 'map_class', by.y = 'map_code')
+    ceo <- ceo[,c("LON","LAT","PLOTID","SAMPLEID","map_class","map_edited_class","map_area")]
+    
     ceo
   })
   
@@ -1961,7 +1967,7 @@ shinyServer(function(input, output, session) {
     },
     content  = function(xxx) {
       to_export <- ceo_file()
-      write.csv(ceo_file(), paste(input$basename_CE, "_ceo.csv", sep = ""), row.names = FALSE)
+      write.csv(to_export, xxx, row.names = FALSE)
     }
   )
   
