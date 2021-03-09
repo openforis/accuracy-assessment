@@ -37,11 +37,14 @@ shinyServer(function(input, output, session) {
         ceo_project_path = file.path(ceo_files_path, input$jsEvent$projectId)
         dir.create(ceo_project_path)
         ceo_file_name = paste0(input$jsEvent$title, "_ceo.csv")
+        pts_file_name = paste0("pts_", input$jsEvent$title, ".csv")
         area_rest_file_name = "area_rast.csv"
         ceo_file = file.path(outdir(), ceo_file_name)
         area_rast_file = file.path(outdir(), area_rest_file_name)
+        pts_file = file.path(outdir(), pts_file_name)
         file.copy(ceo_file, file.path(ceo_project_path, ceo_file_name))
         file.copy(area_rast_file, file.path(ceo_project_path, area_rest_file_name))
+        file.copy(pts_file, file.path(ceo_project_path, pts_file_name))
         tagList(
           textInput("ceo_url", "CEO url:", input$jsEvent$ceoCollectionUrl),
           rclipButton("clipbtn", "Copy CEO url to clipboard", input$ceo_url, icon("clipboard"))
