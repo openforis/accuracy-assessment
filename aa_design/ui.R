@@ -438,8 +438,8 @@ shinyUI(
                     br(),
                     uiOutput("ui_download_CE"),
                     br(),
-                    uiOutput("ui_download_SHP"),
-                    br(),
+                    #uiOutput("ui_download_SHP"),
+                    #br(),
                     uiOutput("ui_export_CEO"),
                     uiOutput("ceo_url_with_clipboard")
                     

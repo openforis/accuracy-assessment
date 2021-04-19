@@ -488,8 +488,9 @@ shinyServer(function(input, output, session) {
     validate(need(input$file, "Missing input: Please select the map file"))
     req(mapType() == "raster_type", input$IsManualAreaRaster != T)
     
-    list_calc <- list("OFT" = "oft",
-                      "R" = "r")
+    if (osSystem == "Linux"){
+      list_calc <- list("OFT" = "oft")
+    }
     
     if (osSystem == "Windows") {
       list_calc <- list("R" = "r")
@@ -1922,7 +1923,7 @@ shinyServer(function(input, output, session) {
     ce <- CEfile()
     ceo <- ce[,c("XCoordinate","YCoordinate","id"#,"map_class","elevation","slope","aspect","region","country"
                  )]
-    names(ceo) <- c("LONGITUDE","LATITUDE","PLOTID"#,"map_class","elevation","slope","aspect","region","country"
+    names(ceo) <- c("LON","LAT","PLOTID"#,"map_class","elevation","slope","aspect","region","country"
                     )
     ceo
   })
@@ -1964,7 +1965,7 @@ shinyServer(function(input, output, session) {
     },
     content  = function(xxx) {
       to_export <- ceo_file()
-      write.csv(ceo_file(), paste(input$basename_CE, "_ceo.csv", sep = ""), row.names = FALSE)
+      write.csv(ceo_file(), xxx, row.names = FALSE)
     }
   )
   
