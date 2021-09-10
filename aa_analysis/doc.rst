@@ -10,7 +10,7 @@ First, open the Stratified Area Estimator-Analysis Tool. In the Apps SEPAL windo
 
 You will land on the **Introduction** page which allows you to choose your language and provides background information on the tool. Note that Reference and Documents are in the same place as the Design tool. The pages that contain the necessary steps for the workflow are on the left side of the screen and need to be completed sequentially.
 
-.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/tree/master/docs/source/img/cookbook/area_estimation/stratified_estimator_analysis_tool.png
+.. figure:: https://github.com/openforis/sepal-doc/blob/master/docs/source/img/cookbook/area_estimation/stratified_estimator_analysis_tool.png
    :alt: The stratified estimator analysis tool.
    :align: center
 
@@ -101,7 +101,7 @@ In this exercise we collected validation data using a stratified sample, so the 
 
     Note that the Map pixel count value differs from these stratified random sample estimates. This shows how using a map pixel count is a poor estimation of actual area.
 
-.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/tree/master/docs/source/img/cookbook/area_estimation/area_estimate_graph.png
+.. figure:: https://github.com/openforis/sepal-doc/blob/master/docs/source/img/cookbook/area_estimation/area_estimate_graph.png
    :alt: A graph of the area estimates based on different sample design.
    :width: 450
    :align: center
