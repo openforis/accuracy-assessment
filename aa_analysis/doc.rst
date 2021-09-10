@@ -10,7 +10,7 @@ First, open the Stratified Area Estimator-Analysis Tool. In the Apps SEPAL windo
 
 You will land on the **Introduction** page which allows you to choose your language and provides background information on the tool. Note that Reference and Documents are in the same place as the Design tool. The pages that contain the necessary steps for the workflow are on the left side of the screen and need to be completed sequentially.
 
-.. figure:: https://github.com/openforis/sepal-doc/blob/master/docs/source/img/cookbook/area_estimation/stratified_estimator_analysis_tool.png
+.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/master/docs/source/img/cookbook/area_estimation/stratified_estimator_analysis_tool.png
    :alt: The stratified estimator analysis tool.
    :align: center
 
@@ -29,7 +29,7 @@ Select the **Inputs** page on the left side of the screen. You will see two data
     -   Click the **Area data** button.
     -   Open the folder starting with :code:`sae_design_`. As a reminder, if you exported your classification to the SEPAL workspace, the file will be in your SEPAL downloads folder.  Within this folder, select **area_rast.csv** (see image below).
 
-.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/tree/master/docs/source/img/cookbook/area_estimation/add_classification.png
+.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/master/docs/source/img/cookbook/area_estimation/add_classification.png
    :alt: Adding the classification
    :width: 450
    :align: center
@@ -60,7 +60,7 @@ Choose the class column from the area file—map_code or map_edited_class. The m
 
 You can add a **Display data** column to enable validation on the fly. You can choose any column from your CEO or CEO-SEPAL project. We recommend either your map class (e.g. PL_MAP_CLASS) or your reference data class (e.g. question name column). This example uses a CEO project.
 
-.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/tree/master/docs/source/img/cookbook/area_estimation/required_input_fields.png
+.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/master/docs/source/img/cookbook/area_estimation/required_input_fields.png
    :alt: The required input fields.
    :width: 450
    :align: center
@@ -73,7 +73,7 @@ The **Results** page will display a few different accuracy statistics, including
 
 The rows represent your assignments while the columns represent the map classifier's. The diagonal represents the number of samples that are in agreement, while the off diagonal cells represent points that were not mapped correctly (or potentially not interpreted correctly).
 
-.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/tree/master/docs/source/img/cookbook/area_estimation/confusion_matrix_output_sepal.png
+.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/master/docs/source/img/cookbook/area_estimation/confusion_matrix_output_sepal.png
    :alt: The confusion matrix output by SEPAL.
    :width: 450
    :align: center
@@ -89,7 +89,7 @@ Under **Area estimates**, the table shows you the area estimates, and producer's
 
 Estimations are broken up into simple and stratified estimates, each of which has its own confidence interval. In this exercise we collected validation data using a stratified sample, so the values we need to use are the stratified random values. Note that all area estimates are in map units. You can change your desired **confidence interval** using the slider at the top of the panel. You can Download area estimates as tabular data (.csv) using the button.
 
-.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/tree/master/docs/source/img/cookbook/area_estimation/area_estimate.png
+.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/master/docs/source/img/cookbook/area_estimation/area_estimate.png
    :alt: The area estimates screen in SEPAL.
    :align: center
 
@@ -101,7 +101,7 @@ In this exercise we collected validation data using a stratified sample, so the 
 
     Note that the Map pixel count value differs from these stratified random sample estimates. This shows how using a map pixel count is a poor estimation of actual area.
 
-.. figure:: https://github.com/openforis/sepal-doc/blob/master/docs/source/img/cookbook/area_estimation/area_estimate_graph.png
+.. figure:: https://raw.githubusercontent.com/openforis/sepal-doc/master/docs/source/img/cookbook/area_estimation/area_estimate_graph.png
    :alt: A graph of the area estimates based on different sample design.
    :width: 450
    :align: center
