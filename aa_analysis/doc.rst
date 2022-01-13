@@ -105,5 +105,3 @@ In this exercise we collected validation data using a stratified sample, so the 
    :alt: A graph of the area estimates based on different sample design.
    :width: 450
    :align: center
-
-.. _module 5:
