@@ -18,7 +18,7 @@ Select the **Inputs** page on the left side of the screen. You will see two data
 
 -   **Reference Data**:  this refers to the table that you classified and exported in the previous section. It will contain a column that identifies the map output class for each point as well as a column for the value from the image interpreter (validation classification).
 
-    -   For projects completed in CEO: Select the **Reference data** button and navigate to the .csv file you downloaded from CEO and then uploaded to SEPAL in `section 4.3.2`_.
+    -   For projects completed in CEO: Select the **Reference data** button and navigate to the .csv file you downloaded from CEO and then uploaded to SEPAL.
     -   For projects completed in CEO-SEPAL bridge:
         -   Check that you are logged out of the Collect Earth Online website.
         -   Paste the URL from your CEO-SEPAL bridge project into the field marked **CEO url**. You can also click the **Paste CEO url from clipboard** button.
@@ -40,7 +40,7 @@ Choose the column with the reference data information.
 
 .. note::
 
-    -   For projects completed in CEO: This will either be your question name or the new column name you created in Part 2 above. Here it is COLLECTED_CLASS following the directions in `section 4.3.2`_.
+    -   For projects completed in CEO: This will either be your question name or the new column name you created in Part 2 above. Here it is COLLECTED_CLASS following the directions.
     -   For projects completed in CEO-SEPAL: ref_code
 
 Choose the column with the map data information
@@ -82,7 +82,7 @@ Typically you would have to create the confusion table yourself and calculate th
 
 .. seealso::
 
-    -   If you completed section `section 4.3.1`_, how does the SAE-Analysis tool's calculations compare with your own?
+    -   If you completed previous sections, how does the SAE-Analysis tool's calculations compare with your own?
     -   You can download confusion matrix as tabular data (.csv) using the button.
 
 Under **Area estimates**, the table shows you the area estimates, and producer's and user's accuracies, all of which were calculated from the error matrix and the class areas (sample weights) from the map product you are assessing.
