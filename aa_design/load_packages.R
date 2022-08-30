@@ -12,8 +12,8 @@ packages <- function(x){
 packages(raster)
 packages(rgeos)
 packages(rgdal)
-packages(ragg)
-packages(Cairo)
+#packages(ragg)
+#packages(Cairo)
 
 ## Packages for Shiny 
 packages(shiny)
