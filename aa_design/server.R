@@ -33,7 +33,7 @@ shinyServer(function(input, output, session) {
       if (input$jsEvent$status == 200) {
         disable("create_ceo_project")
         ceo_files_path = file.path("~", "ceo_files")
-        dir.create(ceo_files_path)
+        dir.create(ceo_files_path,showWarnings = F)
         ceo_project_path = file.path(ceo_files_path, input$jsEvent$projectId)
         dir.create(ceo_project_path)
         ceo_file_name = paste0(input$jsEvent$title, "_ceo.csv")
@@ -804,12 +804,16 @@ shinyServer(function(input, output, session) {
   
   ##################################################################################################################################
   ############### Display the map
-  output$map <- renderPlot({
+  output$theinputmap <- renderLeaflet({
     req(input$IsDisplayMap)
     print('Check: Display the map')
     if (input$IsDisplayMap == T) {
-      plot(lcmap(), axes = FALSE)
-    }
+      #plot(lcmap(), axes = FALSE)
+      #lcmap()
+      
+      m <- leaflet() %>% addTiles()  %>%  addRasterImage(lcmap())
+      m
+   }
   })
   
   
@@ -1925,6 +1929,10 @@ shinyServer(function(input, output, session) {
                  )]
     names(ceo) <- c("LON","LAT","PLOTID"#,"map_class","elevation","slope","aspect","region","country"
                     )
+    ceo$LON <- as.numeric(ceo$LON)
+    ceo$LAT <- as.numeric(ceo$LAT)
+    ceo$PLOTID <- as.numeric(ceo$PLOTID)
+    
     ceo
   })
   

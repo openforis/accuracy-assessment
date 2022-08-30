@@ -285,7 +285,7 @@ shinyUI(
                   conditionalPanel("is.null(input.IsDisplayMap)==F",
                                    box(
                                      title= textOutput('t3_b4_title'), status = "success", solidHeader= TRUE, 
-                                     plotOutput('map')
+                                     leafletOutput('theinputmap')
                                    )
                   )
                 )
