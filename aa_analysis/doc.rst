@@ -109,4 +109,4 @@ In this exercise, we collected validation data using a stratified sample, so the
    :width: 450
    :align: center
 
-For support, :doc:`ask the community <https://groups.google.com/g/sepal-users>`.
+For support, `ask the community <https://groups.google.com/g/sepal-users>`__.
