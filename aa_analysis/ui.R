@@ -44,9 +44,15 @@ shinyUI(
       width = 350,
       sidebarMenu(
         menuItem(textOutput('t1_title',inline=T), tabName = "Intro", icon = icon("dashboard")),
-        menuItem(textOutput('t2_title',inline=T), tabName = 'Input', icon = icon("picture-o")),
+        menuItem(textOutput('t2_title',inline=T), tabName = 'Input', icon = icon("list")),
         menuItem(textOutput('t3_title',inline=T), tabName = 'Check', icon = icon("area-chart")),
-        menuItem(textOutput('t4_title',inline=T), tabName = 'Results', icon = icon("map-marker"))    )
+        menuItem(textOutput('t4_title',inline=T), tabName = 'Results', icon = icon("map-marker")),    
+        hr(),
+        br(),br(),
+        menuItem(textOutput('source_code',inline=T), icon = icon("code"),href = "https://github.com/openforis/accuracy-assessment"),
+        menuItem(textOutput('bug_reports',inline=T), icon = icon("bug")        ,href = "https://github.com/openforis/accuracy-assessment/issues")
+      
+        )
     ),
     
     ####################################################################################
@@ -139,7 +145,7 @@ shinyUI(
                              a(href="http://reddcr.go.cr/sites/default/files/centro-de-documentacion/olofsson_et_al._2014_-_good_practices_for_estimating_area_and_assessing_accuracy_of_land_change.pdf"," Olofsson et al. (2014): Good practices for estimating area and assessing accuracy of land change",target="_blank"),
                              br(),
                              br(),
-                             img(src="thumbnails/AA_cover.jpg", height = 250, width = 200),
+                             img(src="thumbnails/nfma_46_thumbnail.png", height = 250, width = 200),
                              a(href="http://www.fao.org/3/a-i5601e.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank")
                     )
                   )
@@ -156,11 +162,11 @@ shinyUI(
                   box(title= textOutput('t2_b1_title'), status = "success", solidHeader= TRUE,
                           htmlOutput('t2_b1_body'),
 
-                      textInput("ceo_url", "CEO url:"),
-                      actionButton("clipbtn", "Paste CEO url from clipboard", icon = icon("clipboard")),
-                      actionButton("import_ceo_project", "Import CEO project", icon = icon("file-import")),
-                      br(),
-                      br(),
+                      # textInput("ceo_url", "CEO url:"),
+                      # actionButton("clipbtn", "Paste CEO url from clipboard", icon = icon("clipboard")),
+                      # actionButton("import_ceo_project", "Import CEO project", icon = icon("file-import")),
+                      # br(),
+                      # br(),
 
                       shinyFilesButton('CEfilename', 
                                        'Reference data', 

@@ -52,14 +52,14 @@ shinyUI(
       width = 350,
       sidebarMenu(
         menuItem(textOutput('t0_title',inline=T), tabName = "Introduction", icon = icon("dashboard")),
-        menuItem(textOutput('t1_title',inline=T), tabName = 'Inputmap', icon = icon("picture-o")),
+        menuItem(textOutput('t1_title',inline=T), tabName = 'Inputmap', icon = icon("earth-africa")),
         menuItem(textOutput('t2_title',inline=T), tabName = 'Mapareas', icon = icon("area-chart")),
-        menuItem(textOutput('t3_title',inline=T), tabName = 'Classes', icon = icon("map-marker")),
+        menuItem(textOutput('t3_title',inline=T), tabName = 'Classes', icon = icon("list")),
         menuItem(textOutput('t4_title',inline=T), tabName = 'Samplingsize', icon = icon("bar-chart")),
         menuItem(textOutput('t5_title',inline=T), tabName = 'Responsedesign', icon = icon("globe")),
         hr(),
         br(),br(),
-        menuItem(textOutput('source_code',inline=T), icon = icon("file-code-o"),href = "https://github.com/openforis/accuracy-assessment"),
+        menuItem(textOutput('source_code',inline=T), icon = icon("code"),href = "https://github.com/openforis/accuracy-assessment"),
         menuItem(textOutput('bug_reports',inline=T), icon = icon("bug")        ,href = "https://github.com/openforis/accuracy-assessment/issues")
       )
     ),
@@ -153,7 +153,7 @@ shinyUI(
                              a(href="http://reddcr.go.cr/sites/default/files/centro-de-documentacion/olofsson_et_al._2014_-_good_practices_for_estimating_area_and_assessing_accuracy_of_land_change.pdf"," Olofsson et al. (2014): Good practices for estimating area and assessing accuracy of land change",target="_blank"),
                              br(),
                              br(),
-                             img(src="thumbnails/AA_cover.jpg", height = 250, width = 200),
+                             img(src="thumbnails/nfma_46_thumbnail.png", height = 250, width = 200),
                              a(href="http://www.fao.org/3/a-i5601e.pdf"," FAO NFMA paper N46: Map accuracy assessment and area estimation",target="_blank")
                     )
                   )
@@ -254,8 +254,8 @@ shinyUI(
                       solidHeader= TRUE,
                       htmlOutput('t3_b1_body'),
                       uiOutput("MapAreaCalcOption"),
-                      uiOutput("IsAreaCalc"),
-                      uiOutput("UIDisplayMap")
+                      uiOutput("IsAreaCalc")#,
+                      #uiOutput("UIDisplayMap")
                   ),
                   
                   ####################################################################################
@@ -280,14 +280,14 @@ shinyUI(
                   
                   
                   
-                  ####################################################################################
-                  # New box
-                  conditionalPanel("is.null(input.IsDisplayMap)==F",
-                                   box(
-                                     title= textOutput('t3_b4_title'), status = "success", solidHeader= TRUE, 
-                                     leafletOutput('theinputmap')
-                                   )
-                  )
+                  # ####################################################################################
+                  # # New box
+                  # conditionalPanel("is.null(input.IsDisplayMap)==F",
+                  #                  box(
+                  #                    title= textOutput('t3_b4_title'), status = "success", solidHeader= TRUE, 
+                  #                    leafletOutput('theinputmap')
+                  #                  )
+                  # )
                 )
         ),
         ####################################################################################
@@ -397,15 +397,15 @@ shinyUI(
                     title= textOutput('t6_b2_title'), status = "success", solidHeader= TRUE,
                     "",
                     
-                    selectizeInput(
-                      'countrycode',
-                      textOutput('t6_b2_button1'),
-                      choices = getData('ISO3')[,2],
-                      options = list(
-                        placeholder = '',#Please select a country from the list below',#htmlOutput('t6_b2_button1_field'),
-                        onInitialize = I('function() { this.setValue(""); }')
-                      )
-                    ),
+                    # selectizeInput(
+                    #   'countrycode',
+                    #   textOutput('t6_b2_button1'),
+                    #   choices = getData('ISO3')[,2],
+                    #   options = list(
+                    #     placeholder = '',#Please select a country from the list below',#htmlOutput('t6_b2_button1_field'),
+                    #     onInitialize = I('function() { this.setValue(""); }')
+                    #   )
+                    # ),
                     
                     selectizeInput(
                       'nb_groups',
@@ -440,8 +440,8 @@ shinyUI(
                     br(),
                     #uiOutput("ui_download_SHP"),
                     #br(),
-                    uiOutput("ui_export_CEO"),
-                    uiOutput("ceo_url_with_clipboard")
+                    #uiOutput("ui_export_CEO"),
+                    #uiOutput("ceo_url_with_clipboard")
                     
                     ####################################################################################
                     # End of the box

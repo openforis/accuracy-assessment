@@ -1533,82 +1533,82 @@ shinyServer(function(input, output, session) {
     COUNTRY   <- rep("country", length(AREA))
     
     ################ Get the country boundaries, admin info and elevation data
-    if (input$countrycode %in% getData('ISO3')[, 2]) {
-      country <-  input$countrycode
-      print(country)
-      
-      tryCatch({
-        withProgress(message = 'Downloading country names',
-                     value = 0,
-                     {
-                       setProgress(value = .1)
-                       country <-
-                         getData('ISO3', path = paste0(outdir(), "/getDataFiles"))[, 1][getData('ISO3', path =
-                                                                                                  paste0(outdir(), "/getDataFiles"))[, 2] == country]
-                     })
-      }, error = function(e) {
-        cat("ISO3 data not retrieved \n")
-      })
-      
-      tryCatch({
-        withProgress(message = 'Downloading administrative boundaries',
-                     value = 0,
-                     {
-                       setProgress(value = .1)
-                       adm <-
-                         getData (
-                           'GADM',
-                           path = paste0(outdir(), "/getDataFiles"),
-                           country = country,
-                           level = 1
-                         )
-                       
-                       ptdf <- SpatialPointsDataFrame(
-                         coords = data.frame(cbind(XCOORD, YCOORD)),
-                         data = data.frame(ID),
-                         proj4string = CRS("+proj=longlat +datum=WGS84")
-                       )
-                       
-                       proj4string(ptdf) <- proj4string(adm)
-                       adm1 <- over(ptdf, adm)
-                       
-                       ADM1_NAME <- adm1[, 4]
-                       ADM1_NAME <-
-                         str_replace_all(ADM1_NAME, "[[:punct:]]", "")
-                       COUNTRY <- adm1[, 2]
-                       
-                     })
-      }, error = function(e) {
-        cat("GADM data not retrieved \n")
-      })
-      
-      ################ Get the SRTM DEM information for the points
-      tryCatch({
-        withProgress(message = 'Downloading elevation data',
-                     value = 0,
-                     {
-                       elevation <-
-                         getData("alt",
-                                 path = paste0(outdir(), "/getDataFiles"),
-                                 country = country)
-                     })
-        slope  <- tan(terrain(elevation, opt = "slope", unit='radians'))
-        aspect <- terrain(elevation, opt = "aspect", unit='radians')
-        
-        ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
-        SLOPE     <- extract(slope,     cbind(XCOORD, YCOORD))
-        ASPECT    <- extract(aspect,    cbind(XCOORD, YCOORD))
-        
-        rm(elevation)
-        rm(slope)
-        rm(aspect)
-        
-      }, error = function(e) {
-        cat("SRTM data not retrieved \n")
-      })
-      
-      ### End of the country loop, dummy variables used otherwise
-    }
+    # if (input$countrycode %in% getData('ISO3')[, 2]) {
+    #   country <-  input$countrycode
+    #   print(country)
+    #   
+    #   tryCatch({
+    #     withProgress(message = 'Downloading country names',
+    #                  value = 0,
+    #                  {
+    #                    setProgress(value = .1)
+    #                    country <-
+    #                      getData('ISO3', path = paste0(outdir(), "/getDataFiles"))[, 1][getData('ISO3', path =
+    #                                                                                               paste0(outdir(), "/getDataFiles"))[, 2] == country]
+    #                  })
+    #   }, error = function(e) {
+    #     cat("ISO3 data not retrieved \n")
+    #   })
+    #   
+    #   tryCatch({
+    #     withProgress(message = 'Downloading administrative boundaries',
+    #                  value = 0,
+    #                  {
+    #                    setProgress(value = .1)
+    #                    adm <-
+    #                      getData (
+    #                        'GADM',
+    #                        path = paste0(outdir(), "/getDataFiles"),
+    #                        country = country,
+    #                        level = 1
+    #                      )
+    #                    
+    #                    ptdf <- SpatialPointsDataFrame(
+    #                      coords = data.frame(cbind(XCOORD, YCOORD)),
+    #                      data = data.frame(ID),
+    #                      proj4string = CRS("+proj=longlat +datum=WGS84")
+    #                    )
+    #                    
+    #                    proj4string(ptdf) <- proj4string(adm)
+    #                    adm1 <- over(ptdf, adm)
+    #                    
+    #                    ADM1_NAME <- adm1[, 4]
+    #                    ADM1_NAME <-
+    #                      str_replace_all(ADM1_NAME, "[[:punct:]]", "")
+    #                    COUNTRY <- adm1[, 2]
+    #                    
+    #                  })
+    #   }, error = function(e) {
+    #     cat("GADM data not retrieved \n")
+    #   })
+    #   
+    #   ################ Get the SRTM DEM information for the points
+    #   tryCatch({
+    #     withProgress(message = 'Downloading elevation data',
+    #                  value = 0,
+    #                  {
+    #                    elevation <-
+    #                      getData("alt",
+    #                              path = paste0(outdir(), "/getDataFiles"),
+    #                              country = country)
+    #                  })
+    #     slope  <- tan(terrain(elevation, opt = "slope", unit='radians'))
+    #     aspect <- terrain(elevation, opt = "aspect", unit='radians')
+    #     
+    #     ELEVATION <- extract(elevation, cbind(XCOORD, YCOORD))
+    #     SLOPE     <- extract(slope,     cbind(XCOORD, YCOORD))
+    #     ASPECT    <- extract(aspect,    cbind(XCOORD, YCOORD))
+    #     
+    #     rm(elevation)
+    #     rm(slope)
+    #     rm(aspect)
+    #     
+    #   }, error = function(e) {
+    #     cat("SRTM data not retrieved \n")
+    #   })
+    #   
+    #   ### End of the country loop, dummy variables used otherwise
+    # }
     
     ################ Bind all vectors together in one matrix
     m <-
