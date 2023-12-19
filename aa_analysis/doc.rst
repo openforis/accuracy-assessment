@@ -110,5 +110,3 @@ In this exercise, we collected validation data using a stratified sample, so the
    :align: center
 
 For support, `ask the community <https://groups.google.com/g/sepal-users>`__.
-
-.. custom-edit:: https://raw.githubusercontent.com/openforis/accuracy-assessment/master/aa_analysis/doc.rst
