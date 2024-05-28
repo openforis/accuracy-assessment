@@ -555,15 +555,20 @@ shinyServer(function(input, output, session) {
                        # )
                        
                        pixel_count <- function(x){
-                         info    <- gdalinfo(x,hist=T)
-                         buckets <- unlist(str_split(info[grep("bucket",info)+1]," "))
-                         buckets <- as.numeric(buckets[!(buckets == "")])
-                         hist    <- data.frame(cbind(0:(length(buckets)-1),buckets))
-                         hist    <- hist[hist[,2]>0,]
+                         system(paste0("gdalinfo -hist -json ", x, " > ", outdir(),"/stats.json"))
+                         info <- fromJSON(paste0(outdir(), "/stats.json"))
+                         buckets <- unlist(info$bands[[1]]$histogram$buckets)
+                         hist <- data.frame(Bucket = 0:(length(buckets)-1), Count = buckets)
+                         hist    <- hist[hist$Count > 0, ]
+                         #info    <- gdalinfo(x,hist=T)
+                         #buckets <- unlist(str_split(info[grep("bucket",info)+1]," "))
+                         #buckets <- as.numeric(buckets[!(buckets == "")])
+                         #hist    <- data.frame(cbind(0:(length(buckets)-1),buckets))
+                         #hist    <- hist[hist[,2]>0,]
                        }
                        
                        hist <- pixel_count(dataname)
-                       hist$edit <- hist$V1
+                       hist$edit <- hist$Bucket
                        write.table(hist,paste0(outdir(),"/stats.txt"),row.names = F,col.names = F)
                        
                        

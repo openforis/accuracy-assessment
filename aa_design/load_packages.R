@@ -23,7 +23,7 @@ packages(snow)
 packages(htmltools)
 packages(devtools)
 
-packages(gdalUtils)
+#packages(gdalUtils)
 #packages(RCurl)
 
 ## Packages for data table handling
@@ -41,3 +41,4 @@ packages(RColorBrewer)
 ##
 packages(shinyjs)
 packages(rclipboard)
+packages(RJSONIO)
