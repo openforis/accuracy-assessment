@@ -489,7 +489,7 @@ shinyServer(function(input, output, session) {
     req(mapType() == "raster_type", input$IsManualAreaRaster != T)
     
     if (osSystem == "Linux"){
-      list_calc <- list("OFT" = "oft")
+      list_calc <- list("OFT" = "oft","R" = "r")
     }
     
     if (osSystem == "Windows") {
