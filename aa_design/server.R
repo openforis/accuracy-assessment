@@ -279,7 +279,7 @@ shinyServer(function(input, output, session) {
                      setProgress(value = .1)
                      df <- parseFilePaths(volumes, input$file)
                      file_path <- as.character(df[, "datapath"])
-                     lcmap <- raster(file_path)
+                     lcmap <- rast(file_path)
                    })
     } else{
       ## vector
@@ -560,11 +560,6 @@ shinyServer(function(input, output, session) {
                          buckets <- unlist(info$bands[[1]]$histogram$buckets)
                          hist <- data.frame(Bucket = 0:(length(buckets)-1), Count = buckets)
                          hist    <- hist[hist$Count > 0, ]
-                         #info    <- gdalinfo(x,hist=T)
-                         #buckets <- unlist(str_split(info[grep("bucket",info)+1]," "))
-                         #buckets <- as.numeric(buckets[!(buckets == "")])
-                         #hist    <- data.frame(cbind(0:(length(buckets)-1),buckets))
-                         #hist    <- hist[hist[,2]>0,]
                        }
                        
                        hist <- pixel_count(dataname)
@@ -591,15 +586,15 @@ shinyServer(function(input, output, session) {
         print("Computing frequency values using R")
         lcmap <- lcmap()
         ############### Use multicore clusters to compute frequency
-        beginCluster()
+        #beginCluster()
         withProgress(message = 'Computing frequency values.....',
                      value = 0,
                      {
                        setProgress(value = .1)
-                       freq_raster <- freq(lcmap)#, progress='window')
+                       freq_raster <- freq(lcmap, bylayer=FALSE)#, progress='window')
                      })
-        print(freq_raster)
-        endCluster()
+        print(freq_raster$value)
+        #endCluster()
         
         ############### Output the result as a data.frame
         stats <- as.data.frame(freq_raster)
@@ -1085,18 +1080,17 @@ shinyServer(function(input, output, session) {
         }
         map <- lcmap()
         
-        beginCluster()
+        #beginCluster()
         
         ############### Generate 10x times the number of points from overall sample
         withProgress(message = 'Generating random points ',
                      value = 0,
                      {
                        setProgress(value = .1)
-                       rand_sample <-
-                         data.frame(sampleRandom(map, (sum(rp$final) *
+                       rand_sample <-spatSample(map, (sum(rp$final) *
                                                          10 + log((
                                                            sum(rp$map_area)
-                                                         ))), xy = TRUE))
+                                                         ))), method="random", xy = TRUE)
                      })
         names(rand_sample) <- c("x_coord", "y_coord", "map_code")
         rand_sample$id     <- row(rand_sample)[, 1]
@@ -1142,12 +1136,7 @@ shinyServer(function(input, output, session) {
               {
                 setProgress(value = .1)
                 tmp_rtp <-
-                  as.data.frame(rasterToPoints(
-                    map,
-                    fun = function(rast) {
-                      rast == to_rtp[i]
-                    }
-                  ))
+                  as.data.frame(mask(map, map,inverse=TRUE,maskvalues=to_rtp[i]), xy=TRUE)
               }
             )
             
@@ -1164,7 +1153,7 @@ shinyServer(function(input, output, session) {
               rbind(final, tmp)
           }
         }
-        endCluster()
+        #endCluster()
         all_points <- final
         all_features <- all_points
       }
@@ -1331,14 +1320,13 @@ shinyServer(function(input, output, session) {
                    points <- all_features()
                    map <- lcmap()
                    
-                   sp_df <- SpatialPointsDataFrame(
-                     coords = points[, c(1, 2)],
-                     data = data.frame(points[, c(3)]),
-                     proj4string = CRS(proj4string(map))
+                   sp_df <- st_as_sf(points,
+                     coords = c(1, 2),
+                     crs = st_crs(map)
                    )
                    
                    sp_df <-
-                     spTransform(sp_df, CRS("+proj=longlat +datum=WGS84"))
+                     st_transform(sp_df, crs = 4326)
                  })
     #}
     
@@ -1380,7 +1368,7 @@ shinyServer(function(input, output, session) {
     
     #if(mapType()== "raster_type"){
     dfa <- spdf()
-    names(dfa) <- 'map_code'
+    names(dfa)[1] <- 'map_code'
     factpal <- colorFactor("Spectral", dfa$map_code)
     m <- leaflet() %>%
       addTiles() %>%  # Add default OpenStreetMap map tiles
@@ -1454,8 +1442,8 @@ shinyServer(function(input, output, session) {
     print("Check: CEfile raster_type")
     print(rootdir())
     sp_df <- spdf()
-    coord <- sp_df@coords
-    map_code <- sp_df@data[, 1]
+    coord <- st_coordinates(sp_df)
+    map_code <- sp_df[[1]]
     nsamples <- nrow(coord)
     ID <-
       matrix(
