@@ -1093,7 +1093,7 @@ shinyServer(function(input, output, session) {
                        rand_sample <-spatSample(map, (sum(rp$final) *
                                                          10 + log((
                                                            sum(rp$map_area)
-                                                         ))), method="random", xy = TRUE)
+                                                         ))), method="random", xy = TRUE, na.rm=TRUE)
                      })
         names(rand_sample) <- c("x_coord", "y_coord", "map_code")
         rand_sample$id     <- row(rand_sample)[, 1]
