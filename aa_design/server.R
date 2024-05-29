@@ -295,7 +295,7 @@ shinyServer(function(input, output, session) {
                      value = 0,
                      {
                        setProgress(value = .1)
-                       lcmap <- readOGR(direc, basen)
+                       lcmap <- st_read(direc, basen)
                      })
       }
     }
@@ -435,7 +435,8 @@ shinyServer(function(input, output, session) {
   output$selectUI_class_vector <- renderUI({
     req(mapType() == "vector_type")
     shp <- lcmap()
-    categories <- names(shp@data)
+    col_names<- names(shp)
+    categories <- col_names[col_names != "geometry"]
     selectInput(
       "class_attribute_vector",
       label = h5(textOutput("field_col_map_attr_value")),
@@ -466,7 +467,8 @@ shinyServer(function(input, output, session) {
   output$selectUI_area_vector <- renderUI({
     req(mapType() == "vector_type", input$IsManualAreaVector == T)
     shp <- lcmap()
-    categories <- names(shp@data)
+    col_names <- names(shp)
+    categories <- col_names[col_names != "geometry"]
     selectInput(
       "area_attribute2",
       label = h5(textOutput("field_colarea_attr_value")),
@@ -649,16 +651,17 @@ shinyServer(function(input, output, session) {
       print("Compute map area calculation")
       shp <- lcmap()
       class_attr <- input$class_attribute_vector
-      legend     <- levels(as.factor(shp@data[, class_attr]))
+      legend     <- levels(as.factor(shp[[class_attr]]))
       print(class_attr)
       
       ############### Either read the defined column for areas
       if (input$IsManualAreaVector == T) {
         print('using the manual area')
         area_attr <- input$area_attribute2
-        shp@data[, area_attr] <- as.numeric(shp@data[, area_attr])
+        
+        shp[[area_attr]] <- as.numeric(shp[[area_attr]])
         areas  <-
-          tapply(shp@data[, area_attr], shp@data[, class_attr], sum)
+          tapply(shp[[area_attr]], shp[[class_attr]], sum)
       }
       
       ############### Or compute areas
@@ -666,7 +669,7 @@ shinyServer(function(input, output, session) {
         print('computing areas')
         #areas  <- sapply(1:length(legend), function(x){gArea(shp[shp@data[, class_attr] == legend[x], ])})
         areas  <-
-          tapply(gArea(shp, byid = T), shp@data[, class_attr], sum)
+          tapply(st_area(shp), shp[[class_attr]], sum)
       }
       
       
@@ -1249,21 +1252,21 @@ shinyServer(function(input, output, session) {
                        {
                          setProgress(value = .1)
                          i = 1
-                         polys   <- shp[shp@data[, class_attr] == legend[i], ]
+                         polys   <- shp[shp[[class_attr]] == legend[i], ]
                          pts     <-
-                           spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
+                           st_sample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
                                       "random")
-                         att_vec <- rep(legend[i], nrow(pts@coords))
-                         df_pts  <- data.frame(cbind(pts@coords, att_vec))
+                         att_vec <- rep(legend[i], nrow(st_coordinates(pts)))
+                         df_pts  <- data.frame(cbind(st_coordinates(pts), att_vec))
                          
                          for (i in 2:length(legend)) {
                            tryCatch({
-                             polys   <- shp[shp@data[, class_attr] == legend[i], ]
+                             polys   <- shp[shp[[class_attr]] == legend[i], ]
                              pts     <-
-                               spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
-                                          "random", iter=100)
-                             att_vec <- rep(legend[i], nrow(pts@coords))
-                             tmp_pts <- data.frame(cbind(pts@coords, att_vec))
+                               st_sample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
+                                          "random", exact = TRUE)
+                             att_vec <- rep(legend[i], nrow(st_coordinates(pts)))
+                             tmp_pts <- data.frame(cbind(st_coordinates(pts), att_vec))
                              df_pts  <- rbind(df_pts, tmp_pts)
                            }, error = function(e) {
                              cat("No points to sample in this class \n")
@@ -1275,10 +1278,9 @@ shinyServer(function(input, output, session) {
           df_pts[, 1] <- as.numeric(df_pts[, 1])
           df_pts[, 2] <- as.numeric(df_pts[, 2])
           
-          sp_df <- SpatialPointsDataFrame(
-            coords = data.frame(df_pts[, c(1, 2)]),
-            data = data.frame(df_pts[, 3]),
-            proj4string = CRS(proj4string(shp))
+          sp_df <- st_as_sf(df_pts,
+            coords = c(1,2),
+            crs = st_crs(shp)
           )
           
           all_points <- sp_df

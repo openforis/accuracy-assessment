@@ -12,6 +12,7 @@ packages <- function(x){
 #packages(raster)
 packages(terra)
 packages(sf)
+packages(lwgeom)
 #packages(rgeos)
 #packages(rgdal)
 #packages(ragg)
