@@ -32,7 +32,7 @@ packages(devtools)
 ## Packages for data table handling
 packages(xtable)
 packages(DT)
-packages(dismo)
+#packages(dismo)
 packages(stringr)
 packages(plyr)
 
