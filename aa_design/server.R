@@ -435,6 +435,7 @@ shinyServer(function(input, output, session) {
   output$selectUI_class_vector <- renderUI({
     req(mapType() == "vector_type")
     shp <- lcmap()
+    st_geometry(shp)<-"geometry"
     col_names<- names(shp)
     categories <- col_names[col_names != "geometry"]
     selectInput(
@@ -467,6 +468,7 @@ shinyServer(function(input, output, session) {
   output$selectUI_area_vector <- renderUI({
     req(mapType() == "vector_type", input$IsManualAreaVector == T)
     shp <- lcmap()
+    st_geometry(shp)<-"geometry"
     col_names <- names(shp)
     categories <- col_names[col_names != "geometry"]
     selectInput(
