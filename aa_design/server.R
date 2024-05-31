@@ -1095,7 +1095,7 @@ shinyServer(function(input, output, session) {
                        rand_sample <-spatSample(map, (sum(rp$final) *
                                                          10 + log((
                                                            sum(rp$map_area)
-                                                         ))), method="random", xy = TRUE, na.rm=TRUE)
+                                                         ))), method="random", xy = TRUE)
                      })
         names(rand_sample) <- c("x_coord", "y_coord", "map_code")
         rand_sample$id     <- row(rand_sample)[, 1]
@@ -1111,6 +1111,8 @@ shinyServer(function(input, output, session) {
         
         ############### Create the list of classes that need to be specifically sampled
         to_rtp <- rp2[rp2$Freq <  rp2$final, ]$map_code
+
+  
         
         ############### Create the list of classes that are enough represented in the random sampling
         to_spl <- rp2[rp2$Freq >= rp2$final, ]$map_code
@@ -1128,20 +1130,24 @@ shinyServer(function(input, output, session) {
           }
         }
         
-        ############### Loop into the subrepresented classes, raster_to_point then append
+        ############### Loop into the subrepresented classes, mask other classes and sample then append
         if (length(to_rtp) > 0) {
           for (i in 1:length(to_rtp)) {
             withProgress(
               message = paste(
-                'Convert raster to point for rare class ',
+                'Mask other classes for rare class ',
                 to_rtp[i],
                 sep = ""
               ),
               value = 0,
               {
                 setProgress(value = .1)
-                tmp_rtp <-
-                  as.data.frame(mask(map, map,inverse=TRUE,maskvalues=to_rtp[i]), xy=TRUE)
+                size_rtp <- rp2[rp2$map_code==to_rtp[i], ]$final
+                strata <-
+                  mask(map, map,inverse=TRUE,maskvalues=to_rtp[i])
+                tmp_rtp <- 
+                  spatSample(strata, size=size_rtp*10, 
+                             method="random", na.rm=T, xy=T, exhaustive=T)
               }
             )
             
