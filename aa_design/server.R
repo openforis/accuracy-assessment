@@ -595,7 +595,7 @@ shinyServer(function(input, output, session) {
                      value = 0,
                      {
                        setProgress(value = .1)
-                       freq_raster <- freq(lcmap, bylayer=FALSE)#, progress='window')
+                       freq_raster <- freq(as.numeric(lcmap), bylayer=FALSE)#, progress='window')
                      })
         print(freq_raster$value)
         #endCluster()
@@ -1083,7 +1083,7 @@ shinyServer(function(input, output, session) {
         if (input$IsManualSampling == T) {
           rp <- final_sampling()
         }
-        map <- lcmap()
+        map <- as.numeric(lcmap())
         
         #beginCluster()
         
