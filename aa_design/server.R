@@ -279,7 +279,7 @@ shinyServer(function(input, output, session) {
                      setProgress(value = .1)
                      df <- parseFilePaths(volumes, input$file)
                      file_path <- as.character(df[, "datapath"])
-                     lcmap <- raster(file_path)
+                     lcmap <- rast(file_path)
                    })
     } else{
       ## vector
@@ -295,7 +295,7 @@ shinyServer(function(input, output, session) {
                      value = 0,
                      {
                        setProgress(value = .1)
-                       lcmap <- readOGR(direc, basen)
+                       lcmap <- st_read(direc, basen)
                      })
       }
     }
@@ -435,7 +435,9 @@ shinyServer(function(input, output, session) {
   output$selectUI_class_vector <- renderUI({
     req(mapType() == "vector_type")
     shp <- lcmap()
-    categories <- names(shp@data)
+    st_geometry(shp)<-"geometry"
+    col_names<- names(shp)
+    categories <- col_names[col_names != "geometry"]
     selectInput(
       "class_attribute_vector",
       label = h5(textOutput("field_col_map_attr_value")),
@@ -466,7 +468,9 @@ shinyServer(function(input, output, session) {
   output$selectUI_area_vector <- renderUI({
     req(mapType() == "vector_type", input$IsManualAreaVector == T)
     shp <- lcmap()
-    categories <- names(shp@data)
+    st_geometry(shp)<-"geometry"
+    col_names <- names(shp)
+    categories <- col_names[col_names != "geometry"]
     selectInput(
       "area_attribute2",
       label = h5(textOutput("field_colarea_attr_value")),
@@ -489,7 +493,7 @@ shinyServer(function(input, output, session) {
     req(mapType() == "raster_type", input$IsManualAreaRaster != T)
     
     if (osSystem == "Linux"){
-      list_calc <- list("OFT" = "oft")
+      list_calc <- list("OFT" = "oft","R" = "r")
     }
     
     if (osSystem == "Windows") {
@@ -555,15 +559,15 @@ shinyServer(function(input, output, session) {
                        # )
                        
                        pixel_count <- function(x){
-                         info    <- gdalinfo(x,hist=T)
-                         buckets <- unlist(str_split(info[grep("bucket",info)+1]," "))
-                         buckets <- as.numeric(buckets[!(buckets == "")])
-                         hist    <- data.frame(cbind(0:(length(buckets)-1),buckets))
-                         hist    <- hist[hist[,2]>0,]
+                         system(paste0("gdalinfo -hist -json ", x, " > ", outdir(),"/stats.json"))
+                         info <- fromJSON(paste0(outdir(), "/stats.json"))
+                         buckets <- unlist(info$bands[[1]]$histogram$buckets)
+                         hist <- data.frame(Bucket = 0:(length(buckets)-1), Count = buckets)
+                         hist    <- hist[hist$Count > 0, ]
                        }
                        
                        hist <- pixel_count(dataname)
-                       hist$edit <- hist$V1
+                       hist$edit <- hist$Bucket
                        write.table(hist,paste0(outdir(),"/stats.txt"),row.names = F,col.names = F)
                        
                        
@@ -586,15 +590,15 @@ shinyServer(function(input, output, session) {
         print("Computing frequency values using R")
         lcmap <- lcmap()
         ############### Use multicore clusters to compute frequency
-        beginCluster()
+        #beginCluster()
         withProgress(message = 'Computing frequency values.....',
                      value = 0,
                      {
                        setProgress(value = .1)
-                       freq_raster <- freq(lcmap)#, progress='window')
+                       freq_raster <- freq(as.numeric(lcmap), bylayer=FALSE)#, progress='window')
                      })
-        print(freq_raster)
-        endCluster()
+        print(freq_raster$value)
+        #endCluster()
         
         ############### Output the result as a data.frame
         stats <- as.data.frame(freq_raster)
@@ -649,16 +653,17 @@ shinyServer(function(input, output, session) {
       print("Compute map area calculation")
       shp <- lcmap()
       class_attr <- input$class_attribute_vector
-      legend     <- levels(as.factor(shp@data[, class_attr]))
+      legend     <- levels(as.factor(shp[[class_attr]]))
       print(class_attr)
       
       ############### Either read the defined column for areas
       if (input$IsManualAreaVector == T) {
         print('using the manual area')
         area_attr <- input$area_attribute2
-        shp@data[, area_attr] <- as.numeric(shp@data[, area_attr])
+        
+        shp[[area_attr]] <- as.numeric(shp[[area_attr]])
         areas  <-
-          tapply(shp@data[, area_attr], shp@data[, class_attr], sum)
+          tapply(shp[[area_attr]], shp[[class_attr]], sum)
       }
       
       ############### Or compute areas
@@ -666,7 +671,7 @@ shinyServer(function(input, output, session) {
         print('computing areas')
         #areas  <- sapply(1:length(legend), function(x){gArea(shp[shp@data[, class_attr] == legend[x], ])})
         areas  <-
-          tapply(gArea(shp, byid = T), shp@data[, class_attr], sum)
+          tapply(st_area(shp), shp[[class_attr]], sum)
       }
       
       
@@ -1078,20 +1083,19 @@ shinyServer(function(input, output, session) {
         if (input$IsManualSampling == T) {
           rp <- final_sampling()
         }
-        map <- lcmap()
+        map <- as.numeric(lcmap())
         
-        beginCluster()
+        #beginCluster()
         
         ############### Generate 10x times the number of points from overall sample
         withProgress(message = 'Generating random points ',
                      value = 0,
                      {
                        setProgress(value = .1)
-                       rand_sample <-
-                         data.frame(sampleRandom(map, (sum(rp$final) *
+                       rand_sample <-spatSample(map, (sum(rp$final) *
                                                          10 + log((
                                                            sum(rp$map_area)
-                                                         ))), xy = TRUE))
+                                                         ))), method="random", xy = TRUE)
                      })
         names(rand_sample) <- c("x_coord", "y_coord", "map_code")
         rand_sample$id     <- row(rand_sample)[, 1]
@@ -1107,6 +1111,8 @@ shinyServer(function(input, output, session) {
         
         ############### Create the list of classes that need to be specifically sampled
         to_rtp <- rp2[rp2$Freq <  rp2$final, ]$map_code
+
+  
         
         ############### Create the list of classes that are enough represented in the random sampling
         to_spl <- rp2[rp2$Freq >= rp2$final, ]$map_code
@@ -1124,25 +1130,24 @@ shinyServer(function(input, output, session) {
           }
         }
         
-        ############### Loop into the subrepresented classes, raster_to_point then append
+        ############### Loop into the subrepresented classes, mask other classes and sample then append
         if (length(to_rtp) > 0) {
           for (i in 1:length(to_rtp)) {
             withProgress(
               message = paste(
-                'Convert raster to point for rare class ',
+                'Mask other classes for rare class ',
                 to_rtp[i],
                 sep = ""
               ),
               value = 0,
               {
                 setProgress(value = .1)
-                tmp_rtp <-
-                  as.data.frame(rasterToPoints(
-                    map,
-                    fun = function(rast) {
-                      rast == to_rtp[i]
-                    }
-                  ))
+                size_rtp <- rp2[rp2$map_code==to_rtp[i], ]$final
+                strata <-
+                  mask(map, map,inverse=TRUE,maskvalues=to_rtp[i])
+                tmp_rtp <- 
+                  spatSample(strata, size=size_rtp*10, 
+                             method="random", na.rm=T, xy=T, exhaustive=T)
               }
             )
             
@@ -1159,7 +1164,7 @@ shinyServer(function(input, output, session) {
               rbind(final, tmp)
           }
         }
-        endCluster()
+        #endCluster()
         all_points <- final
         all_features <- all_points
       }
@@ -1255,21 +1260,21 @@ shinyServer(function(input, output, session) {
                        {
                          setProgress(value = .1)
                          i = 1
-                         polys   <- shp[shp@data[, class_attr] == legend[i], ]
+                         polys   <- shp[shp[[class_attr]] == legend[i], ]
                          pts     <-
-                           spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
+                           st_sample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
                                       "random")
-                         att_vec <- rep(legend[i], nrow(pts@coords))
-                         df_pts  <- data.frame(cbind(pts@coords, att_vec))
+                         att_vec <- rep(legend[i], nrow(st_coordinates(pts)))
+                         df_pts  <- data.frame(cbind(st_coordinates(pts), att_vec))
                          
                          for (i in 2:length(legend)) {
                            tryCatch({
-                             polys   <- shp[shp@data[, class_attr] == legend[i], ]
+                             polys   <- shp[shp[[class_attr]] == legend[i], ]
                              pts     <-
-                               spsample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
-                                          "random", iter=100)
-                             att_vec <- rep(legend[i], nrow(pts@coords))
-                             tmp_pts <- data.frame(cbind(pts@coords, att_vec))
+                               st_sample(polys, as.numeric(rp[rp$map_code == legend[i], ]$final), type =
+                                          "random", exact = TRUE)
+                             att_vec <- rep(legend[i], nrow(st_coordinates(pts)))
+                             tmp_pts <- data.frame(cbind(st_coordinates(pts), att_vec))
                              df_pts  <- rbind(df_pts, tmp_pts)
                            }, error = function(e) {
                              cat("No points to sample in this class \n")
@@ -1281,10 +1286,9 @@ shinyServer(function(input, output, session) {
           df_pts[, 1] <- as.numeric(df_pts[, 1])
           df_pts[, 2] <- as.numeric(df_pts[, 2])
           
-          sp_df <- SpatialPointsDataFrame(
-            coords = data.frame(df_pts[, c(1, 2)]),
-            data = data.frame(df_pts[, 3]),
-            proj4string = CRS(proj4string(shp))
+          sp_df <- st_as_sf(df_pts,
+            coords = c(1,2),
+            crs = st_crs(shp)
           )
           
           all_points <- sp_df
@@ -1326,14 +1330,13 @@ shinyServer(function(input, output, session) {
                    points <- all_features()
                    map <- lcmap()
                    
-                   sp_df <- SpatialPointsDataFrame(
-                     coords = points[, c(1, 2)],
-                     data = data.frame(points[, c(3)]),
-                     proj4string = CRS(proj4string(map))
+                   sp_df <- st_as_sf(points,
+                     coords = c(1, 2),
+                     crs = st_crs(map)
                    )
                    
                    sp_df <-
-                     spTransform(sp_df, CRS("+proj=longlat +datum=WGS84"))
+                     st_transform(sp_df, crs = 4326)
                  })
     #}
     
@@ -1375,7 +1378,7 @@ shinyServer(function(input, output, session) {
     
     #if(mapType()== "raster_type"){
     dfa <- spdf()
-    names(dfa) <- 'map_code'
+    names(dfa)[1] <- 'map_code'
     factpal <- colorFactor("Spectral", dfa$map_code)
     m <- leaflet() %>%
       addTiles() %>%  # Add default OpenStreetMap map tiles
@@ -1449,8 +1452,8 @@ shinyServer(function(input, output, session) {
     print("Check: CEfile raster_type")
     print(rootdir())
     sp_df <- spdf()
-    coord <- sp_df@coords
-    map_code <- sp_df@data[, 1]
+    coord <- st_coordinates(sp_df)
+    map_code <- sp_df[[1]]
     nsamples <- nrow(coord)
     ID <-
       matrix(

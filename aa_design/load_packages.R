@@ -9,12 +9,15 @@ packages <- function(x){
   }
 }
 ## Packages for geospatial data handling
-packages(raster)
-packages(rgeos)
-packages(rgdal)
+#packages(raster)
+packages(terra)
+packages(sf)
+packages(lwgeom)
+#packages(rgeos)
+#packages(rgdal)
 #packages(ragg)
 #packages(Cairo)
-
+packages(RJSONIO)
 ## Packages for Shiny 
 packages(shiny)
 packages(shinydashboard)
@@ -23,13 +26,13 @@ packages(snow)
 packages(htmltools)
 packages(devtools)
 
-packages(gdalUtils)
+#packages(gdalUtils)
 #packages(RCurl)
 
 ## Packages for data table handling
 packages(xtable)
 packages(DT)
-packages(dismo)
+#packages(dismo)
 packages(stringr)
 packages(plyr)
 
@@ -41,3 +44,4 @@ packages(RColorBrewer)
 ##
 packages(shinyjs)
 packages(rclipboard)
+
